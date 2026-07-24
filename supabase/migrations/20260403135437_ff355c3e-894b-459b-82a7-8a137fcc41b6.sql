@@ -1,0 +1,1 @@
+UPDATE public.products SET variants = '[{"label":"127V","oldPrice":364.9,"price":68.2,"stock":7},{"label":"220V","oldPrice":364.9,"price":68.2,"stock":3}]'::jsonb WHERE id = '8dc841c3-9966-4da1-b428-11a7dc6dd783';
