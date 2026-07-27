@@ -1,3 +1,8 @@
+/**
+ * @file ProductManager.tsx
+ * @description Componente central para gerenciamento do produto principal, incluindo informações básicas, galeria de imagens, variantes de preço/estoque, descrição e avaliações de clientes.
+ */
+
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -6,6 +11,10 @@ import {
   CheckCircle, GripVertical, Upload, X
 } from "lucide-react";
 
+/**
+ * @interface Variant
+ * @description Estrutura de uma variante de produto (ex: tamanho, modelo).
+ */
 interface Variant {
   label: string;
   price: number;
@@ -13,6 +22,10 @@ interface Variant {
   stock: number;
 }
 
+/**
+ * @interface ProductData
+ * @description Estrutura completa dos dados de um produto.
+ */
 interface ProductData {
   id: string;
   title: string;
@@ -28,6 +41,10 @@ interface ProductData {
   badges: string[];
 }
 
+/**
+ * @interface ReviewData
+ * @description Estrutura de uma avaliação de cliente.
+ */
 interface ReviewData {
   id: string;
   reviewer_name: string;
@@ -40,12 +57,17 @@ interface ReviewData {
   display_order: number;
 }
 
+// Estilos de classe reutilizáveis para manter a consistência do layout admin
 const inputClass = "w-full px-3 py-2.5 rounded-lg bg-[hsl(220,20%,7%)] border border-[hsl(220,15%,18%)] text-white text-[11px] outline-none focus:border-[hsl(14,100%,55%)] transition-colors";
 const labelClass = "text-[10px] text-[hsl(220,10%,45%)] block mb-1.5 uppercase tracking-wider font-medium";
 const btnPrimary = "py-2.5 px-4 rounded-lg bg-gradient-to-r from-[hsl(14,100%,55%)] to-[hsl(14,100%,45%)] text-white text-[11px] font-semibold hover:opacity-90 transition-opacity disabled:opacity-50 shadow-lg shadow-[hsl(14,100%,30%)]/15";
 const cardClass = "bg-[hsl(220,20%,11%)] border border-[hsl(220,15%,16%)] rounded-xl overflow-hidden";
 const headerClass = "px-5 py-4 border-b border-[hsl(220,15%,14%)] flex items-center gap-3";
 
+/**
+ * @component ProductManager
+ * @description Interface administrativa completa para edição do produto e seus depoimentos.
+ */
 const ProductManager = () => {
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
@@ -58,10 +80,14 @@ const ProductManager = () => {
   const [newImageUrl, setNewImageUrl] = useState("");
   const [uploadingImage, setUploadingImage] = useState(false);
 
+  // Carrega os dados do produto ativo ao iniciar
   useEffect(() => {
     loadProduct();
   }, []);
 
+  /**
+   * Busca os dados do produto e suas avaliações no banco de dados.
+   */
   const loadProduct = async () => {
     const { data: pData } = await supabase
       .from("products")
@@ -99,6 +125,9 @@ const ProductManager = () => {
     setLoading(false);
   };
 
+  /**
+   * Salva as alterações principais do produto no banco de dados.
+   */
   const saveProduct = async () => {
     if (!product) return;
     setSaving(true);
@@ -129,11 +158,14 @@ const ProductManager = () => {
     setSaving(false);
   };
 
+  /**
+   * Salva as avaliações dos clientes, deletando as antigas e inserindo as novas ordens.
+   */
   const saveReviews = async () => {
     if (!product) return;
     setReviewsSaving(true);
 
-    // Delete all existing reviews then re-insert
+    // Remove todas as avaliações existentes para substituir pela nova lista (sincronização total)
     await supabase.from("product_reviews").delete().eq("product_id", product.id);
 
     if (reviews.length > 0) {
@@ -159,7 +191,7 @@ const ProductManager = () => {
 
     toast({ title: "Avaliações salvas!" });
     setReviewsSaving(false);
-    // Reload to get new IDs
+    // Recarrega para obter os novos IDs gerados
     if (product) {
       const { data } = await supabase
         .from("product_reviews")
@@ -170,6 +202,9 @@ const ProductManager = () => {
     }
   };
 
+  /**
+   * Gerencia o upload de imagens para o Supabase Storage.
+   */
   const handleImageUpload = async (file: File) => {
     if (!product) return;
     setUploadingImage(true);
@@ -186,17 +221,26 @@ const ProductManager = () => {
     setUploadingImage(false);
   };
 
+  /**
+   * Adiciona uma URL de imagem externa à galeria.
+   */
   const addImageUrl = () => {
     if (!product || !newImageUrl.trim()) return;
     setProduct({ ...product, images: [...product.images, newImageUrl.trim()] });
     setNewImageUrl("");
   };
 
+  /**
+   * Remove uma imagem da galeria.
+   */
   const removeImage = (idx: number) => {
     if (!product) return;
     setProduct({ ...product, images: product.images.filter((_, i) => i !== idx) });
   };
 
+  /**
+   * Atualiza os campos de uma variante específica.
+   */
   const updateVariant = (idx: number, field: keyof Variant, value: any) => {
     if (!product) return;
     const v = [...product.variants];
@@ -204,24 +248,26 @@ const ProductManager = () => {
     setProduct({ ...product, variants: v });
   };
 
+  /**
+   * Adiciona uma nova variante de preço/estoque.
+   */
   const addVariant = () => {
     if (!product) return;
     setProduct({ ...product, variants: [...product.variants, { label: "", price: 0, oldPrice: 0, stock: 10 }] });
   };
 
+  /**
+   * Remove uma variante.
+   */
   const removeVariant = (idx: number) => {
     if (!product) return;
     const v = product.variants.filter((_, i) => i !== idx);
     setProduct({ ...product, variants: v, default_variant: Math.min(product.default_variant, v.length - 1) });
   };
 
-  const updateBadge = (idx: number, value: string) => {
-    if (!product) return;
-    const b = [...product.badges];
-    b[idx] = value;
-    setProduct({ ...product, badges: b });
-  };
-
+  /**
+   * Adiciona uma nova avaliação vazia para preenchimento.
+   */
   const addReview = () => {
     setReviews([...reviews, {
       id: `new-${Date.now()}`,
@@ -236,6 +282,9 @@ const ProductManager = () => {
     }]);
   };
 
+  /**
+   * Atualiza os campos de um depoimento.
+   */
   const updateReview = (idx: number, field: string, value: any) => {
     const r = [...reviews];
     (r[idx] as any)[field] = value;
@@ -245,6 +294,9 @@ const ProductManager = () => {
     setReviews(r);
   };
 
+  /**
+   * Remove um depoimento.
+   */
   const removeReview = (idx: number) => {
     setReviews(reviews.filter((_, i) => i !== idx));
   };
@@ -271,7 +323,7 @@ const ProductManager = () => {
 
   return (
     <div className="max-w-4xl space-y-4">
-      {/* Section tabs */}
+      {/* Abas das seções do gerenciador */}
       <div className="flex gap-1.5 overflow-x-auto scrollbar-none pb-1">
         {sections.map(s => (
           <button
@@ -289,7 +341,7 @@ const ProductManager = () => {
         ))}
       </div>
 
-      {/* Basic Info */}
+      {/* Seção: Informações Básicas */}
       {activeSection === "basic" && (
         <div className={cardClass}>
           <div className={headerClass}>
@@ -349,7 +401,7 @@ const ProductManager = () => {
         </div>
       )}
 
-      {/* Images */}
+      {/* Seção: Imagens */}
       {activeSection === "images" && (
         <div className={cardClass}>
           <div className={headerClass}>
@@ -362,7 +414,6 @@ const ProductManager = () => {
             </div>
           </div>
           <div className="p-5 space-y-4">
-            {/* Cart image */}
             <div>
               <label className={labelClass}>Imagem do Carrinho / Checkout</label>
               <input
@@ -376,7 +427,6 @@ const ProductManager = () => {
               )}
             </div>
 
-            {/* Gallery */}
             <div>
               <label className={labelClass}>Galeria de Imagens</label>
               <div className="grid grid-cols-3 gap-2 mb-3">
@@ -394,7 +444,6 @@ const ProductManager = () => {
                 ))}
               </div>
 
-              {/* Add by URL */}
               <div className="flex gap-2 mb-2">
                 <input
                   value={newImageUrl}
@@ -408,7 +457,6 @@ const ProductManager = () => {
                 </button>
               </div>
 
-              {/* Upload */}
               <label className="flex items-center justify-center gap-2 py-3 rounded-lg border-2 border-dashed border-[hsl(220,15%,20%)] cursor-pointer hover:border-[hsl(14,100%,55%)] transition-colors">
                 {uploadingImage ? <Loader2 className="w-4 h-4 animate-spin text-[hsl(14,100%,55%)]" /> : <Upload className="w-4 h-4 text-[hsl(220,10%,40%)]" />}
                 <span className="text-[11px] text-[hsl(220,10%,40%)]">{uploadingImage ? "Enviando..." : "Upload de imagem"}</span>
@@ -423,7 +471,7 @@ const ProductManager = () => {
         </div>
       )}
 
-      {/* Variants */}
+      {/* Seção: Variantes */}
       {activeSection === "variants" && (
         <div className={cardClass}>
           <div className={headerClass}>
@@ -502,7 +550,7 @@ const ProductManager = () => {
         </div>
       )}
 
-      {/* Description */}
+      {/* Seção: Descrição */}
       {activeSection === "description" && (
         <div className={cardClass}>
           <div className={headerClass}>
@@ -528,7 +576,7 @@ const ProductManager = () => {
         </div>
       )}
 
-      {/* Reviews */}
+      {/* Seção: Avaliações */}
       {activeSection === "reviews" && (
         <div className={cardClass}>
           <div className={headerClass}>

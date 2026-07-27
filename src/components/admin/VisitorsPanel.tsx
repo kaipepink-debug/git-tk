@@ -1,7 +1,16 @@
+/**
+ * @file VisitorsPanel.tsx
+ * @description Componente de monitoramento de visitantes em tempo real, exibindo dispositivos, sessões ativas e páginas mais acessadas.
+ */
+
 import { Globe, Monitor, Smartphone, Clock, ShieldCheck } from "lucide-react";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
+/**
+ * @interface ActiveSession
+ * @description Estrutura de uma sessão de usuário ativa.
+ */
 interface ActiveSession {
   id: string;
   session_id: string;
@@ -10,10 +19,18 @@ interface ActiveSession {
   user_agent?: string | null;
 }
 
+/**
+ * @interface VisitorsPanelProps
+ * @description Propriedades do componente VisitorsPanel.
+ * @property {ActiveSession[]} sessions - Lista de sessões ativas fornecida pelo dashboard.
+ */
 interface VisitorsPanelProps {
   sessions: ActiveSession[];
 }
 
+/**
+ * Mapeamento de rotas para nomes amigáveis.
+ */
 const pageLabels: Record<string, string> = {
   "/": "Página Inicial",
   "/produto/presell": "Pre-Sell",
@@ -24,9 +41,15 @@ const pageLabels: Record<string, string> = {
   "/pagamento-pix": "Pagamento PIX",
 };
 
+/**
+ * @component VisitorsPanel
+ * @description Exibe estatísticas de tempo real sobre quem está navegando no site.
+ * @param {VisitorsPanelProps} props - Propriedades do componente.
+ */
 const VisitorsPanel = ({ sessions }: VisitorsPanelProps) => {
   const [presellUnlocks, setPresellUnlocks] = useState(0);
 
+  // Busca o contador de desbloqueios de pre-sell do dia
   useEffect(() => {
     const fetchPresellUnlocks = async () => {
       const today = new Date();
@@ -43,6 +66,7 @@ const VisitorsPanel = ({ sessions }: VisitorsPanelProps) => {
     return () => clearInterval(interval);
   }, []);
 
+  // Agrupa sessões por página para o gráfico de barras
   const pageGroups = sessions.reduce((acc, s) => {
     acc[s.page] = (acc[s.page] || 0) + 1;
     return acc;
@@ -50,9 +74,13 @@ const VisitorsPanel = ({ sessions }: VisitorsPanelProps) => {
 
   const maxCount = Math.max(...Object.values(pageGroups), 1);
 
+  // Identifica dispositivos móveis baseado no User Agent
   const mobileCount = sessions.filter(s => /mobile|android|iphone/i.test(s.user_agent || "")).length;
   const desktopCount = sessions.length - mobileCount;
 
+  /**
+   * Calcula há quanto tempo a sessão foi vista pela última vez.
+   */
   const getTimeSince = (dateStr: string) => {
     const diff = Math.floor((Date.now() - new Date(dateStr).getTime()) / 1000);
     if (diff < 10) return "agora";
@@ -62,7 +90,7 @@ const VisitorsPanel = ({ sessions }: VisitorsPanelProps) => {
 
   return (
     <div className="space-y-4">
-      {/* Summary row */}
+      {/* Linha de Resumo superior */}
       <div className="grid grid-cols-4 gap-3">
         <div className="bg-[hsl(220,20%,11%)] border border-[hsl(220,15%,16%)] rounded-xl p-4 flex items-center gap-3">
           <div className="w-10 h-10 rounded-lg bg-[hsl(145,70%,10%)] flex items-center justify-center">
@@ -103,7 +131,7 @@ const VisitorsPanel = ({ sessions }: VisitorsPanelProps) => {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {/* Pages breakdown */}
+        {/* Detalhamento por Página */}
         <div className="bg-[hsl(220,20%,11%)] border border-[hsl(220,15%,16%)] rounded-xl p-5">
           <h3 className="text-sm font-semibold text-white mb-1">Visitantes por Página</h3>
           <p className="text-[10px] text-[hsl(220,10%,40%)] mb-4">Distribuição em tempo real</p>
@@ -140,7 +168,7 @@ const VisitorsPanel = ({ sessions }: VisitorsPanelProps) => {
           )}
         </div>
 
-        {/* Sessions list */}
+        {/* Lista de Sessões Individuais */}
         <div className="bg-[hsl(220,20%,11%)] border border-[hsl(220,15%,16%)] rounded-xl p-5">
           <h3 className="text-sm font-semibold text-white mb-1">Sessões Ativas</h3>
           <p className="text-[10px] text-[hsl(220,10%,40%)] mb-4">{sessions.length} sessões em andamento</p>

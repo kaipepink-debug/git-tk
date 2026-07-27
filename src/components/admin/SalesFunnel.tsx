@@ -1,5 +1,18 @@
+/**
+ * @file SalesFunnel.tsx
+ * @description Visualização de funil de vendas que mostra a progressão dos usuários desde a visita até o pagamento do PIX.
+ */
+
 import { ArrowDown } from "lucide-react";
 
+/**
+ * @interface SalesFunnelProps
+ * @description Propriedades do componente SalesFunnel.
+ * @property {number} visitors - Total de visitantes únicos.
+ * @property {number} checkoutStarted - Total de checkouts iniciados.
+ * @property {number} pixGenerated - Total de códigos PIX gerados.
+ * @property {number} pixPaid - Total de pagamentos confirmados.
+ */
 interface SalesFunnelProps {
   visitors: number;
   checkoutStarted: number;
@@ -7,7 +20,13 @@ interface SalesFunnelProps {
   pixPaid: number;
 }
 
+/**
+ * @component SalesFunnel
+ * @description Renderiza barras horizontais proporcionais para cada etapa do funil de vendas.
+ * @param {SalesFunnelProps} props - Propriedades do componente.
+ */
 const SalesFunnel = ({ visitors, checkoutStarted, pixGenerated, pixPaid }: SalesFunnelProps) => {
+  // Definição das etapas do funil
   const steps = [
     { label: "Visitantes", value: visitors, color: "hsl(210,100%,65%)", bg: "hsl(210,100%,12%)" },
     { label: "Checkout Iniciado", value: checkoutStarted, color: "hsl(45,100%,60%)", bg: "hsl(45,100%,10%)" },
@@ -25,7 +44,9 @@ const SalesFunnel = ({ visitors, checkoutStarted, pixGenerated, pixPaid }: Sales
       </div>
       <div className="space-y-1">
         {steps.map((step, i) => {
+          // Calcula largura proporcional (mínimo de 12% para visibilidade)
           const width = Math.max((step.value / maxValue) * 100, 12);
+          // Calcula taxa de conversão em relação à etapa anterior
           const convFromPrev = i > 0 && steps[i - 1].value > 0
             ? ((step.value / steps[i - 1].value) * 100).toFixed(1)
             : null;
@@ -71,7 +92,7 @@ const SalesFunnel = ({ visitors, checkoutStarted, pixGenerated, pixPaid }: Sales
         })}
       </div>
 
-      {/* Overall conversion */}
+      {/* Conversão Total (Visitantes -> Pago) */}
       <div className="mt-5 pt-4 border-t border-[hsl(220,15%,16%)]">
         <div className="flex items-center justify-between">
           <span className="text-[10px] text-[hsl(220,10%,45%)] uppercase tracking-wider font-medium">Conversão Total</span>
