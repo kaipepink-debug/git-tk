@@ -1,3 +1,10 @@
+/**
+ * Rota: /admin (protegida)
+ * Propósito: Painel de controle central para administração da loja.
+ * Gerencia pedidos em tempo real, visitantes ativos, métricas de vendas,
+ * integrações de gateway, configurações de pixels e gerenciamento de produtos.
+ */
+
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Settings, BarChart3, ShoppingCart, Plug, Eye, MousePointerClick, Activity, Lock, Mail, KeyRound, Users, Package } from "lucide-react";
@@ -16,6 +23,9 @@ import RevenueBreakdown from "@/components/admin/RevenueBreakdown";
 import DateRangePicker from "@/components/admin/DateRangePicker";
 import ProductManager from "@/components/admin/ProductManager";
 
+/**
+ * Interface representando uma sessão ativa de usuário.
+ */
 interface ActiveSession {
   id: string;
   session_id: string;
@@ -23,6 +33,9 @@ interface ActiveSession {
   last_seen_at: string;
 }
 
+/**
+ * Interface representando um pedido realizado.
+ */
 interface Order {
   id: string;
   customer_name: string;
@@ -39,9 +52,16 @@ interface Order {
   customer_cep?: string | null;
 }
 
+/**
+ * Chaves válidas para as abas do dashboard.
+ */
 type TabKey = "overview" | "orders" | "visitors" | "analytics" | "customers" | "product" | "integrations" | "settings";
 
+/**
+ * Componente principal do Painel Administrativo.
+ */
 const AdminDashboard = () => {
+  // Estados de Autenticação e Carregamento
   const [user, setUser] = useState<any>(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -50,6 +70,7 @@ const AdminDashboard = () => {
   const [loginError, setLoginError] = useState("");
   const [loginLoading, setLoginLoading] = useState(false);
 
+  // Estados de Dados do Dashboard
   const [sessions, setSessions] = useState<ActiveSession[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
   const [soundEnabled, setSoundEnabled] = useState(true);
@@ -61,7 +82,7 @@ const AdminDashboard = () => {
   });
   const [activeGateway, setActiveGateway] = useState("");
 
-  // Derive period from dateRange for backward compat
+  // Calcula o período para filtros retrocompatíveis
   const period = (() => {
     const diffDays = Math.ceil((dateRange.to.getTime() - dateRange.from.getTime()) / 86400000);
     if (diffDays <= 1) return "today" as const;
@@ -69,7 +90,7 @@ const AdminDashboard = () => {
     return "30days" as const;
   })();
 
-  // Auth
+  // Efeito para gerenciar estado de autenticação e verificar permissões de Admin
   useEffect(() => {
     let isMounted = true;
 
@@ -104,6 +125,9 @@ const AdminDashboard = () => {
     };
   }, []);
 
+  /**
+   * Reproduz um som de alerta (usado para novos pedidos ou pagamentos confirmados).
+   */
   const playAlert = useCallback(() => {
     try {
       const ctx = new AudioContext();
@@ -125,10 +149,10 @@ const AdminDashboard = () => {
         o2.start();
         o2.stop(ctx.currentTime + 0.3);
       }, 200);
-    } catch { /* */ }
+    } catch { /* erro silencioso em navegadores que bloqueiam áudio automático */ }
   }, []);
 
-  // Fetch data
+  // Efeito principal para buscar dados e configurar canais Real-Time do Supabase
   useEffect(() => {
     if (!isAdmin) return;
 
@@ -147,6 +171,7 @@ const AdminDashboard = () => {
 
     fetchAll();
 
+    // Inscrição para atualizações em tempo real nos pedidos
     const ordersChannel = supabase
       .channel("orders-rt")
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "orders" }, (payload) => {
@@ -158,6 +183,7 @@ const AdminDashboard = () => {
       })
       .subscribe();
 
+    // Inscrição para sessões ativas
     const sessChannel = supabase
       .channel("sess-rt")
       .on("postgres_changes", { event: "*", schema: "public", table: "active_sessions" }, async () => {
@@ -166,13 +192,14 @@ const AdminDashboard = () => {
       })
       .subscribe();
 
+    // Intervalo para atualizar sessões a cada 10s
     const interval = setInterval(async () => {
       const { data } = await supabase.from("active_sessions").select("*").order("last_seen_at", { ascending: false });
       if (data) setSessions(data as ActiveSession[]);
     }, 10000);
 
+    // Verificação de pagamentos Pix pendentes via Edge Function
     const paymentInterval = setInterval(async () => {
-      // Use functional update to get latest orders without stale closure
       let pendingOrders: Order[] = [];
       setOrders(prev => {
         pendingOrders = prev.filter(o => o.status === "pix_generated" && o.transaction_id);
@@ -183,13 +210,12 @@ const AdminDashboard = () => {
           const { data, error } = await supabase.functions.invoke("check-payment", {
             body: { transaction_id: order.transaction_id },
           });
-          console.log(`Payment check for ${order.transaction_id}:`, data, error);
           if (!error && data?.status === "paid") {
             setOrders(prev => prev.map(o => o.id === order.id ? { ...o, status: "paid" } : o));
             if (soundEnabled) playAlert();
           }
         } catch (err) {
-          console.error("Payment check error:", err);
+          console.error("Erro ao verificar pagamento:", err);
         }
       }
     }, 10000);
@@ -202,6 +228,10 @@ const AdminDashboard = () => {
     };
   }, [isAdmin, soundEnabled, playAlert]);
 
+  /**
+   * Manipula o login do administrador.
+   * @param e - Evento de formulário.
+   */
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoginLoading(true);
@@ -211,18 +241,22 @@ const AdminDashboard = () => {
     setLoginLoading(false);
   };
 
+  /**
+   * Realiza o logout do sistema.
+   */
   const handleLogout = async () => {
     await supabase.auth.signOut();
     setUser(null);
     setIsAdmin(false);
   };
 
-  // Funnel data
+  // Cálculos do Funil de Vendas baseados em sessões e pedidos
   const funnelVisitors = sessions.length + orders.length * 3;
   const checkoutStarted = orders.length;
   const pixGenerated = orders.filter(o => o.status === "pix_generated" || o.status === "paid").length;
   const pixPaid = orders.filter(o => o.status === "paid").length;
 
+  // Tela de carregamento inicial
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[hsl(220,25%,5%)]">
@@ -242,6 +276,7 @@ const AdminDashboard = () => {
     );
   }
 
+  // Tela de Login se não estiver autenticado ou não for Admin
   if (!user || !isAdmin) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[hsl(220,25%,5%)] px-4">
@@ -302,6 +337,7 @@ const AdminDashboard = () => {
     );
   }
 
+  // Definição das abas laterais/superiores do dashboard
   const tabs: { key: TabKey; label: string; icon: any }[] = [
     { key: "overview", label: "Visão Geral", icon: BarChart3 },
     { key: "orders", label: "Pedidos", icon: ShoppingCart },
@@ -315,6 +351,7 @@ const AdminDashboard = () => {
 
   return (
     <div className="min-h-screen bg-[hsl(220,25%,5%)] text-white">
+      {/* Barra superior com status do gateway e sessões ao vivo */}
       <DashboardTopBar
         activeGateway={activeGateway}
         liveCount={sessions.length}
@@ -323,7 +360,7 @@ const AdminDashboard = () => {
         onLogout={handleLogout}
       />
 
-      {/* Navigation bar */}
+      {/* Menu de Navegação entre abas */}
       <div className="border-b border-[hsl(220,15%,12%)] bg-[hsl(220,22%,7%)]">
         <div className="px-6 flex items-center justify-between">
           <div className="flex items-center -mb-px overflow-x-auto scrollbar-none">
@@ -343,13 +380,14 @@ const AdminDashboard = () => {
             ))}
           </div>
 
+          {/* Seletor de data para abas que exibem métricas temporais */}
           {activeTab !== "integrations" && activeTab !== "settings" && activeTab !== "product" && (
             <DateRangePicker dateRange={dateRange} onDateRangeChange={setDateRange} />
           )}
         </div>
       </div>
 
-      {/* Content */}
+      {/* Área de Conteúdo dinâmico baseado na aba ativa */}
       <div className="px-6 py-5 space-y-4">
         {activeTab === "overview" && (
           <>

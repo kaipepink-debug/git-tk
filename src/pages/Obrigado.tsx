@@ -1,12 +1,23 @@
+/**
+ * Rota: /obrigado
+ * Propósito: Página de agradecimento exibida após a confirmação do pagamento.
+ * Fornece informações sobre postagem, rastreamento e suporte pós-venda.
+ */
+
 import { CheckCircle2, Package, Truck, Mail } from "lucide-react";
 import { useEffect } from "react";
 import { useSessionTracker } from "@/hooks/useSessionTracker";
 
+/**
+ * Componente da página de Obrigado.
+ * Limpa estados de sessão e orienta o cliente sobre os próximos passos.
+ */
 const Obrigado = () => {
+  // Rastreia a sessão
   useSessionTracker("/obrigado");
 
   useEffect(() => {
-    // Clear cart/session data
+    // Limpa dados de oferta da sessão após conclusão bem-sucedida
     sessionStorage.removeItem("presell_unlocked");
   }, []);
 
@@ -14,7 +25,7 @@ const Obrigado = () => {
     <div className="min-h-screen bg-secondary max-w-lg mx-auto flex flex-col items-center px-6 pt-12 pb-20"
       style={{ fontFamily: "-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Oxygen,Ubuntu,Cantarell,sans-serif" }}>
       
-      {/* Success icon */}
+      {/* Ícone de Sucesso */}
       <div className="w-20 h-20 rounded-full bg-[hsl(145,70%,94%)] flex items-center justify-center mb-6">
         <CheckCircle2 className="w-10 h-10 text-[hsl(145,70%,40%)]" />
       </div>
@@ -26,7 +37,7 @@ const Obrigado = () => {
         Obrigado pela sua compra 🎉
       </p>
 
-      {/* Info cards */}
+      {/* Cards informativos sobre logística e comunicação */}
       <div className="w-full space-y-3 mb-8">
         <div className="bg-background rounded-xl p-4 flex items-start gap-3 border border-border">
           <div className="w-10 h-10 rounded-lg bg-[hsl(210,100%,95%)] flex items-center justify-center flex-shrink-0">
@@ -65,7 +76,6 @@ const Obrigado = () => {
         </div>
       </div>
 
-      {/* Thank you message */}
       <div className="text-center">
         <p className="text-sm text-muted-foreground">
           Agradecemos pela confiança em nossa loja! 💚

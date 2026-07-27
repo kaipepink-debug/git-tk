@@ -1,3 +1,8 @@
+/**
+ * @file SettingsPanel.tsx
+ * @description Painel central de configurações do sistema, agrupando anti-desvio, pre-sell, informações de rodapé e pixels de rastreamento.
+ */
+
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -5,11 +10,18 @@ import { Settings, ExternalLink, CheckCircle, Building2, Loader2 } from "lucide-
 import PreSellSettings from "./PreSellSettings";
 import AntiDesvioSettings from "./AntiDesvioSettings";
 
+/**
+ * @interface SettingsPanelProps
+ * @description Propriedades do componente SettingsPanel.
+ */
 interface SettingsPanelProps {
   tikTokPixelId: string;
   setTikTokPixelId: (v: string) => void;
 }
 
+/**
+ * Definição dos campos de informações da empresa para o rodapé.
+ */
 const footerFields = [
   { key: "company_name", label: "Nome da Empresa", placeholder: "Ex: JP VARIEDADES LTDA" },
   { key: "cnpj", label: "CNPJ", placeholder: "Ex: 64.482.958/0001-00" },
@@ -18,6 +30,11 @@ const footerFields = [
   { key: "company_address", label: "Endereço", placeholder: "Ex: Rua Exemplo, 123 - Cidade/UF" },
 ] as const;
 
+/**
+ * @component SettingsPanel
+ * @description Organiza as diferentes seções de configuração do site em um layout de coluna única.
+ * @param {SettingsPanelProps} props - Propriedades do componente.
+ */
 const SettingsPanel = ({ tikTokPixelId, setTikTokPixelId }: SettingsPanelProps) => {
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -27,6 +44,7 @@ const SettingsPanel = ({ tikTokPixelId, setTikTokPixelId }: SettingsPanelProps) 
   const [footerSaved, setFooterSaved] = useState(false);
   const { toast } = useToast();
 
+  // Carrega os dados do rodapé (informações da empresa) do Supabase
   useEffect(() => {
     const load = async () => {
       const { data } = await supabase
@@ -43,6 +61,9 @@ const SettingsPanel = ({ tikTokPixelId, setTikTokPixelId }: SettingsPanelProps) 
     load();
   }, []);
 
+  /**
+   * Salva o ID do TikTok Pixel no banco de dados.
+   */
   const saveTikTok = async () => {
     setSaving(true);
     await supabase.from("site_settings").upsert({ key: "tiktok_pixel_id", value: tikTokPixelId }, { onConflict: "key" });
@@ -52,6 +73,9 @@ const SettingsPanel = ({ tikTokPixelId, setTikTokPixelId }: SettingsPanelProps) 
     setTimeout(() => setSaved(false), 3000);
   };
 
+  /**
+   * Salva as informações de rodapé no banco de dados.
+   */
   const saveFooter = async () => {
     setFooterSaving(true);
     const promises = footerFields.map(f =>
@@ -66,13 +90,13 @@ const SettingsPanel = ({ tikTokPixelId, setTikTokPixelId }: SettingsPanelProps) 
 
   return (
     <div className="max-w-2xl space-y-4">
-      {/* Anti-Desvio */}
+      {/* Seção Anti-Desvio */}
       <AntiDesvioSettings />
 
-      {/* Pre-Sell */}
+      {/* Seção Pre-Sell */}
       <PreSellSettings />
 
-      {/* Footer / Company Info */}
+      {/* Seção Informações da Empresa / Rodapé */}
       <div className="bg-[hsl(220,20%,11%)] border border-[hsl(220,15%,16%)] rounded-xl overflow-hidden">
         <div className="px-5 py-4 border-b border-[hsl(220,15%,14%)] flex items-center gap-3">
           <div className="w-9 h-9 rounded-lg bg-[hsl(14,80%,10%)] flex items-center justify-center">
@@ -118,7 +142,7 @@ const SettingsPanel = ({ tikTokPixelId, setTikTokPixelId }: SettingsPanelProps) 
         </div>
       </div>
 
-      {/* TikTok Pixel */}
+      {/* Seção TikTok Pixel */}
       <div className="bg-[hsl(220,20%,11%)] border border-[hsl(220,15%,16%)] rounded-xl overflow-hidden">
         <div className="px-5 py-4 border-b border-[hsl(220,15%,14%)] flex items-center gap-3">
           <div className="w-9 h-9 rounded-lg bg-[hsl(280,80%,10%)] flex items-center justify-center">
@@ -164,7 +188,7 @@ const SettingsPanel = ({ tikTokPixelId, setTikTokPixelId }: SettingsPanelProps) 
         </div>
       </div>
 
-      {/* System info */}
+      {/* Informações do Sistema */}
       <div className="bg-[hsl(220,20%,11%)] border border-[hsl(220,15%,16%)] rounded-xl p-5">
         <h3 className="text-sm font-semibold text-white mb-3">Informações do Sistema</h3>
         <div className="space-y-2">

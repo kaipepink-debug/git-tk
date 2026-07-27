@@ -1,13 +1,36 @@
+/**
+ * @file supabase/functions/create-pix/index.ts
+ * @description Função para gerar um pagamento via PIX utilizando o gateway configurado.
+ * 
+ * Fluxo:
+ * 1. Recebe os dados do cliente e valor do pedido.
+ * 2. Identifica o gateway ativo e o produto associado na tabela 'gateway_settings'.
+ * 3. Formata o payload de acordo com a API do gateway (SigmaPay, PayEvo, SealPay ou ZenixPay).
+ * 4. Realiza a chamada para gerar o PIX.
+ * 5. Salva os dados do pedido na tabela 'orders' com status 'pix_generated'.
+ * 6. Retorna o código PIX (copia e cola) e o QR Code em Base64 para o front-end.
+ */
+
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { encode as base64Encode } from "https://deno.land/std@0.168.0/encoding/base64.ts";
 
+/**
+ * Cabeçalhos CORS para permitir acesso externo.
+ */
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 };
 
+/**
+ * Servidor HTTP que processa a criação de transações PIX.
+ * 
+ * @param {Request} req - Requisição HTTP com amount, customer e qty no corpo JSON.
+ * @returns {Promise<Response>} Dados do PIX gerado ou erro.
+ */
 serve(async (req) => {
+  // Tratamento de preflight CORS
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
@@ -18,7 +41,7 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     );
 
-    // Get active gateway
+    // Busca o gateway configurado como ativo
     const { data: gwData, error: gwError } = await supabaseAdmin
       .from('gateway_settings')
       .select('gateway_name, api_token, product_id')
@@ -38,6 +61,7 @@ serve(async (req) => {
 
     console.log(`Active gateway: ${gateway}`);
 
+    // Extração e validação básica dos dados da requisição
     const body = await req.json();
     const { amount, customer, qty } = body;
 
@@ -48,6 +72,7 @@ serve(async (req) => {
       });
     }
 
+    // Limpeza de caracteres não numéricos de campos sensíveis
     const cleanDoc = customer.document.replace(/\D/g, '');
     const cleanPhone = customer.phone_number?.replace(/\D/g, '') || '';
     const cleanCep = customer.zip_code?.replace(/\D/g, '') || '';
@@ -57,8 +82,9 @@ serve(async (req) => {
     let pixQrCodeBase64 = '';
     let transactionId = '';
 
+    // Integração com gateways específicos
     if (gateway === 'SigmaPay' || gateway === 'Adqui') {
-      // ===== SigmaPay Integration =====
+      // ===== Integração SigmaPay =====
       const sigmapayPayload = {
         amount,
         offer_hash: productId,
@@ -113,14 +139,14 @@ serve(async (req) => {
 
       console.log('SigmaPay response:', JSON.stringify(data));
 
-      // SigmaPay can return {success:true, data:{...}} or flat transaction object
+      // Extração de dados da resposta do SigmaPay
       const txn = data?.data || data;
       pixCode = txn?.pix_code || txn?.pix?.pix_qr_code || txn?.pix?.emv || '';
       pixQrCodeBase64 = txn?.qr_code || txn?.pix?.qr_code_base64 || '';
       transactionId = txn?.hash || txn?.id || '';
 
     } else if (gateway === 'PayEvo') {
-      // ===== PayEvo Integration =====
+      // ===== Integração PayEvo =====
       const PAYEVO_SECRET = apiToken || Deno.env.get('PAYEVO_SECRET_KEY');
 
       const transactionPayload = {
@@ -174,7 +200,7 @@ serve(async (req) => {
       transactionId = data?.id || data?.transaction_id || '';
 
     } else if (gateway === 'SealPay') {
-      // ===== SealPay Integration =====
+      // ===== Integração SealPay =====
       const sealPayload = {
         amount,
         description: "Pagamento Aprovado.",
@@ -196,7 +222,7 @@ serve(async (req) => {
 
       console.log('Creating SealPay transaction...');
       
-      // SealPay has intermittent server errors - retry up to 3 times
+      // SealPay pode apresentar erros intermitentes - tentando até 3 vezes
       let data: any = null;
       let lastError: any = null;
       for (let attempt = 1; attempt <= 3; attempt++) {
@@ -218,7 +244,7 @@ serve(async (req) => {
           });
         }
 
-        // Check if PIX data exists in response
+        // Verifica se os dados do PIX estão presentes na resposta
         pixCode = data?.pix_code || '';
         const rawQr = data?.pix_qr_code || '';
         pixQrCodeBase64 = rawQr.startsWith('data:') ? rawQr.split(',')[1] || rawQr : rawQr;
@@ -226,10 +252,10 @@ serve(async (req) => {
 
         if (pixCode) {
           if (!response.ok) console.warn('SealPay returned error status but PIX was generated successfully');
-          break; // Success - got PIX data
+          break; // Sucesso ao obter dados do PIX
         }
 
-        // No PIX data - retry if attempts remain
+        // Falha na tentativa - tenta novamente se possível
         console.error(`SealPay attempt ${attempt} failed:`, JSON.stringify(data));
         lastError = data;
         if (attempt < 3) { await new Promise(r => setTimeout(r, 1500)); continue; }
@@ -240,7 +266,7 @@ serve(async (req) => {
       }
 
     } else if (gateway === 'ZenixPay') {
-      // ===== ZenixPay Integration (POST /api/v1/direct-payments - API Key auth) =====
+      // ===== Integração ZenixPay (POST /api/v1/direct-payments com API Key) =====
       const zenixPayload = {
         amount,
         description: "Pagamento Aprovado.",
@@ -287,7 +313,7 @@ serve(async (req) => {
       });
     }
 
-    // Save order to database
+    // Salva o pedido no banco de dados para rastreamento
     try {
       await supabaseAdmin.from('orders').insert({
         customer_name: customer.name,
@@ -308,7 +334,7 @@ serve(async (req) => {
       console.error('Error saving order:', dbError);
     }
 
-    // Return normalized response
+    // Retorna a resposta normalizada para o front-end
     return new Response(JSON.stringify({
       pix: {
         pix_qr_code: pixCode,

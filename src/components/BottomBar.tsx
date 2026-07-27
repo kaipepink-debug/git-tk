@@ -3,6 +3,10 @@ import { useProduct } from "@/contexts/ProductContext";
 import { useState } from "react";
 import ProductChat from "./ProductChat";
 
+/**
+ * Componente de barra inferior fixa para navegação rápida e compra.
+ * Exibe ícones de navegação, botão de chat e botão de compra com preço atual.
+ */
 const BottomBar = () => {
   const navigate = useNavigate();
   const { priceDisplay } = useProduct();
@@ -21,9 +25,9 @@ const BottomBar = () => {
           gap: 0,
         }}
       >
-        {/* Lado esquerdo: ícones */}
+        {/* Lado esquerdo: ícones de navegação rápida */}
         <div className="flex items-end" style={{ gap: 12 }}>
-          {/* Loja */}
+          {/* Link para a Home/Loja */}
           <a href="/" className="flex flex-col items-center justify-center" style={{ color: "#222", textDecoration: "none", minWidth: 40 }}>
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path d="M5 11V17C5 18.8856 5 19.8284 5.58579 20.4142C6.17157 21 7.11438 21 9 21H15C16.8856 21 17.8284 21 18.4142 20.4142C19 19.8284 19 18.8856 19 17V11" stroke="#333" strokeWidth="1.8"/>
@@ -32,7 +36,7 @@ const BottomBar = () => {
             <span style={{ fontSize: 10, color: "#555", marginTop: 2 }}>Loja</span>
           </a>
 
-          {/* Chat */}
+          {/* Botão para abrir o chat de suporte */}
           <button onClick={() => setChatOpen(true)} className="flex flex-col items-center justify-center" style={{ color: "#222", background: "none", border: "none", cursor: "pointer", minWidth: 40 }}>
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path d="M18.81,16.23,20,21l-4.95-2.48A9.84,9.84,0,0,1,12,19c-5,0-9-3.58-9-8s4-8,9-8,9,3.58,9,8A7.49,7.49,0,0,1,18.81,16.23Z" fill="none" stroke="#333" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8"/>
@@ -40,7 +44,7 @@ const BottomBar = () => {
             <span style={{ fontSize: 10, color: "#555", marginTop: 2 }}>Chat</span>
           </button>
 
-          {/* Carrinho */}
+          {/* Botão de Carrinho (atualmente decorativo/placeholder) */}
           <button
             className="flex items-center justify-center"
             style={{
@@ -60,7 +64,7 @@ const BottomBar = () => {
           </button>
         </div>
 
-        {/* Botão Comprar */}
+        {/* Botão de CTA principal: Comprar Agora */}
         <button
           onClick={() => navigate("/finalizar-compra")}
           className="flex-1 flex flex-col items-center justify-center"

@@ -1,9 +1,17 @@
 import { useProduct } from "@/contexts/ProductContext";
 
+/**
+ * Componente que exibe a descrição detalhada do produto.
+ * Processa texto em formato markdown-like simples, suportando:
+ * - Seções separadas por '---'
+ * - Títulos em negrito (**texto**)
+ * - Listas com marcadores (✔ ou •)
+ * - Formatação de descrição com travessão (—)
+ */
 const ProductDescription = () => {
   const { product } = useProduct();
 
-  // Parse markdown-like description into sections
+  // Divide a descrição em seções maiores usando o separador ---
   const sections = product.description.split("---").map(s => s.trim()).filter(Boolean);
 
   return (
@@ -16,15 +24,18 @@ const ProductDescription = () => {
             <div key={i} className={i > 0 ? "border-t border-border pt-4" : ""}>
               {lines.map((line, j) => {
                 const trimmed = line.trim();
-                // Bold header: **text**
+                
+                // Cabeçalhos em negrito: **texto**
                 if (trimmed.startsWith("**") && trimmed.endsWith("**")) {
                   return <p key={j} className="font-semibold text-foreground mb-2">{trimmed.replace(/\*\*/g, "")}</p>;
                 }
-                // List items with checkmarks or bullets
+                
+                // Itens de lista com checkmarks ou bullets
                 if (trimmed.startsWith("✔") || trimmed.startsWith("•")) {
-                  // Split on — for description
                   const parts = trimmed.replace(/^\*\*/, "").replace(/\*\*$/, "");
                   const dashIdx = parts.indexOf("—");
+                  
+                  // Formatação especial para itens com descrição após travessão
                   if (dashIdx > -1) {
                     return (
                       <li key={j} className="list-none">
@@ -35,7 +46,8 @@ const ProductDescription = () => {
                   }
                   return <li key={j} className="list-none">{parts}</li>;
                 }
-                // Regular paragraph - handle inline bold
+                
+                // Parágrafo regular - trata negrito inline usando regex e dangerouslySetInnerHTML
                 const html = trimmed.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
                 return <p key={j} dangerouslySetInnerHTML={{ __html: html }} />;
               })}

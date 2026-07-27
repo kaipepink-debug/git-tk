@@ -1,6 +1,17 @@
+/**
+ * @file QuemSomos.tsx
+ * @description Página institucional apresentando a história e valores da JP Variedades LTDA.
+ */
+
 import { ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
+/**
+ * Componente que renderiza a página "Quem Somos".
+ * 
+ * @returns {JSX.Element} A página com informações institucionais e valores da empresa.
+ * @description Apresenta a missão da empresa e seus pilares fundamentais de atuação.
+ */
 const QuemSomos = () => {
   const navigate = useNavigate();
 

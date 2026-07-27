@@ -3,16 +3,27 @@ import { useState, useEffect, useCallback } from "react";
 import { useProduct } from "@/contexts/ProductContext";
 import { supabase } from "@/integrations/supabase/client";
 
+/** Lista de abreviações dos meses em português */
 const months = ["jan.", "fev.", "mar.", "abr.", "mai.", "jun.", "jul.", "ago.", "set.", "out.", "nov.", "dez."];
 
+/**
+ * Formata uma data baseada em quantos dias atrás a avaliação foi feita.
+ * @param daysAgo Quantidade de dias passados
+ * @returns String formatada (ex: 12 jan. 2024)
+ */
 const formatDate = (daysAgo: number) => {
   const d = new Date();
   d.setDate(d.getDate() - daysAgo);
   return `${String(d.getDate()).padStart(2, "0")} ${months[d.getMonth()]} ${d.getFullYear()}`;
 };
 
+/**
+ * Verifica se uma URL aponta para um arquivo de vídeo.
+ * @param url URL do arquivo
+ */
 const isVideo = (url: string) => /\.(mp4|webm|mov)$/i.test(url);
 
+/** Interface para o objeto de avaliação do produto */
 interface Review {
   id: string;
   reviewer_name: string;
@@ -27,14 +38,20 @@ interface Review {
 const INITIAL_COUNT = 5;
 const LOAD_MORE_COUNT = 10;
 
-/* ── Fullscreen media carousel ── */
+/**
+ * Componente de Carrossel de Mídia em Tela Cheia.
+ * Exibe fotos e vídeos das avaliações em um modal interativo.
+ */
 const MediaCarousel = ({
   items,
   startIndex,
   onClose,
 }: {
+  /** Lista de URLs de mídia */
   items: string[];
+  /** Índice da mídia inicial */
   startIndex: number;
+  /** Função para fechar o carrossel */
   onClose: () => void;
 }) => {
   const [idx, setIdx] = useState(startIndex);
@@ -42,7 +59,7 @@ const MediaCarousel = ({
   const prev = useCallback(() => setIdx((i) => (i === 0 ? items.length - 1 : i - 1)), [items.length]);
   const next = useCallback(() => setIdx((i) => (i === items.length - 1 ? 0 : i + 1)), [items.length]);
 
-  // swipe support
+  // Suporte a gestos de swipe
   const [touchStart, setTouchStart] = useState<number | null>(null);
   const handleTouchStart = (e: React.TouchEvent) => setTouchStart(e.touches[0].clientX);
   const handleTouchEnd = (e: React.TouchEvent) => {
@@ -54,7 +71,7 @@ const MediaCarousel = ({
     setTouchStart(null);
   };
 
-  // keyboard
+  // Suporte a navegação por teclado
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
@@ -65,7 +82,7 @@ const MediaCarousel = ({
     return () => window.removeEventListener("keydown", handler);
   }, [onClose, prev, next]);
 
-  // lock body scroll
+  // Bloqueia o scroll do corpo da página quando o modal está aberto
   useEffect(() => {
     document.body.style.overflow = "hidden";
     return () => { document.body.style.overflow = ""; };
@@ -79,7 +96,7 @@ const MediaCarousel = ({
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
     >
-      {/* header */}
+      {/* Cabeçalho do modal */}
       <div className="flex items-center justify-between px-4 py-3 shrink-0">
         <span className="text-white/70 text-sm">{idx + 1} / {items.length}</span>
         <button onClick={onClose} className="text-white p-1">
@@ -87,7 +104,7 @@ const MediaCarousel = ({
         </button>
       </div>
 
-      {/* media */}
+      {/* Visualizador de mídia central */}
       <div className="flex-1 flex items-center justify-center relative min-h-0 px-2">
         {items.length > 1 && (
           <button onClick={prev} className="absolute left-2 z-10 text-white/70 hover:text-white p-1">
@@ -121,7 +138,7 @@ const MediaCarousel = ({
         )}
       </div>
 
-      {/* thumbnails */}
+      {/* Miniaturas de navegação rápida na parte inferior */}
       {items.length > 1 && (
         <div className="flex gap-2 justify-center py-3 px-4 overflow-x-auto shrink-0">
           {items.map((item, i) => (
@@ -146,7 +163,11 @@ const MediaCarousel = ({
   );
 };
 
-/* ── Reviews Section ── */
+/**
+ * Componente de Seção de Avaliações.
+ * Exibe a nota média, contador de avaliações e a lista de feedbacks dos clientes
+ * com suporte a fotos, vídeos e paginação (carregar mais).
+ */
 const ReviewsSection = () => {
   const { product } = useProduct();
   const [reviews, setReviews] = useState<Review[]>([]);
@@ -154,6 +175,7 @@ const ReviewsSection = () => {
   const [loading, setLoading] = useState(true);
   const [carousel, setCarousel] = useState<{ items: string[]; index: number } | null>(null);
 
+  // Carrega as avaliações do Supabase para o produto atual
   useEffect(() => {
     if (!product.id) return;
     const load = async () => {
@@ -183,6 +205,7 @@ const ReviewsSection = () => {
   return (
     <>
       <div className="bg-background px-4 py-4 mt-2">
+        {/* Cabeçalho da seção com nota média */}
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-base font-bold text-foreground">Avaliações dos clientes ({displayTotal})</h3>
           <div className="flex items-center gap-1">
@@ -191,9 +214,11 @@ const ReviewsSection = () => {
           </div>
         </div>
 
+        {/* Lista de avaliações individuais */}
         <div className="space-y-4">
           {visibleReviews.map((review) => (
             <div key={review.id} className="border-b border-border pb-4 last:border-0">
+              {/* Autor da avaliação */}
               <div className="flex items-center gap-2 mb-2">
                 {review.avatar_url ? (
                   <img src={review.avatar_url} alt="" className="w-8 h-8 rounded-full object-cover" loading="lazy" decoding="async" width={32} height={32} />
@@ -207,6 +232,7 @@ const ReviewsSection = () => {
                   <div className="text-xs text-muted-foreground">{formatDate(review.days_ago)}</div>
                 </div>
               </div>
+              {/* Estrelas da avaliação */}
               <div className="flex items-center gap-0.5 mb-1.5">
                 {Array.from({ length: 5 }).map((_, s) => (
                   <Star
@@ -219,9 +245,11 @@ const ReviewsSection = () => {
                   />
                 ))}
               </div>
+              {/* Texto da avaliação */}
               {review.review_text && (
                 <p className="text-sm text-foreground/80 mb-2">{review.review_text}</p>
               )}
+              {/* Fotos e vídeos anexados pelo cliente */}
               {review.photos.length > 0 && (
                 <div className="flex gap-2 overflow-x-auto">
                   {review.photos.map((media, j) => (
@@ -248,6 +276,7 @@ const ReviewsSection = () => {
           ))}
         </div>
 
+        {/* Botão para carregar mais avaliações */}
         {remaining > 0 && (
           <button
             onClick={() => setVisibleCount((prev) => Math.min(prev + LOAD_MORE_COUNT, totalReviews))}
@@ -258,6 +287,7 @@ const ReviewsSection = () => {
         )}
       </div>
 
+      {/* Modal de visualização de mídia (Carousel) */}
       {carousel && (
         <MediaCarousel
           items={carousel.items}

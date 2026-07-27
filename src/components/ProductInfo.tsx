@@ -2,6 +2,10 @@ import { Star, Truck, Check } from "lucide-react";
 import { useProduct } from "@/contexts/ProductContext";
 import { useMemo } from "react";
 
+/**
+ * Componente para seleção de variantes/tamanhos do produto.
+ * Exibe botões com status de estoque (esgotado, poucas unidades).
+ */
 const SizeSelector = () => {
   const { sizes, selectedSize, setSelectedSize, product } = useProduct();
   return (
@@ -38,6 +42,7 @@ const SizeSelector = () => {
           );
         })}
       </div>
+      {/* Indicador de urgência de estoque baixo */}
       {sizes[selectedSize]?.stock > 0 && (
         <div className="flex items-center gap-1.5">
           <span className="relative flex h-2 w-2">
@@ -53,12 +58,17 @@ const SizeSelector = () => {
   );
 };
 
+/**
+ * Componente principal de informações do produto.
+ * Exibe título, avaliações, seletor de variantes, frete e proteção ao cliente.
+ */
 const ProductInfo = () => {
   const { product, discount } = useProduct();
 
-  // Build badges: first one is always dynamic discount, rest from DB
+  // Constrói a lista de selos (badges): o primeiro é sempre o desconto dinâmico
   const dynamicBadges = [`${discount}% OFF`, ...product.badges.filter(b => !/^\d+%\s*OFF$/i.test(b))];
 
+  /** Calcula uma data de entrega aproximada (4 dias à frente) */
   const deliveryDate = useMemo(() => {
     const d = new Date();
     d.setDate(d.getDate() + 4);
@@ -69,7 +79,7 @@ const ProductInfo = () => {
 
   return (
     <div className="bg-background px-4 py-3 space-y-3">
-      {/* Badges */}
+      {/* Badges de destaque (Desconto, etc.) */}
       <div className="flex items-center gap-2 flex-wrap">
         {dynamicBadges.map((badge, i) => (
           <div key={i} className={`inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded`}
@@ -87,12 +97,12 @@ const ProductInfo = () => {
         ))}
       </div>
 
-      {/* Title */}
+      {/* Título do Produto */}
       <h1 className="text-base font-bold leading-snug text-foreground">
         {product.title}
       </h1>
 
-      {/* Rating & sold */}
+      {/* Avaliações e Contador de Vendas */}
       <div className="flex items-center gap-1.5 text-sm">
         <Star className="w-4 h-4 fill-star text-star" />
         <span className="text-foreground font-medium">{product.rating}</span>
@@ -101,13 +111,13 @@ const ProductInfo = () => {
         <span className="text-muted-foreground">+{product.sold_count.toLocaleString("pt-BR")} vendido(s)</span>
       </div>
 
-      {/* Size variants */}
+      {/* Seletor de Variantes (Ex: Tamanhos, Cores) */}
       <div className="border-t border-border pt-3">
         <span className="text-sm text-muted-foreground mb-2 block">{product.variant_label}:</span>
         <SizeSelector />
       </div>
 
-      {/* Shipping */}
+      {/* Informações de Frete */}
       <div className="flex items-start gap-3 pt-3 border-t border-border">
         <Truck className="w-5 h-5 text-muted-foreground mt-0.5 flex-shrink-0" />
         <div>
@@ -121,7 +131,7 @@ const ProductInfo = () => {
         </div>
       </div>
 
-      {/* Customer protection */}
+      {/* Seção de Segurança e Proteção do Cliente */}
       <div className="border-t border-border pt-3">
         <div className="flex items-center gap-2 mb-2.5">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8B5A2B" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

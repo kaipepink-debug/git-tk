@@ -2,22 +2,31 @@ import { useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useProduct } from "@/contexts/ProductContext";
 
+/**
+ * Componente de carrossel de imagens para visualização do produto.
+ * Suporta navegação por botões, toque (swipe) e exibe indicadores de posição.
+ */
 const ImageCarousel = () => {
   const { product } = useProduct();
   const images = product.images.length > 0 ? product.images : ["/placeholder.svg"];
   const [current, setCurrent] = useState(0);
   const [touchStart, setTouchStart] = useState(0);
 
-  const prev = () => setCurrent((c) => (c === 0 ? images.length - 1 : c - 1));
+  /** Avança para a próxima imagem */
   const next = () => setCurrent((c) => (c === images.length - 1 ? 0 : c + 1));
+  
+  /** Volta para a imagem anterior */
+  const prev = () => setCurrent((c) => (c === 0 ? images.length - 1 : c - 1));
 
   return (
     <div className="relative w-full aspect-square bg-background overflow-hidden">
+      {/* Container das imagens com transição suave */}
       <div
         className="flex transition-transform duration-300 h-full"
         style={{ transform: `translateX(-${current * 100}%)` }}
         onTouchStart={(e) => setTouchStart(e.touches[0].clientX)}
         onTouchEnd={(e) => {
+          // Lógica de detecção de swipe
           const diff = touchStart - e.changedTouches[0].clientX;
           if (diff > 50) next();
           if (diff < -50) prev();
@@ -38,6 +47,7 @@ const ImageCarousel = () => {
         ))}
       </div>
 
+      {/* Botões de navegação lateral */}
       <button onClick={prev} className="absolute left-2 top-1/2 -translate-y-1/2 bg-foreground/20 rounded-full p-1">
         <ChevronLeft className="w-5 h-5 text-background" />
       </button>
@@ -45,6 +55,7 @@ const ImageCarousel = () => {
         <ChevronRight className="w-5 h-5 text-background" />
       </button>
 
+      {/* Indicador numérico (ex: 1 / 5) */}
       <div className="absolute bottom-3 right-3 bg-foreground/60 text-background text-xs px-2 py-0.5 rounded-full">
         {current + 1} / {images.length}
       </div>

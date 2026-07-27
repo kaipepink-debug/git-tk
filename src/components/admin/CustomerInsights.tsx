@@ -1,7 +1,16 @@
+/**
+ * @file CustomerInsights.tsx
+ * @description Componente que exibe insights detalhados sobre os clientes, incluindo geografia (cidades/estados), horários de pico e ranking de compradores.
+ */
+
 import { useMemo } from "react";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, BarChart, Bar, XAxis, YAxis } from "recharts";
 import { MapPin, Users, Smartphone, Monitor, TrendingUp, Clock } from "lucide-react";
 
+/**
+ * @interface Order
+ * @description Representação de um pedido com dados do cliente.
+ */
 interface Order {
   id: string;
   customer_name: string;
@@ -14,17 +23,28 @@ interface Order {
   quantity: number;
 }
 
+/**
+ * @interface CustomerInsightsProps
+ * @description Propriedades do componente CustomerInsights.
+ */
 interface CustomerInsightsProps {
   orders: Order[];
   dateRange: { from: Date; to: Date };
 }
 
+/**
+ * Cores utilizadas para as fatias dos gráficos.
+ */
 const COLORS = [
   "hsl(14,100%,55%)", "hsl(210,100%,65%)", "hsl(145,70%,50%)",
   "hsl(45,100%,60%)", "hsl(280,80%,65%)", "hsl(170,70%,50%)",
   "hsl(330,80%,55%)", "hsl(200,80%,55%)",
 ];
 
+/**
+ * @component CustomTooltip
+ * @description Tooltip para os gráficos de pizza.
+ */
 const CustomTooltip = ({ active, payload }: any) => {
   if (!active || !payload?.length) return null;
   return (
@@ -35,7 +55,13 @@ const CustomTooltip = ({ active, payload }: any) => {
   );
 };
 
+/**
+ * @component CustomerInsights
+ * @description Painel de análise de comportamento e perfil do cliente.
+ * @param {CustomerInsightsProps} props - Propriedades do componente.
+ */
 const CustomerInsights = ({ orders, dateRange }: CustomerInsightsProps) => {
+  // Filtra pedidos pelo intervalo de data selecionado
   const filtered = useMemo(() => {
     return orders.filter(o => {
       const d = new Date(o.created_at);
@@ -43,7 +69,7 @@ const CustomerInsights = ({ orders, dateRange }: CustomerInsightsProps) => {
     });
   }, [orders, dateRange]);
 
-  // Top cities
+  // Agrupa pedidos por cidade para o ranking
   const cityData = useMemo(() => {
     const map: Record<string, { total: number; paid: number; revenue: number }> = {};
     filtered.forEach(o => {
@@ -61,7 +87,7 @@ const CustomerInsights = ({ orders, dateRange }: CustomerInsightsProps) => {
       .slice(0, 8);
   }, [filtered]);
 
-  // Top states
+  // Agrupa pedidos por estado para a distribuição geográfica
   const stateData = useMemo(() => {
     const map: Record<string, number> = {};
     filtered.forEach(o => {
@@ -74,7 +100,7 @@ const CustomerInsights = ({ orders, dateRange }: CustomerInsightsProps) => {
       .slice(0, 10);
   }, [filtered]);
 
-  // Top customers (by number of orders)
+  // Ranking de maiores compradores baseado em receita total
   const topCustomers = useMemo(() => {
     const map: Record<string, { name: string; orders: number; revenue: number; paid: number }> = {};
     filtered.forEach(o => {
@@ -89,7 +115,7 @@ const CustomerInsights = ({ orders, dateRange }: CustomerInsightsProps) => {
     return Object.values(map).sort((a, b) => b.revenue - a.revenue).slice(0, 10);
   }, [filtered]);
 
-  // Hourly heatmap
+  // Distribuição de pedidos por hora do dia
   const hourlyData = useMemo(() => {
     const hours = Array.from({ length: 24 }, (_, i) => ({ hour: `${i.toString().padStart(2, "0")}h`, orders: 0, paid: 0 }));
     filtered.forEach(o => {
@@ -100,7 +126,7 @@ const CustomerInsights = ({ orders, dateRange }: CustomerInsightsProps) => {
     return hours;
   }, [filtered]);
 
-  // Stats
+  // Métricas rápidas de resumo
   const uniqueCustomers = new Set(filtered.map(o => o.customer_email)).size;
   const uniqueCities = new Set(filtered.filter(o => o.customer_city).map(o => o.customer_city)).size;
   const avgOrdersPerCustomer = uniqueCustomers > 0 ? (filtered.length / uniqueCustomers).toFixed(1) : "0";
@@ -115,7 +141,7 @@ const CustomerInsights = ({ orders, dateRange }: CustomerInsightsProps) => {
 
   return (
     <div className="space-y-4">
-      {/* Stat cards */}
+      {/* Resumo de estatísticas */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         {statCards.map(card => (
           <div key={card.label} className="bg-[hsl(220,20%,11%)] border border-[hsl(220,15%,16%)] rounded-xl p-4">
@@ -131,7 +157,7 @@ const CustomerInsights = ({ orders, dateRange }: CustomerInsightsProps) => {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {/* Top Cities */}
+        {/* Gráfico de Ranking de Cidades */}
         <div className="bg-[hsl(220,20%,11%)] border border-[hsl(220,15%,16%)] rounded-xl p-5">
           <h3 className="text-sm font-semibold text-white mb-1">Top Cidades</h3>
           <p className="text-[10px] text-[hsl(220,10%,40%)] mb-4">Cidades com mais pedidos</p>
@@ -173,7 +199,7 @@ const CustomerInsights = ({ orders, dateRange }: CustomerInsightsProps) => {
           )}
         </div>
 
-        {/* States Pie Chart */}
+        {/* Gráfico de Distribuição por Estado */}
         <div className="bg-[hsl(220,20%,11%)] border border-[hsl(220,15%,16%)] rounded-xl p-5">
           <h3 className="text-sm font-semibold text-white mb-1">Distribuição por Estado</h3>
           <p className="text-[10px] text-[hsl(220,10%,40%)] mb-4">Pedidos por unidade federativa</p>
@@ -208,7 +234,7 @@ const CustomerInsights = ({ orders, dateRange }: CustomerInsightsProps) => {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {/* Hourly heatmap */}
+        {/* Gráfico de Barras por Horário */}
         <div className="bg-[hsl(220,20%,11%)] border border-[hsl(220,15%,16%)] rounded-xl p-5">
           <h3 className="text-sm font-semibold text-white mb-1">Pedidos por Horário</h3>
           <p className="text-[10px] text-[hsl(220,10%,40%)] mb-4">Distribuição ao longo do dia</p>
@@ -240,7 +266,7 @@ const CustomerInsights = ({ orders, dateRange }: CustomerInsightsProps) => {
           </ResponsiveContainer>
         </div>
 
-        {/* Top Customers */}
+        {/* Lista de Ranking de Clientes */}
         <div className="bg-[hsl(220,20%,11%)] border border-[hsl(220,15%,16%)] rounded-xl p-5">
           <h3 className="text-sm font-semibold text-white mb-1">Top Clientes</h3>
           <p className="text-[10px] text-[hsl(220,10%,40%)] mb-4">Maiores compradores por receita</p>

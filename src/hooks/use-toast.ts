@@ -1,10 +1,21 @@
+/**
+ * @file use-toast.ts
+ * @description Gerenciador de estado para o sistema de notificações (toasts) da interface.
+ */
+
 import * as React from "react";
 
 import type { ToastActionElement, ToastProps } from "@/components/ui/toast";
 
+/** Limite máximo de toasts exibidos simultaneamente */
 const TOAST_LIMIT = 1;
+/** Atraso para remoção definitiva do toast após ser descartado */
 const TOAST_REMOVE_DELAY = 1000000;
 
+/**
+ * @type ToasterToast
+ * @description Extensão das propriedades básicas de um Toast com campos de identificação e conteúdo.
+ */
 type ToasterToast = ToastProps & {
   id: string;
   title?: React.ReactNode;
@@ -12,6 +23,7 @@ type ToasterToast = ToastProps & {
   action?: ToastActionElement;
 };
 
+/** Tipos de ações disponíveis no reducer */
 const actionTypes = {
   ADD_TOAST: "ADD_TOAST",
   UPDATE_TOAST: "UPDATE_TOAST",
@@ -21,6 +33,11 @@ const actionTypes = {
 
 let count = 0;
 
+/**
+ * @function genId
+ * @description Gera um ID numérico incremental para novos toasts.
+ * @returns {string} O ID gerado em formato string.
+ */
 function genId() {
   count = (count + 1) % Number.MAX_SAFE_INTEGER;
   return count.toString();
@@ -28,6 +45,7 @@ function genId() {
 
 type ActionType = typeof actionTypes;
 
+/** Define a estrutura das ações disparadas para o reducer */
 type Action =
   | {
       type: ActionType["ADD_TOAST"];
@@ -46,12 +64,19 @@ type Action =
       toastId?: ToasterToast["id"];
     };
 
+/** Estrutura do estado global dos toasts */
 interface State {
   toasts: ToasterToast[];
 }
 
+/** Mapa para gerenciar os timers de remoção de cada toast */
 const toastTimeouts = new Map<string, ReturnType<typeof setTimeout>>();
 
+/**
+ * @function addToRemoveQueue
+ * @description Adiciona um toast à fila de remoção após o delay configurado.
+ * @param {string} toastId ID do toast a ser removido.
+ */
 const addToRemoveQueue = (toastId: string) => {
   if (toastTimeouts.has(toastId)) {
     return;
@@ -68,6 +93,13 @@ const addToRemoveQueue = (toastId: string) => {
   toastTimeouts.set(toastId, timeout);
 };
 
+/**
+ * @function reducer
+ * @description Reducer para gerenciar o estado dos toasts.
+ * @param {State} state Estado atual.
+ * @param {Action} action Ação a ser aplicada.
+ * @returns {State} Novo estado.
+ */
 export const reducer = (state: State, action: Action): State => {
   switch (action.type) {
     case "ADD_TOAST":
@@ -85,8 +117,7 @@ export const reducer = (state: State, action: Action): State => {
     case "DISMISS_TOAST": {
       const { toastId } = action;
 
-      // ! Side effects ! - This could be extracted into a dismissToast() action,
-      // but I'll keep it here for simplicity
+      // Se um ID específico for passado, remove apenas ele, caso contrário remove todos
       if (toastId) {
         addToRemoveQueue(toastId);
       } else {
@@ -121,10 +152,17 @@ export const reducer = (state: State, action: Action): State => {
   }
 };
 
+/** Lista de ouvintes que serão notificados em mudanças de estado */
 const listeners: Array<(state: State) => void> = [];
 
+/** Estado em memória compartilhado entre todos os hooks useToast */
 let memoryState: State = { toasts: [] };
 
+/**
+ * @function dispatch
+ * @description Atualiza o estado global e notifica todos os listeners.
+ * @param {Action} action Ação a ser processada.
+ */
 function dispatch(action: Action) {
   memoryState = reducer(memoryState, action);
   listeners.forEach((listener) => {
@@ -132,8 +170,15 @@ function dispatch(action: Action) {
   });
 }
 
+/** Tipo simplificado para criação de um toast (sem ID) */
 type Toast = Omit<ToasterToast, "id">;
 
+/**
+ * @function toast
+ * @description Função imperativa para disparar uma nova notificação.
+ * @param {Toast} props Propriedades da notificação.
+ * @returns {object} Objeto com ID, função de descarte e função de atualização.
+ */
 function toast({ ...props }: Toast) {
   const id = genId();
 
@@ -163,10 +208,16 @@ function toast({ ...props }: Toast) {
   };
 }
 
+/**
+ * @hook useToast
+ * @description Hook para acessar e manipular as notificações da interface.
+ * @returns {object} Estado atual dos toasts e funções de controle.
+ */
 function useToast() {
   const [state, setState] = React.useState<State>(memoryState);
 
   React.useEffect(() => {
+    // Adiciona o setState da instância atual aos listeners globais
     listeners.push(setState);
     return () => {
       const index = listeners.indexOf(setState);

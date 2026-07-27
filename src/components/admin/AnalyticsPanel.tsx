@@ -1,8 +1,17 @@
+/**
+ * @file AnalyticsPanel.tsx
+ * @description Componente de painel de análise que exibe dados detalhados de cliques e profundidade de scroll.
+ */
+
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, PieChart, Pie } from "recharts";
 import { MousePointerClick, ScrollText, Eye, ArrowDownToLine } from "lucide-react";
 
+/**
+ * @interface AnalyticsEvent
+ * @description Estrutura de um evento de analytics vindo do banco de dados.
+ */
 interface AnalyticsEvent {
   id: string;
   event_type: string;
@@ -17,14 +26,25 @@ interface AnalyticsEvent {
   created_at: string;
 }
 
+/**
+ * @interface AnalyticsPanelProps
+ * @description Propriedades do componente AnalyticsPanel.
+ * @property {("today" | "7days" | "30days")} period - O período de tempo para filtrar os eventos.
+ */
 interface AnalyticsPanelProps {
   period: "today" | "7days" | "30days";
 }
 
+/**
+ * @component AnalyticsPanel
+ * @description Exibe métricas de comportamento do usuário, incluindo elementos mais clicados e profundidade de rolagem.
+ * @param {AnalyticsPanelProps} props - As propriedades do componente.
+ */
 const AnalyticsPanel = ({ period }: AnalyticsPanelProps) => {
   const [events, setEvents] = useState<AnalyticsEvent[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // Busca eventos de analytics com base no período selecionado
   useEffect(() => {
     const fetchEvents = async () => {
       setLoading(true);
@@ -62,9 +82,11 @@ const AnalyticsPanel = ({ period }: AnalyticsPanelProps) => {
     );
   }
 
+  // Filtra cliques e scrolls
   const clicks = events.filter(e => e.event_type === "click");
   const scrolls = events.filter(e => e.event_type === "scroll");
 
+  // Mapeia cliques por elemento para o ranking
   const clickMap: Record<string, { count: number; text: string; tag: string }> = {};
   clicks.forEach(c => {
     const key = c.element_text || c.element_id || c.element_tag || "unknown";
@@ -74,6 +96,7 @@ const AnalyticsPanel = ({ period }: AnalyticsPanelProps) => {
   });
   const topClicks = Object.values(clickMap).sort((a, b) => b.count - a.count).slice(0, 12);
 
+  // Prepara dados de profundidade de scroll
   const scrollDepths = [25, 50, 75, 100];
   const scrollData = scrollDepths.map(d => ({
     depth: `${d}%`,
@@ -82,6 +105,7 @@ const AnalyticsPanel = ({ period }: AnalyticsPanelProps) => {
 
   const scrollColors = ["hsl(210,100%,65%)", "hsl(45,100%,60%)", "hsl(14,100%,55%)", "hsl(145,70%,50%)"];
 
+  // Cards de resumo superior
   const summaryCards = [
     { label: "Total Cliques", value: clicks.length, icon: MousePointerClick, color: "hsl(14,100%,55%)", bg: "hsl(14,100%,10%)" },
     { label: "Eventos Scroll", value: scrolls.length, icon: ScrollText, color: "hsl(210,100%,65%)", bg: "hsl(210,100%,10%)" },
@@ -89,6 +113,10 @@ const AnalyticsPanel = ({ period }: AnalyticsPanelProps) => {
     { label: "Chegaram a 100%", value: scrolls.filter(s => s.scroll_depth === 100).length, icon: ArrowDownToLine, color: "hsl(145,70%,50%)", bg: "hsl(145,70%,10%)" },
   ];
 
+  /**
+   * @component CustomTooltip
+   * @description Tooltip personalizado para o gráfico de barras.
+   */
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (!active || !payload?.length) return null;
     return (

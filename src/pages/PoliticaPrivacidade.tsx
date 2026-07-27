@@ -1,6 +1,15 @@
+/**
+ * Rota: /politica-privacidade
+ * Propósito: Página detalhando como a loja coleta, utiliza e protege os dados pessoais
+ * dos usuários, garantindo transparência e conformidade com a LGPD.
+ */
+
 import { ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
+/**
+ * Componente da página Política de Privacidade.
+ */
 const PoliticaPrivacidade = () => {
   const navigate = useNavigate();
 

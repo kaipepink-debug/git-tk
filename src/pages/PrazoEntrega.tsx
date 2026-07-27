@@ -1,6 +1,17 @@
+/**
+ * @file PrazoEntrega.tsx
+ * @description Página informativa sobre os prazos estimados de entrega por região.
+ */
+
 import { ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
+/**
+ * Componente que renderiza a tabela de prazos de entrega.
+ * 
+ * @returns {JSX.Element} A página com a tabela de prazos e observações de entrega.
+ * @description Exibe uma estimativa de dias úteis para cada região do Brasil.
+ */
 const PrazoEntrega = () => {
   const navigate = useNavigate();
 

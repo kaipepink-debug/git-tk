@@ -1,6 +1,15 @@
+/**
+ * Rota: /politica-envio
+ * Propósito: Detalha os procedimentos, prazos de processamento e responsabilidades
+ * relacionadas ao envio de mercadorias.
+ */
+
 import { ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
+/**
+ * Componente da página Política de Envio.
+ */
 const PoliticaEnvio = () => {
   const navigate = useNavigate();
 

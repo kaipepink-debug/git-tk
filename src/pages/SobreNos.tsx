@@ -1,6 +1,17 @@
+/**
+ * @file SobreNos.tsx
+ * @description Página informativa sobre a trajetória e o compromisso da JP Variedades LTDA com seus clientes.
+ */
+
 import { ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
+/**
+ * Componente da página "Sobre Nós".
+ * 
+ * @returns {JSX.Element} Página detalhada sobre o propósito da empresa.
+ * @description Fornece contexto sobre a qualidade dos produtos, fornecedores e atendimento.
+ */
 const SobreNos = () => {
   const navigate = useNavigate();
 

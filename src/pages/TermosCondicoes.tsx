@@ -1,6 +1,17 @@
+/**
+ * @file TermosCondicoes.tsx
+ * @description Página que apresenta as regras e condições de uso do site e serviços da JP Variedades LTDA.
+ */
+
 import { ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
+/**
+ * Componente que renderiza os Termos e Condições de Uso.
+ * 
+ * @returns {JSX.Element} A página contendo as cláusulas contratuais e responsabilidades legais.
+ * @description Define as diretrizes para preços, formas de pagamento, políticas de entrega e propriedade intelectual.
+ */
 const TermosCondicoes = () => {
   const navigate = useNavigate();
 

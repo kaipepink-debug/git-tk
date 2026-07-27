@@ -1,11 +1,29 @@
+/**
+ * @file supabase/functions/product-chat/index.ts
+ * @description Função para fornecer uma interface de chat com IA especializada no produto da loja.
+ * 
+ * Utiliza o Lovable AI Gateway para processar as mensagens e retornar respostas baseadas em um prompt de sistema.
+ * O prompt contém informações sobre o produto (Escada Telescópica), preços, frete e prazos de entrega.
+ */
+
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
+/**
+ * Cabeçalhos CORS padrão.
+ */
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+/**
+ * Servidor HTTP para o chat de suporte ao produto.
+ * 
+ * @param {Request} req - Requisição contendo as mensagens anteriores no corpo JSON.
+ * @returns {Promise<Response>} Fluxo de eventos (Stream) com a resposta da IA.
+ */
 serve(async (req) => {
+  // Tratamento de preflight CORS
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
@@ -13,6 +31,9 @@ serve(async (req) => {
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
+    /**
+     * Prompt de sistema que define o comportamento e o conhecimento da assistente.
+     */
     const systemPrompt = `Você é a assistente virtual da JP Variedades LTDA, uma loja online brasileira. Você deve responder APENAS em português brasileiro, de forma simpática, objetiva e prestativa.
 
 Produto principal: Escada Telescópica Multifuncional Inox
@@ -40,6 +61,7 @@ Regras:
 - Seja breve nas respostas (máximo 3 parágrafos curtos)
 - Use emojis com moderação`;
 
+    // Chamada para o gateway de IA da Lovable
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -56,6 +78,7 @@ Regras:
       }),
     });
 
+    // Tratamento de erros específicos da API de IA
     if (!response.ok) {
       if (response.status === 429) {
         return new Response(JSON.stringify({ error: "Muitas solicitações. Tente novamente em instantes." }), {
@@ -74,6 +97,7 @@ Regras:
       });
     }
 
+    // Retorna a resposta como um stream de eventos de texto
     return new Response(response.body, {
       headers: { ...corsHeaders, "Content-Type": "text/event-stream" },
     });

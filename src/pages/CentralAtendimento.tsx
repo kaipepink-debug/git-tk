@@ -1,11 +1,22 @@
+/**
+ * Rota: /central-atendimento
+ * Propósito: Oferece informações de contato e suporte ao cliente, incluindo e-mail,
+ * WhatsApp, horário de atendimento e links para dúvidas frequentes.
+ */
+
 import { ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
+/**
+ * Componente da página de Central de Atendimento.
+ * Apresenta os canais oficiais de suporte da loja.
+ */
 const CentralAtendimento = () => {
   const navigate = useNavigate();
 
   return (
     <div className="min-h-screen bg-background">
+      {/* Header com botão de retorno */}
       <div className="sticky top-0 z-10 bg-background border-b border-border px-4 py-3 flex items-center gap-3">
         <button onClick={() => navigate(-1)} className="text-foreground">
           <ArrowLeft className="w-5 h-5" />
@@ -33,6 +44,7 @@ const CentralAtendimento = () => {
           <li>Como solicito reembolso? Consulte nossa Política de Reembolso.</li>
         </ul>
 
+        {/* Informações corporativas */}
         <p className="text-xs text-muted-foreground pt-4 border-t border-border">
           JP VARIEDADES LTDA — CNPJ: 64.482.958/0001-00
         </p>

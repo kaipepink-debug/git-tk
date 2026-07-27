@@ -1,6 +1,17 @@
+/**
+ * @file PoliticaReembolso.tsx
+ * @description Página que exibe a política de reembolso da JP Variedades LTDA.
+ */
+
 import { ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
+/**
+ * Componente funcional que renderiza a página de Política de Reembolso.
+ * 
+ * @returns {JSX.Element} O elemento JSX da página de Política de Reembolso.
+ * @description Apresenta as condições, prazos e procedimentos para solicitação de reembolso.
+ */
 const PoliticaReembolso = () => {
   const navigate = useNavigate();
 
