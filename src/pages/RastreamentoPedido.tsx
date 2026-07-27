@@ -1,13 +1,28 @@
+/**
+ * @file RastreamentoPedido.tsx
+ * @description Página que permite ao usuário rastrear o status de sua entrega utilizando um código.
+ */
+
 import { ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 
+/**
+ * Componente de rastreamento de pedido.
+ * 
+ * @returns {JSX.Element} A interface de busca por código de rastreamento.
+ * @description Permite a entrada de um código e simula a busca pelo status do pedido, exibindo orientações.
+ */
 const RastreamentoPedido = () => {
   const navigate = useNavigate();
   const [codigo, setCodigo] = useState("");
   const [resultado, setResultado] = useState<string | null>(null);
 
+  /**
+   * Manipula a ação de rastreio de pedido.
+   * Valida se o campo está vazio e exibe uma mensagem informativa padrão.
+   */
   const handleRastrear = () => {
     if (!codigo.trim()) return;
     setResultado("Não foi possível localizar o pedido com o código informado. Verifique o código e tente novamente, ou entre em contato com nosso suporte.");

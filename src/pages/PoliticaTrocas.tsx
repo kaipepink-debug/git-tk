@@ -1,6 +1,17 @@
+/**
+ * @file PoliticaTrocas.tsx
+ * @description Página que detalha as políticas de trocas e devoluções da loja.
+ */
+
 import { ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
+/**
+ * Componente que exibe a política de trocas e devoluções.
+ * 
+ * @returns {JSX.Element} A interface de usuário para a página de trocas.
+ * @description Fornece informações sobre o direito de arrependimento, produtos com defeito e prazos de análise.
+ */
 const PoliticaTrocas = () => {
   const navigate = useNavigate();
 
