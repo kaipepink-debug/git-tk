@@ -247,8 +247,9 @@ const FinalizarCompra = () => {
         </div>
         <button
           onClick={async () => {
-            // Verifica se o endereço foi preenchido
+            // Validação de endereço e campos obrigatórios antes de chamar o gateway
             if (!enderecoData) {
+              toast({ title: "Adicione um endereço de entrega", variant: "destructive" });
               navigate("/adicionar-endereco");
               return;
             }
@@ -257,9 +258,18 @@ const FinalizarCompra = () => {
               navigate("/adicionar-endereco");
               return;
             }
+            if (!enderecoData.email) {
+              toast({ title: "Adicione um e-mail válido no endereço", variant: "destructive" });
+              navigate("/adicionar-endereco");
+              return;
+            }
+            if (total <= 0) {
+              toast({ title: "Valor do pedido inválido", description: "Recarregue a página e tente novamente.", variant: "destructive" });
+              return;
+            }
+
             setLoading(true);
             try {
-              // Chama a Edge Function para criar a transação Pix no gateway
               const amountInCents = Math.round(total * 100);
               const { data, error } = await supabase.functions.invoke("create-pix", {
                 body: {
@@ -279,29 +289,42 @@ const FinalizarCompra = () => {
                   },
                 },
               });
-              if (error) throw error;
-              if (data?.error) throw new Error(data.error);
-              
+
+              // Erro de rede/invocação da edge function
+              if (error) {
+                console.error("Erro invoke create-pix:", error);
+                throw new Error("Não foi possível conectar ao servidor de pagamento. Verifique sua conexão e tente novamente.");
+              }
+              // Erro retornado pelo gateway
+              if (data?.error) {
+                throw new Error(typeof data.error === "string" ? data.error : "Falha ao gerar o pagamento. Tente novamente.");
+              }
+
               const pixCode = data?.pix?.pix_qr_code || data?.pix?.qr_code || data?.pix?.emv || "";
-              const pixQrCode = data?.pix?.qr_code_base64 ? (data.pix.qr_code_base64.startsWith("data:") ? data.pix.qr_code_base64 : `data:image/png;base64,${data.pix.qr_code_base64}`) : "";
+              const pixQrCode = data?.pix?.qr_code_base64
+                ? (data.pix.qr_code_base64.startsWith("data:") ? data.pix.qr_code_base64 : `data:image/png;base64,${data.pix.qr_code_base64}`)
+                : "";
               const transactionId = String(data?.id || data?.hash || data?.transaction_id || "");
-              
-              if (!pixCode) throw new Error("Não foi possível gerar o código PIX. Tente novamente.");
-              
+
+              if (!pixCode) throw new Error("Não foi possível gerar o código PIX. Tente novamente em instantes.");
+
               trackTikTokEvent("CompletePayment", {
                 content_type: "product",
                 content_id: "escada-telescopica",
                 currency: "BRL",
                 value: total,
               });
-              
-              // Redireciona para a página de instrução de pagamento
+
               navigate("/pagamento-pix", {
                 state: { pixCode, pixQrCode, total, transactionId },
               });
             } catch (err: any) {
               console.error("Erro ao gerar PIX:", err);
-              toast({ title: "Erro ao gerar pagamento", description: err.message || "Tente novamente", variant: "destructive" });
+              toast({
+                title: "Erro ao gerar pagamento",
+                description: err?.message || "Ocorreu um erro inesperado. Tente novamente.",
+                variant: "destructive",
+              });
             } finally {
               setLoading(false);
             }
