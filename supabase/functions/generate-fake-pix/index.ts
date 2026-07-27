@@ -1,11 +1,31 @@
+/**
+ * @file supabase/functions/generate-fake-pix/index.ts
+ * @description Função para gerar transações "falsas" (PIX gerado, mas não pago) para ajustar a taxa de conversão.
+ * 
+ * Este mecanismo (Anti-Desvio) visa "diluir" a taxa de conversão real gerando ordens pendentes,
+ * evitando que gateways de pagamento marquem a conta por taxa de conversão atípica.
+ * 
+ * Fluxo:
+ * 1. Verifica se o recurso anti-desvio está ativo nas configurações do site.
+ * 2. Calcula a taxa de conversão atual (pedidos pagos / total de pedidos).
+ * 3. Se a taxa atual for maior que o alvo, calcula quantos pedidos "fake" são necessários.
+ * 4. Gera dados aleatórios (nomes, CPFs, e-mails, endereços) e insere os registros na tabela 'orders'.
+ */
+
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
+/**
+ * Cabeçalhos CORS.
+ */
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 };
 
+/**
+ * Lista de nomes para geração aleatória.
+ */
 const FIRST_NAMES = [
   "João", "Maria", "Pedro", "Ana", "Carlos", "Fernanda", "Lucas", "Juliana",
   "Rafael", "Camila", "Bruno", "Patrícia", "Gustavo", "Larissa", "Thiago",
@@ -14,6 +34,9 @@ const FIRST_NAMES = [
   "Alexandre", "Natália", "Leonardo", "Renata", "Fernando", "Aline",
 ];
 
+/**
+ * Lista de cidades e estados para geração aleatória.
+ */
 const CITIES = [
   { city: "São Paulo", state: "SP", cep: "01001" },
   { city: "Rio de Janeiro", state: "RJ", cep: "20040" },
@@ -32,10 +55,19 @@ const CITIES = [
   { city: "Natal", state: "RN", cep: "59010" },
 ];
 
+/**
+ * Seleciona um elemento aleatório de um array.
+ * @param {T[]} arr - O array de entrada.
+ * @returns {T} O elemento selecionado.
+ */
 function randomEl<T>(arr: T[]): T {
   return arr[Math.floor(Math.random() * arr.length)];
 }
 
+/**
+ * Gera um CPF válido aleatório (apenas números).
+ * @returns {string} CPF gerado.
+ */
 function generateCPF(): string {
   const n = () => Math.floor(Math.random() * 10);
   const d = Array.from({ length: 9 }, n);
@@ -50,18 +82,32 @@ function generateCPF(): string {
   return d.join("");
 }
 
+/**
+ * Gera um número de telefone celular brasileiro aleatório.
+ * @returns {string} Telefone gerado (DDD + 9 + 8 dígitos).
+ */
 function generatePhone(): string {
   const ddd = [11, 21, 31, 41, 51, 61, 71, 81, 85, 92, 62, 19, 91, 27, 84][Math.floor(Math.random() * 15)];
   const num = Math.floor(Math.random() * 90000000) + 10000000;
   return `${ddd}9${num}`;
 }
 
+/**
+ * Gera um endereço de e-mail baseado no nome fornecido.
+ * @param {string} name - Nome base para o e-mail.
+ * @returns {string} E-mail gerado.
+ */
 function generateEmail(name: string): string {
   const providers = ["gmail.com", "hotmail.com", "outlook.com", "yahoo.com.br"];
   const clean = name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, ".");
   return `${clean}${Math.floor(Math.random() * 999)}@${randomEl(providers)}`;
 }
 
+/**
+ * Handler principal para geração de ordens fakes.
+ * 
+ * @param {Request} req - Requisição. Pode conter {"scheduled": true} no corpo.
+ */
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -73,11 +119,11 @@ serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
-    // Check if this is a scheduled call or manual
+    // Tenta ler o corpo da requisição para verificar se é uma chamada agendada
     let body: any = {};
-    try { body = await req.json(); } catch { /* empty body is fine */ }
+    try { body = await req.json(); } catch { /* corpo vazio é aceitável */ }
 
-    // Read settings from DB
+    // Busca configurações de anti-desvio no banco de dados
     const { data: settings } = await supabaseAdmin
       .from("site_settings")
       .select("key, value")
@@ -89,7 +135,7 @@ serve(async (req) => {
     const enabled = settingsMap["anti_desvio_enabled"] === "true";
     const target = parseFloat(settingsMap["anti_desvio_target_rate"]) || 30;
 
-    // If not enabled, skip (for scheduled calls)
+    // Se o recurso não estiver ativado, encerra a execução
     if (!enabled) {
       console.log("Anti-desvio disabled, skipping");
       return new Response(JSON.stringify({
@@ -98,7 +144,7 @@ serve(async (req) => {
       }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
-    // Get current stats
+    // Obtém estatísticas atuais de pedidos
     const { count: totalCount } = await supabaseAdmin
       .from("orders")
       .select("*", { count: "exact", head: true });
@@ -113,6 +159,7 @@ serve(async (req) => {
 
     console.log(`Current rate: ${currentRate.toFixed(1)}%, target: ${target}%, total: ${total}, paid: ${paid}`);
 
+    // Se a taxa já estiver abaixo do alvo, não faz nada
     if (currentRate <= target) {
       return new Response(JSON.stringify({
         generated: 0,
@@ -121,8 +168,8 @@ serve(async (req) => {
       }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
-    // Calculate how many fake orders needed:
-    // (paid / (total + x)) * 100 = target  =>  x = (paid * 100 / target) - total
+    // Calcula quantas ordens fakes são necessárias para atingir o alvo:
+    // (pago / (total + x)) * 100 = target  =>  x = (pago * 100 / target) - total
     const needed = Math.ceil((paid * 100 / target) - total);
 
     if (needed <= 0) {
@@ -133,10 +180,10 @@ serve(async (req) => {
       }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
-    // For scheduled runs, limit batch size to avoid spikes
+    // Para execuções agendadas, limita o tamanho do lote para evitar picos repentinos
     const maxPerRun = body?.scheduled ? Math.min(needed, 10) : needed;
 
-    // Get product prices
+    // Busca os preços dos produtos ativos para usar nas ordens fakes
     const { data: product } = await supabaseAdmin
       .from("products")
       .select("variants")
@@ -147,7 +194,7 @@ serve(async (req) => {
     const prices = variants.map((v: any) => v.price).filter(Boolean);
     const defaultPrice = prices.length > 0 ? prices[0] : 6820;
 
-    // Generate fake orders
+    // Gera o lote de ordens fakes
     const batch = [];
     for (let j = 0; j < maxPerRun; j++) {
       const firstName = randomEl(FIRST_NAMES);
@@ -156,7 +203,7 @@ serve(async (req) => {
       const price = prices.length > 0 ? randomEl(prices) : defaultPrice;
       const qty = Math.random() > 0.7 ? 2 : 1;
 
-      // Random date within last 2 days for scheduled runs, 7 days for manual
+      // Gera uma data aleatória recente
       const maxDays = body?.scheduled ? 0.5 : 7;
       const daysAgo = Math.random() * maxDays;
       const createdAt = new Date(Date.now() - daysAgo * 86400000).toISOString();
@@ -178,6 +225,7 @@ serve(async (req) => {
       });
     }
 
+    // Insere as ordens fakes no banco de dados
     const { error } = await supabaseAdmin.from("orders").insert(batch);
     const generated = error ? 0 : batch.length;
     if (error) console.error("Insert error:", error);

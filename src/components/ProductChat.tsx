@@ -1,15 +1,25 @@
 import { useState, useRef, useEffect } from "react";
 import { X, Send } from "lucide-react";
 
+/** Tipo para representar uma mensagem no chat */
 type Msg = { role: "user" | "assistant"; content: string };
 
+/** URL da Edge Function do Supabase que processa o chat via IA */
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/product-chat`;
 
+/** Propriedades do componente de chat */
 interface ProductChatProps {
+  /** Se o modal de chat está aberto */
   open: boolean;
+  /** Função para fechar o modal */
   onClose: () => void;
 }
 
+/**
+ * Componente de Chat de Suporte Inteligente.
+ * Permite ao usuário tirar dúvidas sobre o produto e entrega via IA.
+ * Suporta streaming de respostas para uma experiência mais fluida.
+ */
 const ProductChat = ({ open, onClose }: ProductChatProps) => {
   const [messages, setMessages] = useState<Msg[]>([
     { role: "assistant", content: "Olá! 👋 Sou a assistente da JP Variedades. Como posso te ajudar sobre nossa Escada Telescópica ou sobre sua entrega?" },
@@ -19,14 +29,19 @@ const ProductChat = ({ open, onClose }: ProductChatProps) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
+  // Auto-scroll para a última mensagem
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
+  // Foca no input ao abrir o chat
   useEffect(() => {
     if (open) inputRef.current?.focus();
   }, [open]);
 
+  /**
+   * Envia a mensagem do usuário e processa a resposta da IA em streaming
+   */
   const send = async () => {
     const text = input.trim();
     if (!text || isLoading) return;
@@ -54,6 +69,7 @@ const ProductChat = ({ open, onClose }: ProductChatProps) => {
         throw new Error(err.error || "Erro ao conectar");
       }
 
+      // Processamento do stream de dados (SSE-like)
       const reader = resp.body.getReader();
       const decoder = new TextDecoder();
       let textBuffer = "";
@@ -83,6 +99,7 @@ const ProductChat = ({ open, onClose }: ProductChatProps) => {
               const finalContent = assistantSoFar;
               setMessages((prev) => {
                 const last = prev[prev.length - 1];
+                // Atualiza a última mensagem se ela já for da assistente, senão adiciona uma nova
                 if (last?.role === "assistant" && prev.length > allMessages.length) {
                   return prev.map((m, i) => (i === prev.length - 1 ? { ...m, content: finalContent } : m));
                 }
@@ -90,6 +107,7 @@ const ProductChat = ({ open, onClose }: ProductChatProps) => {
               });
             }
           } catch {
+            // Buffer incompleto, tenta ler mais dados
             textBuffer = line + "\n" + textBuffer;
             break;
           }
@@ -110,7 +128,7 @@ const ProductChat = ({ open, onClose }: ProductChatProps) => {
 
   return (
     <div className="fixed inset-0 z-[100] flex flex-col bg-background">
-      {/* Header */}
+      {/* Cabeçalho do Chat */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-background">
         <div>
           <h2 className="text-sm font-bold text-foreground">Chat JP Variedades</h2>
@@ -121,7 +139,7 @@ const ProductChat = ({ open, onClose }: ProductChatProps) => {
         </button>
       </div>
 
-      {/* Messages */}
+      {/* Área de Mensagens */}
       <div className="flex-1 overflow-y-auto px-4 py-3 space-y-3">
         {messages.map((msg, i) => (
           <div key={i} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
@@ -146,7 +164,7 @@ const ProductChat = ({ open, onClose }: ProductChatProps) => {
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Input */}
+      {/* Campo de Entrada de Texto */}
       <div className="border-t border-border px-3 py-2 bg-background flex items-center gap-2" style={{ paddingBottom: "env(safe-area-inset-bottom, 8px)" }}>
         <input
           ref={inputRef}
