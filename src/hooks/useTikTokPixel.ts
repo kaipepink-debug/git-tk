@@ -21,11 +21,12 @@ export function useTikTokPixel() {
   // Busca o ID do pixel nas configurações do site no Supabase
   useEffect(() => {
     const fetchPixelId = async () => {
+      // BUGFIX: usar maybeSingle para não lançar erro quando a linha não existe
       const { data } = await supabase
         .from("site_settings")
         .select("value")
         .eq("key", "tiktok_pixel_id")
-        .single();
+        .maybeSingle();
       if (data?.value) setPixelId(data.value);
     };
     fetchPixelId();
