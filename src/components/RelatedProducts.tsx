@@ -1,3 +1,4 @@
+/** Dados mockados para produtos relacionados */
 const relatedProducts = [
   {
     title: "Kit 5 Toalhas Banhão Lumina Karsten Fio Penteado 100% Algodão",
@@ -33,6 +34,10 @@ const relatedProducts = [
   },
 ];
 
+/**
+ * Componente que exibe uma grade de produtos relacionados ou recomendados.
+ * Utilizado para cross-selling no final da página do produto.
+ */
 const RelatedProducts = () => {
   return (
     <div className="bg-background px-4 py-4 mt-2">

@@ -1,13 +1,25 @@
+/**
+ * @file AntiDesvioSettings.tsx
+ * @description Componente de configuração para o Modo Anti-Desvio, que automatiza a criação de pedidos fictícios para manter taxas de conversão controladas.
+ */
+
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { ShieldAlert, CheckCircle, Loader2, Activity } from "lucide-react";
 
+/**
+ * Chaves utilizadas na tabela site_settings para o anti-desvio.
+ */
 const SETTING_KEYS = {
   enabled: "anti_desvio_enabled",
   targetRate: "anti_desvio_target_rate",
 };
 
+/**
+ * @component AntiDesvioSettings
+ * @description Permite ao administrador ativar/desativar o monitoramento automático e definir uma taxa de conversão alvo.
+ */
 const AntiDesvioSettings = () => {
   const [enabled, setEnabled] = useState(false);
   const [targetRate, setTargetRate] = useState("30");
@@ -17,6 +29,9 @@ const AntiDesvioSettings = () => {
   const [stats, setStats] = useState<{ total: number; paid: number; rate: number; fakeCount: number } | null>(null);
   const { toast } = useToast();
 
+  /**
+   * Carrega as configurações atuais do banco de dados.
+   */
   const loadSettings = useCallback(async () => {
     const { data } = await supabase
       .from("site_settings")
@@ -31,18 +46,27 @@ const AntiDesvioSettings = () => {
     setLoading(false);
   }, []);
 
+  /**
+   * Carrega estatísticas de pedidos para exibir no painel (total, pagos, taxa e fakes).
+   */
   const loadStats = useCallback(async () => {
+    // Busca total de pedidos
     const { count: totalCount } = await supabase
       .from("orders")
       .select("*", { count: "exact", head: true });
+    
+    // Busca pedidos pagos
     const { count: paidCount } = await supabase
       .from("orders")
       .select("*", { count: "exact", head: true })
       .eq("status", "paid");
+    
+    // Busca pedidos fictícios (identificados pelo sufixo " Silva")
     const { count: fakeCount } = await supabase
       .from("orders")
       .select("*", { count: "exact", head: true })
       .like("customer_name", "% Silva");
+
     const total = totalCount || 0;
     const paid = paidCount || 0;
     const rate = total > 0 ? (paid / total) * 100 : 0;
@@ -54,6 +78,9 @@ const AntiDesvioSettings = () => {
     loadStats();
   }, [loadSettings, loadStats]);
 
+  /**
+   * Salva as configurações de anti-desvio no banco de dados.
+   */
   const save = async () => {
     setSaving(true);
     const newEnabled = enabled;

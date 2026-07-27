@@ -1,10 +1,14 @@
 import { Star } from "lucide-react";
 
+/**
+ * Componente que exibe informações básicas sobre a loja/vendedor.
+ * Mostra o avatar da loja, nome, status online e estatísticas (nota, vendas, avaliações positivas).
+ */
 const StoreInfo = () => {
   return (
     <div className="bg-background px-4 py-4 mt-2">
       <div className="flex items-center gap-3">
-        {/* Store Avatar */}
+        {/* Avatar da Loja */}
         <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-border flex-shrink-0">
           <img
             src="/images/loja-logo.png"
@@ -13,9 +17,9 @@ const StoreInfo = () => {
           />
         </div>
 
-        {/* Store Info */}
+        {/* Informações Textuais da Loja */}
         <div className="flex-1 min-w-0">
-          {/* Name + Online */}
+          {/* Nome e Indicador de Status Online */}
           <div className="flex items-center gap-1.5 flex-wrap">
             <h3 className="text-sm font-bold text-foreground">Mestre de Obra</h3>
             <div className="flex items-center gap-1">
@@ -27,7 +31,7 @@ const StoreInfo = () => {
             </div>
           </div>
 
-          {/* Stats numa linha única compacta */}
+          {/* Estatísticas da Loja (Nota, Vendas e Positividade) */}
           <div className="flex items-center gap-2 mt-1">
             <div className="flex items-center gap-0.5">
               <Star className="w-3 h-3 fill-star text-star" />

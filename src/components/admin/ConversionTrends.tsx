@@ -1,6 +1,15 @@
+/**
+ * @file ConversionTrends.tsx
+ * @description Componente de gráfico que exibe a tendência de conversão PIX ao longo do tempo (por hora ou por dia).
+ */
+
 import { useMemo } from "react";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 
+/**
+ * @interface Order
+ * @description Representação simplificada de um pedido para o gráfico.
+ */
 interface Order {
   id: string;
   amount: number;
@@ -8,17 +17,31 @@ interface Order {
   created_at: string;
 }
 
+/**
+ * @interface ConversionTrendsProps
+ * @description Propriedades do componente ConversionTrends.
+ * @property {Order[]} orders - Lista de pedidos.
+ * @property {{ from: Date; to: Date }} dateRange - Intervalo de datas selecionado.
+ */
 interface ConversionTrendsProps {
   orders: Order[];
   dateRange: { from: Date; to: Date };
 }
 
+/**
+ * @component ConversionTrends
+ * @description Exibe um gráfico de linhas mostrando a taxa de conversão e o volume de pedidos.
+ * @param {ConversionTrendsProps} props - Propriedades do componente.
+ */
 const ConversionTrends = ({ orders, dateRange }: ConversionTrendsProps) => {
+  /**
+   * Processa os dados dos pedidos para o formato exigido pelo Recharts.
+   */
   const data = useMemo(() => {
     const diffDays = Math.ceil((dateRange.to.getTime() - dateRange.from.getTime()) / 86400000);
     
+    // Visão por hora se o intervalo for de apenas um dia
     if (diffDays <= 1) {
-      // Hourly view
       const hours: Record<number, { total: number; paid: number }> = {};
       for (let i = 0; i < 24; i++) hours[i] = { total: 0, paid: 0 };
       orders.forEach(o => {
@@ -36,7 +59,7 @@ const ConversionTrends = ({ orders, dateRange }: ConversionTrendsProps) => {
       }));
     }
 
-    // Daily view
+    // Visão diária para intervalos maiores
     const result: { label: string; taxa: number; pedidos: number; pagos: number }[] = [];
     for (let i = 0; i < diffDays; i++) {
       const d = new Date(dateRange.from.getTime() + i * 86400000);
