@@ -114,6 +114,7 @@ const AdicionarEndereco = () => {
 
   /**
    * Manipula a mudança no campo de CEP e busca o endereço automaticamente.
+   * Fornece feedback claro em caso de CEP não encontrado ou falha de rede.
    * @param value - Valor digitado pelo usuário.
    */
   const handleCepChange = async (value: string) => {
@@ -126,15 +127,25 @@ const AdicionarEndereco = () => {
       setLoadingCep(true);
       try {
         const res = await fetch(`https://brasilapi.com.br/api/cep/v1/${digits}`);
-        const data = await res.json();
-        if (!data.errors) {
-          setEstado(data.state || "");
-          setCidade(data.city || "");
-          setBairro(data.neighborhood || "");
-          setEndereco(data.street || "");
+        if (!res.ok) {
+          setErrors(p => ({ ...p, cep: "CEP não encontrado. Preencha manualmente." }));
+        } else {
+          const data = await res.json();
+          if (data?.errors) {
+            setErrors(p => ({ ...p, cep: "CEP não encontrado. Preencha manualmente." }));
+          } else {
+            setEstado(data.state || "");
+            setCidade(data.city || "");
+            setBairro(data.neighborhood || "");
+            setEndereco(data.street || "");
+          }
         }
-      } catch { /* silently fail */ }
-      setLoadingCep(false);
+      } catch (err) {
+        console.error("[AdicionarEndereco] Erro ao buscar CEP:", err);
+        setErrors(p => ({ ...p, cep: "Não foi possível buscar o CEP. Verifique sua conexão." }));
+      } finally {
+        setLoadingCep(false);
+      }
     }
   };
   

@@ -41,6 +41,43 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     );
 
+    // Parse seguro do corpo da requisição
+    let body: any;
+    try {
+      body = await req.json();
+    } catch {
+      return new Response(JSON.stringify({ error: 'Corpo da requisição inválido' }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    const { amount, customer, qty } = body || {};
+
+    // Validação de valor
+    if (typeof amount !== 'number' || !Number.isFinite(amount) || amount < 100) {
+      return new Response(JSON.stringify({ error: 'Valor do pedido inválido' }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    // Validação de dados do cliente
+    if (!customer?.name || !customer?.email || !customer?.document) {
+      return new Response(JSON.stringify({ error: 'Dados do cliente incompletos. Preencha nome, e-mail e CPF.' }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    // Validação simples de e-mail
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(customer.email))) {
+      return new Response(JSON.stringify({ error: 'E-mail do cliente inválido' }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
     // Busca o gateway configurado como ativo
     const { data: gwData, error: gwError } = await supabaseAdmin
       .from('gateway_settings')
@@ -48,9 +85,16 @@ serve(async (req) => {
       .eq('is_active', true)
       .maybeSingle();
 
-    if (gwError || !gwData) {
-      return new Response(JSON.stringify({ error: 'Nenhum gateway ativo configurado' }), {
+    if (gwError) {
+      console.error('Erro ao buscar gateway:', gwError);
+      return new Response(JSON.stringify({ error: 'Não foi possível carregar as configurações de pagamento. Tente novamente em instantes.' }), {
         status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+    if (!gwData) {
+      return new Response(JSON.stringify({ error: 'Pagamento indisponível no momento. Tente novamente mais tarde.' }), {
+        status: 503,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
@@ -59,24 +103,29 @@ serve(async (req) => {
     const apiToken = gwData.api_token;
     const productId = gwData.product_id;
 
+    if (!apiToken) {
+      console.error('Gateway ativo sem api_token configurado:', gateway);
+      return new Response(JSON.stringify({ error: 'Pagamento indisponível no momento. Tente novamente mais tarde.' }), {
+        status: 503,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
     console.log(`Active gateway: ${gateway}`);
 
-    // Extração e validação básica dos dados da requisição
-    const body = await req.json();
-    const { amount, customer, qty } = body;
+    // Limpeza de caracteres não numéricos de campos sensíveis
+    const cleanDoc = String(customer.document).replace(/\D/g, '');
+    const cleanPhone = customer.phone_number ? String(customer.phone_number).replace(/\D/g, '') : '';
+    const cleanCep = customer.zip_code ? String(customer.zip_code).replace(/\D/g, '') : '';
 
-    if (!customer?.name || !customer?.email || !customer?.document) {
-      return new Response(JSON.stringify({ error: 'Dados do cliente incompletos' }), {
+    if (cleanDoc.length !== 11) {
+      return new Response(JSON.stringify({ error: 'CPF inválido. Informe um CPF com 11 dígitos.' }), {
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
-    // Limpeza de caracteres não numéricos de campos sensíveis
-    const cleanDoc = customer.document.replace(/\D/g, '');
-    const cleanPhone = customer.phone_number?.replace(/\D/g, '') || '';
-    const cleanCep = customer.zip_code?.replace(/\D/g, '') || '';
-    const quantity = qty || 1;
+    const quantity = Number(qty) > 0 ? Number(qty) : 1;
 
     let pixCode = '';
     let pixQrCodeBase64 = '';

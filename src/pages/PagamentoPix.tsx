@@ -11,6 +11,7 @@ import { useState, useEffect, useRef } from "react";
 import { QRCodeSVG } from "qrcode.react";
 import { useSessionTracker } from "@/hooks/useSessionTracker";
 import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 /**
  * Componente da página de Pagamento Pix.
@@ -65,7 +66,18 @@ const PagamentoPix = () => {
           body: { transaction_id: pixData.transactionId },
         });
 
-        if (!error && data?.status === "paid" && !stopped) {
+        if (error) {
+          // Erro de rede/edge function — não interrompe o polling, apenas loga.
+          console.warn("Falha ao consultar pagamento:", error.message);
+          return;
+        }
+
+        if (data?.error) {
+          console.warn("Gateway retornou erro:", data.error);
+          return;
+        }
+
+        if (data?.status === "paid" && !stopped) {
           stopped = true;
           setPaymentStatus("paid");
           if (pollingRef.current) clearInterval(pollingRef.current);
@@ -101,11 +113,19 @@ const PagamentoPix = () => {
   /**
    * Copia o código Pix para a área de transferência.
    */
-  const handleCopy = () => {
-    if (pixData?.pixCode) {
-      navigator.clipboard.writeText(pixData.pixCode);
+  /**
+   * Copia o código Pix para a área de transferência com tratamento de erros
+   * (ex.: navegador sem suporte ou permissão negada).
+   */
+  const handleCopy = async () => {
+    if (!pixData?.pixCode) return;
+    try {
+      await navigator.clipboard.writeText(pixData.pixCode);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      console.error("Erro ao copiar código PIX:", err);
+      toast.error("Não foi possível copiar. Selecione o código manualmente.");
     }
   };
 

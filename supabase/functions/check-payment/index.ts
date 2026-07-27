@@ -36,10 +36,20 @@ serve(async (req) => {
   }
 
   try {
-    // Extração do transaction_id do corpo da requisição
-    const { transaction_id } = await req.json();
+    // Parse seguro do corpo da requisição
+    let body: any;
+    try {
+      body = await req.json();
+    } catch {
+      return new Response(JSON.stringify({ error: 'Corpo da requisição inválido' }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
 
-    if (!transaction_id) {
+    const { transaction_id } = body || {};
+
+    if (!transaction_id || typeof transaction_id !== 'string') {
       return new Response(JSON.stringify({ error: 'transaction_id é obrigatório' }), {
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
