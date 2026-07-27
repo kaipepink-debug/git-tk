@@ -57,7 +57,7 @@ serve(async (req) => {
       .from('gateway_settings')
       .select('gateway_name, api_token')
       .eq('is_active', true)
-      .single();
+      .maybeSingle();
 
     if (gwError || !gwData) {
       return new Response(JSON.stringify({ error: 'Nenhum gateway ativo configurado' }), {

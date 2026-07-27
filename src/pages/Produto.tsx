@@ -41,11 +41,12 @@ const Produto = () => {
      * Carrega as configurações do site assincronamente para verificar o status da pré-venda.
      */
     const load = async () => {
+      // BUGFIX: .single() lança erro quando a chave 'presell_enabled' não existe.
       const { data } = await supabase
         .from("site_settings")
         .select("value")
         .eq("key", "presell_enabled")
-        .single();
+        .maybeSingle();
       setPresellEnabled(data?.value === "true");
     };
     load();

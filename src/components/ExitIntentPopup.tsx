@@ -53,8 +53,9 @@ const ExitIntentPopup = () => {
     const handlePopState = () => {
       if (!sessionStorage.getItem("exit_popup_shown")) {
         sessionStorage.setItem("exit_popup_shown", "true");
-        window.history.pushState({ exitPopup: true }, "");
         setShow(true);
+        // BUGFIX: antes chamávamos pushState novamente aqui, o que prendia o botão
+        // "Voltar" do navegador em loop. Deixamos o histórico seguir normalmente.
       }
     };
 

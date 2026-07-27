@@ -64,11 +64,9 @@ export function useSessionTracker(page: string) {
     return () => {
       clearInterval(intervalRef.current);
       window.removeEventListener("beforeunload", handleUnload);
-      
-      // Tenta registrar a saída ao desmontar o componente via hook padrão
-      supabase.functions.invoke("track-session", {
-        body: { session_id: sessionId, action: "leave" },
-      });
+      // BUGFIX: antes disparávamos "leave" a cada desmontagem (troca de página),
+      // apagando a sessão ativa entre navegações. A saída real já é tratada por
+      // beforeunload + cleanup_stale_sessions no backend.
     };
   }, [page]);
 }

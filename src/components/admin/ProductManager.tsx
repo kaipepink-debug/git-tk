@@ -94,7 +94,7 @@ const ProductManager = () => {
       .select("*")
       .eq("is_active", true)
       .limit(1)
-      .single();
+      .maybeSingle();
 
     if (pData) {
       setProduct({
@@ -262,7 +262,9 @@ const ProductManager = () => {
   const removeVariant = (idx: number) => {
     if (!product) return;
     const v = product.variants.filter((_, i) => i !== idx);
-    setProduct({ ...product, variants: v, default_variant: Math.min(product.default_variant, v.length - 1) });
+    // BUGFIX: quando v.length = 0, o cálculo anterior gerava default_variant = -1
+    const nextDefault = v.length > 0 ? Math.min(product.default_variant, v.length - 1) : 0;
+    setProduct({ ...product, variants: v, default_variant: Math.max(0, nextDefault) });
   };
 
   /**
