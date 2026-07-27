@@ -26,11 +26,12 @@ export function useOptimizedImage(
   const [optimized, setOptimized] = useState(() => cache.get(src) || src);
 
   useEffect(() => {
-    // Se não há fonte ou já está no cache, atualiza o estado e sai
-    if (!src || cache.has(src)) {
-      if (cache.has(src)) setOptimized(cache.get(src)!);
-      return;
-    }
+    // BUGFIX: quando `src` muda, o estado anterior permanecia até o novo blob ficar
+    // pronto, causando "flash" da imagem antiga. Sincroniza imediatamente.
+    setOptimized(cache.get(src) || src);
+
+    // Se não há fonte ou já está no cache, sai.
+    if (!src || cache.has(src)) return;
 
     // Ignora Data URLs que normalmente já são pequenos ou processados
     if (src.startsWith("data:")) {

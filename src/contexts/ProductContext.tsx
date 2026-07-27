@@ -118,12 +118,13 @@ export const ProductProvider = ({ children }: { children: ReactNode }) => {
      * Carrega os dados do primeiro produto ativo encontrado no banco.
      */
     const load = async () => {
+      // BUGFIX: .single() lança erro quando não há produto ativo. Usar maybeSingle.
       const { data } = await supabase
         .from("products")
         .select("*")
         .eq("is_active", true)
         .limit(1)
-        .single();
+        .maybeSingle();
 
       if (data) {
         const p: ProductData = {

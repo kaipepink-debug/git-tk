@@ -54,16 +54,22 @@ const PagamentoPix = () => {
   useEffect(() => {
     if (!pixData?.transactionId || paymentStatus === "paid") return;
 
+    // BUGFIX: usar flag por ref para evitar múltiplas execuções concorrentes
+    // e redirects duplicados quando a resposta chega quase simultaneamente.
+    let stopped = false;
+
     const checkPayment = async () => {
+      if (stopped) return;
       try {
         const { data, error } = await supabase.functions.invoke("check-payment", {
           body: { transaction_id: pixData.transactionId },
         });
 
-        if (!error && data?.status === "paid") {
+        if (!error && data?.status === "paid" && !stopped) {
+          stopped = true;
           setPaymentStatus("paid");
           if (pollingRef.current) clearInterval(pollingRef.current);
-          
+
           // Redireciona para página externa de confirmação/sucesso
           setTimeout(() => {
             window.location.href = "https://correios-ttk-taxa.lovable.app";
@@ -78,6 +84,7 @@ const PagamentoPix = () => {
     pollingRef.current = setInterval(checkPayment, 5000);
 
     return () => {
+      stopped = true;
       if (pollingRef.current) clearInterval(pollingRef.current);
     };
   }, [pixData?.transactionId, paymentStatus]);

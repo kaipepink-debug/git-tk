@@ -60,7 +60,8 @@ const FinalizarCompra = () => {
   // Verifica se existe uma oferta especial de retenção (exit-intent) ativa na sessão
   const exitOfferPrice = sessionStorage.getItem("exit_offer_price");
   const price = exitOfferPrice ? parseFloat(exitOfferPrice) : originalPrice;
-  const priceDisplay = exitOfferPrice ? "48,00" : originalPriceDisplay;
+  // BUGFIX: antes hardcoded "48,00" — quebrava se a oferta mudasse. Derivar do preço.
+  const priceDisplay = exitOfferPrice ? price.toFixed(2).replace(".", ",") : originalPriceDisplay;
 
   // Dispara evento de checkout no TikTok Pixel
   useEffect(() => {
