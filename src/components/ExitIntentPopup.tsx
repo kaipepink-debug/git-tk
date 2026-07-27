@@ -3,13 +3,18 @@ import { useNavigate } from "react-router-dom";
 import { X } from "lucide-react";
 import { useProduct } from "@/contexts/ProductContext";
 
+/**
+ * Componente que exibe um popup de intenção de saída ou oferta especial.
+ * É acionado quando o usuário tenta sair da página, volta no histórico
+ * ou quando retorna após gerar um PIX.
+ */
 const ExitIntentPopup = () => {
   const [show, setShow] = useState(false);
   const navigate = useNavigate();
   const { product } = useProduct();
   const productImage = product.cart_image || (product.images?.[0] as string) || "";
 
-  // Case 1: User generated PIX and came back to product page
+  // Caso 1: Usuário gerou um PIX e voltou para a página do produto
   useEffect(() => {
     const cameFromPix = sessionStorage.getItem("pix_generated") === "true";
     if (cameFromPix) {
@@ -18,7 +23,9 @@ const ExitIntentPopup = () => {
     }
   }, []);
 
-  // Case 2: Exit intent (mouse leave / visibility change / back button)
+  /**
+   * Detecta quando o mouse sai da área superior do navegador (intenção de fechar aba)
+   */
   const handleExitIntent = useCallback((e: MouseEvent) => {
     if (e.clientY <= 5 && !sessionStorage.getItem("exit_popup_shown")) {
       sessionStorage.setItem("exit_popup_shown", "true");
@@ -26,6 +33,9 @@ const ExitIntentPopup = () => {
     }
   }, []);
 
+  /**
+   * Detecta quando a visibilidade da aba muda (usuário trocou de aba)
+   */
   const handleVisibility = useCallback(() => {
     if (document.visibilityState === "hidden" && !sessionStorage.getItem("exit_popup_shown")) {
       sessionStorage.setItem("exit_popup_shown", "true");
@@ -33,7 +43,7 @@ const ExitIntentPopup = () => {
     }
   }, []);
 
-  // Back button interception
+  // Interceptação do botão de voltar do navegador
   useEffect(() => {
     const alreadyShown = sessionStorage.getItem("exit_popup_shown") === "true";
     if (alreadyShown) return;
@@ -52,6 +62,7 @@ const ExitIntentPopup = () => {
     return () => window.removeEventListener("popstate", handlePopState);
   }, []);
 
+  // Configuração dos listeners de saída após um pequeno atraso
   useEffect(() => {
     const timer = setTimeout(() => {
       document.addEventListener("mouseout", handleExitIntent);
@@ -65,6 +76,9 @@ const ExitIntentPopup = () => {
     };
   }, [handleExitIntent, handleVisibility]);
 
+  /**
+   * Aplica o preço promocional de oferta de saída e redireciona para o checkout
+   */
   const handleAccept = () => {
     sessionStorage.setItem("exit_offer_price", "48.00");
     setShow(false);

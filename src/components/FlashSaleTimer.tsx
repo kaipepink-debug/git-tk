@@ -1,10 +1,15 @@
 import { useState, useEffect } from "react";
 import { useProduct } from "@/contexts/ProductContext";
 
+/**
+ * Componente que exibe um banner de "Oferta Relâmpago" com temporizador regressivo.
+ * Inclui o preço atual, desconto e um cronômetro de urgência.
+ */
 const FlashSaleTimer = () => {
   const { price, priceDisplay, oldPriceDisplay, discount } = useProduct();
   const [time, setTime] = useState({ h: 0, m: 17, s: 46 });
 
+  // Lógica do cronômetro regressivo
   useEffect(() => {
     const interval = setInterval(() => {
       setTime((t) => {
@@ -19,6 +24,10 @@ const FlashSaleTimer = () => {
     return () => clearInterval(interval);
   }, []);
 
+  /**
+   * Formata números com zero à esquerda (ex: 09)
+   * @param n Número a ser formatado
+   */
   const pad = (n: number) => n.toString().padStart(2, "0");
 
   return (
@@ -29,7 +38,7 @@ const FlashSaleTimer = () => {
         padding: "10px 16px",
       }}
     >
-      {/* Lightning bolt background */}
+      {/* Elemento visual de fundo: raio de luz */}
       <svg
         viewBox="0 0 24 24"
         fill="none"
@@ -58,7 +67,7 @@ const FlashSaleTimer = () => {
         />
       </svg>
 
-      {/* Left: badge + price */}
+      {/* Lado esquerdo: selo de desconto e preço atual */}
       <div className="relative z-10 flex flex-col gap-1 flex-1">
         <div className="flex items-center gap-3 flex-wrap">
           <div
@@ -97,7 +106,7 @@ const FlashSaleTimer = () => {
         </div>
       </div>
 
-      {/* Right: flash sale label + timer */}
+      {/* Lado direito: etiqueta de oferta relâmpago e cronômetro */}
       <div
         className="flex flex-col items-end justify-end gap-1 flex-shrink-0 absolute z-10"
         style={{ bottom: "5px", right: "16px" }}

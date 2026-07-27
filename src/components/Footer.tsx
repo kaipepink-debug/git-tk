@@ -2,6 +2,11 @@ import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
+/**
+ * Componente de rodapé global do site.
+ * Exibe informações institucionais, links de políticas, suporte e selos de segurança.
+ * Busca dados da empresa (CNPJ, Endereço, etc.) dinamicamente das configurações do site.
+ */
 const Footer = () => {
   const [info, setInfo] = useState({
     company_name: "JP VARIEDADES LTDA",
@@ -11,6 +16,7 @@ const Footer = () => {
     company_address: "",
   });
 
+  // Carrega as informações da empresa do Supabase
   useEffect(() => {
     const load = async () => {
       const { data } = await supabase
@@ -29,7 +35,7 @@ const Footer = () => {
   return (
     <footer className="bg-background border-t border-border px-4 py-8">
       <div className="grid grid-cols-2 gap-6 mb-8">
-        {/* Institucional */}
+        {/* Seção Institucional */}
         <div>
           <h3 className="text-sm font-bold text-foreground mb-3">Institucional</h3>
           <ul className="space-y-1.5 text-xs text-muted-foreground">
@@ -42,7 +48,7 @@ const Footer = () => {
           </ul>
         </div>
 
-        {/* Políticas */}
+        {/* Seção de Políticas Legais */}
         <div>
           <h3 className="text-sm font-bold text-foreground mb-3">Políticas</h3>
           <ul className="space-y-1.5 text-xs text-muted-foreground">
@@ -55,7 +61,7 @@ const Footer = () => {
           </ul>
         </div>
 
-        {/* Suporte */}
+        {/* Seção de Suporte ao Cliente */}
         <div>
           <h3 className="text-sm font-bold text-foreground mb-3">Suporte</h3>
           <ul className="space-y-1.5 text-xs text-muted-foreground">
@@ -66,7 +72,7 @@ const Footer = () => {
           </ul>
         </div>
 
-        {/* Segurança */}
+        {/* Seção de Segurança e Confiança */}
         <div>
           <h3 className="text-sm font-bold text-foreground mb-3">Segurança e Confiança</h3>
           <ul className="space-y-1.5 text-xs text-muted-foreground">
@@ -79,6 +85,7 @@ const Footer = () => {
         </div>
       </div>
 
+      {/* Rodapé inferior com informações legais compactas */}
       <div className="border-t border-border pt-4 text-center space-y-1">
         <p className="text-[10px] text-muted-foreground">
           Seus dados são protegidos com criptografia SSL. Estamos em conformidade com a LGPD.
