@@ -1,6 +1,15 @@
+/**
+ * Rota: /politica-cookies
+ * Propósito: Página informativa sobre o uso de cookies no site, em conformidade com leis
+ * de proteção de dados (LGPD).
+ */
+
 import { ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
+/**
+ * Componente da página Política de Cookies.
+ */
 const PoliticaCookies = () => {
   const navigate = useNavigate();
 

@@ -1,16 +1,43 @@
+/**
+ * Rota: /adicionar-endereco
+ * Propósito: Permite ao usuário cadastrar ou editar informações de entrega e contato
+ * antes de finalizar a compra. Inclui validações de CPF, E-mail e busca automática de CEP.
+ */
+
 import { useNavigate } from "react-router-dom";
 import { ChevronLeft } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useSessionTracker } from "@/hooks/useSessionTracker";
 
+/**
+ * Valida se uma string é um e-mail válido usando expressão regular.
+ * @param email - String do e-mail a ser validado.
+ * @returns Booleano indicando se o e-mail é válido.
+ */
 const validarEmail = (email: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+
+/**
+ * Valida se o telefone tem pelo menos 10 dígitos numéricos.
+ * @param tel - String do telefone.
+ * @returns Booleano indicando se o telefone é válido.
+ */
 const validarTelefone = (tel: string) => tel.replace(/\D/g, "").length >= 10;
 
+/**
+ * Formata uma string numérica para o padrão de CPF (000.000.000-00).
+ * @param value - String contendo números.
+ * @returns String formatada como CPF.
+ */
 const formatarCpf = (value: string) => {
   const digits = value.replace(/\D/g, "").slice(0, 11);
   return digits.replace(/(\d{3})(\d)/, "$1.$2").replace(/(\d{3})(\d)/, "$1.$2").replace(/(\d{3})(\d{1,2})$/, "$1-$2");
 };
 
+/**
+ * Valida se o CPF é matematicamente válido (algoritmo de dígitos verificadores).
+ * @param cpf - String do CPF formatado ou não.
+ * @returns Booleano indicando se o CPF é legítimo.
+ */
 const validarCpf = (cpf: string) => {
   const digits = cpf.replace(/\D/g, "");
   if (digits.length !== 11 || /^(\d)\1{10}$/.test(digits)) return false;
@@ -26,6 +53,11 @@ const validarCpf = (cpf: string) => {
   return rest === parseInt(digits[10]);
 };
 
+/**
+ * Formata uma string numérica para o padrão de telefone brasileiro (00 00000-0000).
+ * @param value - String contendo números.
+ * @returns String formatada como telefone.
+ */
 const formatarTelefone = (value: string) => {
   const digits = value.replace(/\D/g, "").slice(0, 11);
   if (digits.length <= 2) return digits;
@@ -33,9 +65,16 @@ const formatarTelefone = (value: string) => {
   return `${digits.slice(0, 2)} ${digits.slice(2, 7)}-${digits.slice(7)}`;
 };
 
+/**
+ * Componente da página de Adicionar Endereço.
+ * Gerencia o formulário de entrega, integração com API de CEP e persistência local.
+ */
 const AdicionarEndereco = () => {
+  // Rastreia a sessão do usuário nesta página
   useSessionTracker("/adicionar-endereco");
   const navigate = useNavigate();
+  
+  // Estados para os campos do formulário
   const [padrao, setPadrao] = useState(false);
   const [nome, setNome] = useState("");
   const [telefone, setTelefone] = useState("");
@@ -50,6 +89,7 @@ const AdicionarEndereco = () => {
   const [loadingCep, setLoadingCep] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
+  // Efeito para carregar dados salvos anteriormente no localStorage
   useEffect(() => {
     const saved = localStorage.getItem("endereco");
     if (saved) {
@@ -72,11 +112,16 @@ const AdicionarEndereco = () => {
     }
   }, []);
 
+  /**
+   * Manipula a mudança no campo de CEP e busca o endereço automaticamente.
+   * @param value - Valor digitado pelo usuário.
+   */
   const handleCepChange = async (value: string) => {
     const digits = value.replace(/\D/g, "").slice(0, 8);
     const formatted = digits.length > 5 ? digits.replace(/(\d{5})(\d)/, "$1-$2") : digits;
     setCep(formatted);
 
+    // Se o CEP estiver completo, busca na BrasilAPI
     if (digits.length === 8) {
       setLoadingCep(true);
       try {
@@ -92,15 +137,20 @@ const AdicionarEndereco = () => {
       setLoadingCep(false);
     }
   };
+  
   const cepFilled = cep.replace(/\D/g, "").length === 8;
 
+  /**
+   * Renderiza um label com asterisco indicando campo obrigatório.
+   * @param label - Texto do label.
+   */
   const req = (label: string) => (
     <>{label}<span style={{ color: "#FF2B56" }}> *</span></>
   );
 
   return (
     <div className="min-h-screen bg-secondary max-w-lg mx-auto flex flex-col" style={{ fontFamily: "-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Oxygen,Ubuntu,Cantarell,sans-serif" }}>
-      {/* Header */}
+      {/* Header com botão de voltar */}
       <div className="sticky top-0 z-50 bg-background flex items-center px-4 py-3 border-b border-border">
         <button onClick={() => navigate(-1)} className="mr-3">
           <ChevronLeft className="w-6 h-6 text-foreground" />
@@ -108,7 +158,7 @@ const AdicionarEndereco = () => {
         <h1 className="text-base font-semibold text-foreground flex-1 text-center pr-9">Adicionar o novo endereço</h1>
       </div>
 
-      {/* Informações de contato — PRIMEIRO */}
+      {/* Informações de contato — Nome, Tel, Email e CPF */}
       <div className="bg-background mt-2 px-4 py-4">
         <h2 className="text-sm font-bold text-foreground mb-3">Informações de contato</h2>
         <div className="space-y-0">
@@ -162,7 +212,7 @@ const AdicionarEndereco = () => {
         </div>
       </div>
 
-      {/* CEP */}
+      {/* Busca de CEP */}
       <div className="bg-background mt-2 px-4 py-4">
         <h2 className="text-sm font-bold text-foreground mb-3">Endereço de entrega</h2>
         <div className="space-y-0">
@@ -181,7 +231,7 @@ const AdicionarEndereco = () => {
         </div>
       </div>
 
-      {/* Restante do endereço — só aparece após CEP preenchido */}
+      {/* Detalhes do endereço — Só são exibidos quando o CEP é preenchido */}
       {cepFilled && (
         <div className="bg-background mt-2 px-4 py-4">
           <h2 className="text-sm font-bold text-foreground mb-3">Detalhes do endereço</h2>
@@ -255,7 +305,7 @@ const AdicionarEndereco = () => {
         </div>
       )}
 
-      {/* Configurações */}
+      {/* Configuração de endereço padrão */}
       <div className="bg-background mt-2 px-4 py-4">
         <h2 className="text-sm font-bold text-foreground mb-3">Configurações</h2>
         <div className="flex items-center justify-between">
@@ -273,7 +323,7 @@ const AdicionarEndereco = () => {
         </div>
       </div>
 
-      {/* Footer */}
+      {/* Rodapé com botão de salvar e validação final */}
       <div className="flex-1" />
       <div className="bg-background px-4 py-3 text-center">
         <p className="text-xs text-muted-foreground mb-4">
@@ -283,6 +333,7 @@ const AdicionarEndereco = () => {
         <button
           onClick={() => {
             const newErrors: Record<string, string> = {};
+            // Validações antes de prosseguir
             if (!nome.trim()) newErrors.nome = "Informe seu nome e sobrenome";
             if (!validarTelefone(telefone)) newErrors.telefone = "Informe um telefone válido (mín. 10 dígitos)";
             if (!validarEmail(email)) newErrors.email = "Informe um e-mail válido";
@@ -297,6 +348,7 @@ const AdicionarEndereco = () => {
             setErrors(newErrors);
             if (Object.keys(newErrors).length > 0) return;
 
+            // Salva no localStorage para persistência entre sessões
             const data = { nome, telefone, email, cpf, cep, estado, cidade, bairro, endereco, numero };
             localStorage.setItem("endereco", JSON.stringify(data));
             localStorage.setItem("cpfSalvo", cpf);

@@ -1,10 +1,22 @@
+/**
+ * @file PreSellSettings.tsx
+ * @description Componente de configuração para a tela de Pre-Sell (Bloqueio). Permite editar textos, cores e ativar/desativar o recurso.
+ */
+
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, CheckCircle, SlidersHorizontal, Eye, EyeOff } from "lucide-react";
 
+/**
+ * Chaves das configurações de pre-sell na tabela site_settings.
+ */
 const PRESELL_KEYS = ["presell_enabled", "presell_button_text", "presell_instruction_text", "presell_button_color"] as const;
 
+/**
+ * @component PreSellSettings
+ * @description Interface administrativa para gerenciar o comportamento e aparência do botão de deslizar da pre-sell.
+ */
 const PreSellSettings = () => {
   const [data, setData] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
@@ -12,6 +24,7 @@ const PreSellSettings = () => {
   const [saved, setSaved] = useState(false);
   const { toast } = useToast();
 
+  // Carrega as configurações de pre-sell ao montar o componente
   useEffect(() => {
     const load = async () => {
       const { data: rows } = await supabase
@@ -28,6 +41,9 @@ const PreSellSettings = () => {
     load();
   }, []);
 
+  /**
+   * Salva todas as configurações de pre-sell no banco de dados.
+   */
   const save = async () => {
     setSaving(true);
     const promises = PRESELL_KEYS.map(key =>
@@ -42,6 +58,9 @@ const PreSellSettings = () => {
 
   const isEnabled = data.presell_enabled === "true";
 
+  /**
+   * Alterna o estado de ativação da pre-sell.
+   */
   const toggleEnabled = () => {
     setData(prev => ({ ...prev, presell_enabled: prev.presell_enabled === "true" ? "false" : "true" }));
   };
@@ -67,7 +86,7 @@ const PreSellSettings = () => {
       </div>
 
       <div className="p-5 space-y-4">
-        {/* Toggle */}
+        {/* Interruptor de Ativação */}
         <div className="flex items-center justify-between p-3 rounded-lg bg-[hsl(220,20%,7%)] border border-[hsl(220,15%,18%)]">
           <div className="flex items-center gap-3">
             {isEnabled ? (
@@ -93,7 +112,7 @@ const PreSellSettings = () => {
           </button>
         </div>
 
-        {/* Button text */}
+        {/* Texto do Botão */}
         <div>
           <label className="text-[10px] text-[hsl(220,10%,45%)] block mb-1.5 uppercase tracking-wider font-medium">
             Texto do Botão
@@ -107,7 +126,7 @@ const PreSellSettings = () => {
           />
         </div>
 
-        {/* Instruction text */}
+        {/* Texto de Instrução */}
         <div>
           <label className="text-[10px] text-[hsl(220,10%,45%)] block mb-1.5 uppercase tracking-wider font-medium">
             Texto de Instrução
@@ -121,7 +140,7 @@ const PreSellSettings = () => {
           />
         </div>
 
-        {/* Button color */}
+        {/* Cor do Botão */}
         <div>
           <label className="text-[10px] text-[hsl(220,10%,45%)] block mb-1.5 uppercase tracking-wider font-medium">
             Cor do Botão
@@ -142,7 +161,7 @@ const PreSellSettings = () => {
           </div>
         </div>
 
-        {/* Preview */}
+        {/* Pré-visualização do Botão */}
         <div>
           <label className="text-[10px] text-[hsl(220,10%,45%)] block mb-1.5 uppercase tracking-wider font-medium">
             Pré-visualização
@@ -165,7 +184,7 @@ const PreSellSettings = () => {
           </div>
         </div>
 
-        {/* Save */}
+        {/* Botão de Salvar */}
         <button
           onClick={save}
           disabled={saving}

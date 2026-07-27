@@ -1,3 +1,8 @@
+/**
+ * @file DateRangePicker.tsx
+ * @description Componente de seletor de intervalo de datas com predefinições rápidas e suporte a seleção manual via calendário.
+ */
+
 import { useState } from "react";
 import { Calendar, ChevronDown } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -6,11 +11,20 @@ import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
+/**
+ * @interface DateRangePickerProps
+ * @description Propriedades do componente DateRangePicker.
+ * @property {{ from: Date; to: Date }} dateRange - O intervalo de datas atual.
+ * @property {(range: { from: Date; to: Date }) => void} onDateRangeChange - Função disparada ao alterar o intervalo.
+ */
 interface DateRangePickerProps {
   dateRange: { from: Date; to: Date };
   onDateRangeChange: (range: { from: Date; to: Date }) => void;
 }
 
+/**
+ * Lista de períodos predefinidos para seleção rápida.
+ */
 const presets = [
   { label: "Hoje", getRange: () => { const now = new Date(); return { from: new Date(now.getFullYear(), now.getMonth(), now.getDate()), to: now }; } },
   { label: "Ontem", getRange: () => { const y = new Date(); y.setDate(y.getDate() - 1); return { from: new Date(y.getFullYear(), y.getMonth(), y.getDate()), to: new Date(y.getFullYear(), y.getMonth(), y.getDate(), 23, 59, 59) }; } },
@@ -21,16 +35,28 @@ const presets = [
   { label: "Mês passado", getRange: () => { const now = new Date(); const from = new Date(now.getFullYear(), now.getMonth() - 1, 1); const to = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59); return { from, to }; } },
 ];
 
+/**
+ * @component DateRangePicker
+ * @description Permite ao usuário selecionar um intervalo de datas para filtrar os dados do dashboard.
+ * @param {DateRangePickerProps} props - Propriedades do componente.
+ */
 const DateRangePicker = ({ dateRange, onDateRangeChange }: DateRangePickerProps) => {
   const [open, setOpen] = useState(false);
   const [selectingFrom, setSelectingFrom] = useState(true);
 
+  /**
+   * Formata o intervalo atual para exibição textual no botão.
+   */
   const formatRange = () => {
     const fromStr = format(dateRange.from, "dd MMM", { locale: ptBR });
     const toStr = format(dateRange.to, "dd MMM yyyy", { locale: ptBR });
     return `${fromStr} — ${toStr}`;
   };
 
+  /**
+   * Lida com a seleção de uma data no calendário.
+   * Alterna entre seleção de data inicial e final.
+   */
   const handleSelect = (date: Date | undefined) => {
     if (!date) return;
     if (selectingFrom) {
@@ -55,7 +81,7 @@ const DateRangePicker = ({ dateRange, onDateRangeChange }: DateRangePickerProps)
       </PopoverTrigger>
       <PopoverContent className="w-auto p-0 bg-[hsl(220,20%,9%)] border-[hsl(220,15%,18%)]" align="end" sideOffset={8}>
         <div className="flex">
-          {/* Presets */}
+          {/* Menu de Períodos Predefinidos */}
           <div className="border-r border-[hsl(220,15%,14%)] p-2 min-w-[140px]">
             <p className="text-[9px] text-[hsl(220,10%,40%)] uppercase tracking-wider font-medium px-2 py-1.5">Períodos</p>
             {presets.map(preset => (
@@ -71,7 +97,7 @@ const DateRangePicker = ({ dateRange, onDateRangeChange }: DateRangePickerProps)
               </button>
             ))}
           </div>
-          {/* Calendar */}
+          {/* Visualização do Calendário */}
           <div className="p-3">
             <p className="text-[10px] text-[hsl(220,10%,45%)] mb-2 text-center">
               {selectingFrom ? "Selecione a data inicial" : "Selecione a data final"}

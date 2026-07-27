@@ -1,3 +1,9 @@
+/**
+ * Rota: /finalizar-compra
+ * Propósito: Página de Checkout (resumo do pedido). Permite ao usuário revisar itens,
+ * escolher o método de entrega, forma de pagamento e gerar o código PIX para pagamento.
+ */
+
 import { useNavigate } from "react-router-dom";
 import { ChevronLeft, Minus, Plus, Loader2 } from "lucide-react";
 import { useProduct } from "@/contexts/ProductContext";
@@ -7,10 +13,11 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useSessionTracker } from "@/hooks/useSessionTracker";
 import { trackTikTokEvent } from "@/hooks/useTikTokPixel";
-
-
 import pixIcon from "@/assets/pix.svg";
 
+/**
+ * Estrutura dos dados de endereço e contato do usuário.
+ */
 interface EnderecoData {
   nome: string;
   telefone: string;
@@ -24,7 +31,12 @@ interface EnderecoData {
   numero: string;
 }
 
+/**
+ * Componente da página de Finalização de Compra.
+ * Centraliza a lógica de cálculo de totais, seleção de frete e integração com o gateway de pagamento.
+ */
 const FinalizarCompra = () => {
+  // Rastreia a navegação
   useSessionTracker("/finalizar-compra");
 
   const navigate = useNavigate();
@@ -35,6 +47,7 @@ const FinalizarCompra = () => {
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
 
+  // Carrega dados de endereço salvos localmente
   useEffect(() => {
     const saved = localStorage.getItem("endereco");
     if (saved) {
@@ -44,11 +57,12 @@ const FinalizarCompra = () => {
 
   const { price: originalPrice, oldPrice, discount, priceDisplay: originalPriceDisplay, oldPriceDisplay, product } = useProduct();
 
-  // Check for exit-intent special offer
+  // Verifica se existe uma oferta especial de retenção (exit-intent) ativa na sessão
   const exitOfferPrice = sessionStorage.getItem("exit_offer_price");
   const price = exitOfferPrice ? parseFloat(exitOfferPrice) : originalPrice;
   const priceDisplay = exitOfferPrice ? "48,00" : originalPriceDisplay;
 
+  // Dispara evento de checkout no TikTok Pixel
   useEffect(() => {
     trackTikTokEvent("InitiateCheckout", {
       content_type: "product",
@@ -57,6 +71,7 @@ const FinalizarCompra = () => {
     });
   }, [product.id]);
 
+  // Preparação de imagem e cálculos de valores
   const productImageRaw = product.cart_image || "/images/escada-carrinho.webp";
   const productImage = useOptimizedImage(productImageRaw, 160, 0.6);
   const productName = product.title ? product.title.substring(0, 40) + "..." : "Produto";
@@ -74,7 +89,7 @@ const FinalizarCompra = () => {
         <h1 className="text-base font-semibold text-foreground flex-1 text-center pr-9">Resumo do pedido</h1>
       </div>
 
-      {/* Adicionar endereço e CPF */}
+      {/* Seção de Endereço — Exibe endereço salvo ou botão para adicionar */}
       <div className="bg-background mt-2 px-4 py-3 flex flex-col gap-3">
         {enderecoData ? (
           <button onClick={() => navigate("/adicionar-endereco")} className="w-full flex items-center gap-3 py-3 text-left">
@@ -95,23 +110,22 @@ const FinalizarCompra = () => {
         )}
       </div>
 
-      {/* Dashed divider */}
+      {/* Divisor estético em formato tracejado colorido */}
       <div className="bg-background px-4 pb-1">
         <div className="h-0.5" style={{ backgroundImage: "repeating-linear-gradient(90deg, #00b5e4 0px, #00b5e4 8px, transparent 8px, transparent 12px, #ff2b56 12px, #ff2b56 20px, transparent 20px, transparent 24px)", backgroundSize: "24px 2px" }} />
       </div>
 
-      {/* Loja */}
       <div className="bg-background px-4 py-3">
         <span className="text-sm text-muted-foreground">Loja (1)</span>
       </div>
 
-      {/* Free shipping banner */}
+      {/* Banner informativo de frete */}
       <div className="bg-[hsl(170,60%,95%)] px-4 py-2 flex items-center gap-2">
         <svg width="20" height="20" viewBox="0 -2 20 20" xmlns="http://www.w3.org/2000/svg"><g transform="translate(-2 -4)"><path d="M9.17,17H13V6a1,1,0,0,0-1-1H5" fill="none" stroke="#00BFA5" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"/><path d="M3,13v3a1,1,0,0,0,1,1h.87" fill="none" stroke="#00BFA5" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"/><path d="M14.87,17H13V7h4.25a1,1,0,0,1,1,.73L19,10.5l1.24.31a1,1,0,0,1,.76,1V16a1,1,0,0,1-1,1h-.89" fill="none" stroke="#00BFA5" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"/><path d="M9,17a2,2,0,1,1-2-2A2,2,0,0,1,9,17Zm8-2a2,2,0,1,0,2,2A2,2,0,0,0,17,15ZM3,9H9" fill="none" stroke="#00BFA5" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"/></g></svg>
         <span className="text-xs font-medium" style={{ color: "#00BFA5" }}>Você ganhou frete grátis!</span>
       </div>
 
-      {/* Product card */}
+      {/* Card do Produto revisado */}
       <div className="bg-background px-4 py-3 flex items-start gap-3">
         <img src={productImage} alt={productName} className="w-20 h-20 object-contain rounded bg-secondary flex-shrink-0" />
         <div className="flex-1 min-w-0">
@@ -136,14 +150,11 @@ const FinalizarCompra = () => {
         </div>
       </div>
 
-      {/* Separator */}
       <div className="h-2 bg-secondary" />
 
-      {/* Frete */}
+      {/* Seleção de Frete */}
       <div className="bg-background px-4 py-4">
         <span className="text-sm font-semibold text-foreground">Frete</span>
-        
-        {/* Frete Gratis */}
         <label className="flex items-center justify-between py-3 border-b border-border cursor-pointer">
           <div className="flex items-center gap-3">
             <div className="w-5 h-5 rounded-full flex items-center justify-center" style={{ background: frete === "gratis" ? "#FF2B56" : "transparent", border: frete === "gratis" ? "none" : "2px solid #ccc" }}>
@@ -157,8 +168,6 @@ const FinalizarCompra = () => {
           <span className="text-sm font-medium" style={{ color: "#00BFA5" }}>Grátis</span>
           <input type="radio" name="frete" className="hidden" checked={frete === "gratis"} onChange={() => setFrete("gratis")} />
         </label>
-
-        {/* Frete Expresso */}
         <label className="flex items-center justify-between py-3 cursor-pointer">
           <div className="flex items-center gap-3">
             <div className="w-5 h-5 rounded-full flex items-center justify-center" style={{ background: frete === "expresso" ? "#FF2B56" : "transparent", border: frete === "expresso" ? "none" : "2px solid #ccc" }}>
@@ -174,10 +183,9 @@ const FinalizarCompra = () => {
         </label>
       </div>
 
-      {/* Separator */}
       <div className="h-2 bg-secondary" />
 
-      {/* Resumo do pedido */}
+      {/* Detalhamento de valores */}
       <div className="bg-background px-4 py-4">
         <span className="text-sm font-semibold text-foreground">Resumo do pedido</span>
         <div className="mt-3 space-y-2">
@@ -205,14 +213,11 @@ const FinalizarCompra = () => {
         </div>
       </div>
 
-      {/* Separator */}
       <div className="h-2 bg-secondary" />
 
-      {/* Forma de pagamento */}
+      {/* Seleção de Pagamento — Atualmente restrito ao Pix conforme regras da promoção */}
       <div className="bg-background px-4 py-4">
         <span className="text-sm font-semibold text-foreground">Forma de pagamento</span>
-
-        {/* Pix */}
         <label className="flex items-center justify-between py-3 border-b border-border cursor-pointer mt-2 rounded-lg border px-3" style={{ borderColor: pagamento === "pix" ? "#FF2B56" : undefined, background: pagamento === "pix" ? "#FFF5F7" : undefined }}>
           <div className="flex items-center gap-3">
             <img src={pixIcon} alt="Pix" width="28" height="28" className="rounded" />
@@ -226,16 +231,14 @@ const FinalizarCompra = () => {
           </div>
           <input type="radio" name="pagamento" className="hidden" checked={pagamento === "pix"} onChange={() => setPagamento("pix")} />
         </label>
-
       </div>
 
-      {/* Economia banner */}
       <div className="px-4 py-2 flex items-center gap-2 bg-[hsl(170,60%,95%)]">
         <svg width="16" height="16" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="10" fill="#00BFA5"/><path d="M6 10.5L9 13.5L14.5 7" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
         <span className="text-xs" style={{ color: "#00BFA5" }}>Você está economizando R$ {descontoValor.toFixed(2).replace(".", ",")} neste pedido.</span>
       </div>
 
-      {/* Bottom bar */}
+      {/* Rodapé fixo com o botão de criação de pedido/pix */}
       <div className="bg-background border-t border-border px-4 py-3">
         <div className="flex items-center justify-between mb-3">
           <span className="text-sm font-medium text-foreground">Total ({qty} {qty === 1 ? "item" : "itens"})</span>
@@ -243,6 +246,7 @@ const FinalizarCompra = () => {
         </div>
         <button
           onClick={async () => {
+            // Verifica se o endereço foi preenchido
             if (!enderecoData) {
               navigate("/adicionar-endereco");
               return;
@@ -254,6 +258,7 @@ const FinalizarCompra = () => {
             }
             setLoading(true);
             try {
+              // Chama a Edge Function para criar a transação Pix no gateway
               const amountInCents = Math.round(total * 100);
               const { data, error } = await supabase.functions.invoke("create-pix", {
                 body: {
@@ -274,29 +279,22 @@ const FinalizarCompra = () => {
                 },
               });
               if (error) throw error;
-              console.log("Gateway response:", JSON.stringify(data));
-              
-              // Check if response contains error
-              if (data?.error) {
-                throw new Error(data.error);
-              }
+              if (data?.error) throw new Error(data.error);
               
               const pixCode = data?.pix?.pix_qr_code || data?.pix?.qr_code || data?.pix?.emv || "";
               const pixQrCode = data?.pix?.qr_code_base64 ? (data.pix.qr_code_base64.startsWith("data:") ? data.pix.qr_code_base64 : `data:image/png;base64,${data.pix.qr_code_base64}`) : "";
               const transactionId = String(data?.id || data?.hash || data?.transaction_id || "");
               
-              // Validate that we actually got a PIX code
-              if (!pixCode) {
-                throw new Error("Não foi possível gerar o código PIX. Tente novamente.");
-              }
+              if (!pixCode) throw new Error("Não foi possível gerar o código PIX. Tente novamente.");
               
-              // Fire TikTok CompletePayment on PIX generated
               trackTikTokEvent("CompletePayment", {
                 content_type: "product",
                 content_id: "escada-telescopica",
                 currency: "BRL",
                 value: total,
               });
+              
+              // Redireciona para a página de instrução de pagamento
               navigate("/pagamento-pix", {
                 state: { pixCode, pixQrCode, total, transactionId },
               });

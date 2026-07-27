@@ -1,10 +1,21 @@
+/**
+ * Rota: * (Curinga)
+ * Propósito: Página de erro 404. Exibida quando o usuário tenta acessar uma rota
+ * que não existe no sistema.
+ */
+
 import { useLocation } from "react-router-dom";
 import { useEffect } from "react";
 
+/**
+ * Componente NotFound.
+ * Registra o erro no console e oferece link de retorno à Home.
+ */
 const NotFound = () => {
   const location = useLocation();
 
   useEffect(() => {
+    // Log do erro para monitoramento interno
     console.error("404 Error: User attempted to access non-existent route:", location.pathname);
   }, [location.pathname]);
 

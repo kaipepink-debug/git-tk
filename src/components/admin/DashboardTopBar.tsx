@@ -1,6 +1,20 @@
+/**
+ * @file DashboardTopBar.tsx
+ * @description Barra de navegação superior do painel administrativo, contendo informações de status e controles globais.
+ */
+
 import { LogOut, Volume2, VolumeX, Activity, Shield, Clock } from "lucide-react";
 import { useState, useEffect } from "react";
 
+/**
+ * @interface DashboardTopBarProps
+ * @description Propriedades do componente DashboardTopBar.
+ * @property {string} activeGateway - Nome do gateway de pagamento atualmente ativo.
+ * @property {number} liveCount - Número de visitantes online em tempo real.
+ * @property {boolean} soundEnabled - Estado dos alertas sonoros.
+ * @property {() => void} onToggleSound - Função para alternar o som.
+ * @property {() => void} onLogout - Função para realizar o logout.
+ */
 interface DashboardTopBarProps {
   activeGateway: string;
   liveCount: number;
@@ -9,6 +23,11 @@ interface DashboardTopBarProps {
   onLogout: () => void;
 }
 
+/**
+ * @component DashboardTopBar
+ * @description Exibe a marca, status do gateway, relógio, visitantes online e controles de usuário.
+ * @param {DashboardTopBarProps} props - Propriedades do componente.
+ */
 const DashboardTopBar = ({
   activeGateway,
   liveCount,
@@ -18,6 +37,7 @@ const DashboardTopBar = ({
 }: DashboardTopBarProps) => {
   const [time, setTime] = useState(new Date());
 
+  // Atualiza o relógio a cada segundo
   useEffect(() => {
     const t = setInterval(() => setTime(new Date()), 1000);
     return () => clearInterval(t);
@@ -37,10 +57,10 @@ const DashboardTopBar = ({
           </div>
         </div>
 
-        {/* Divider */}
+        {/* Divisor */}
         <div className="hidden sm:block w-px h-7 bg-[hsl(220,15%,18%)]" />
 
-        {/* Gateway status */}
+        {/* Status do Gateway */}
         <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[hsl(220,20%,12%)] border border-[hsl(220,15%,18%)]">
           <Shield className="w-3.5 h-3.5 text-[hsl(220,10%,45%)]" />
           <span className="text-[10px] text-[hsl(220,10%,50%)]">Gateway:</span>
@@ -50,7 +70,7 @@ const DashboardTopBar = ({
           )}
         </div>
 
-        {/* Clock */}
+        {/* Relógio em tempo real */}
         <div className="hidden md:flex items-center gap-1.5 text-[hsl(220,10%,40%)]">
           <Clock className="w-3 h-3" />
           <span className="text-[10px] font-mono tabular-nums">
@@ -60,7 +80,7 @@ const DashboardTopBar = ({
       </div>
 
       <div className="flex items-center gap-1.5">
-        {/* Live visitors badge */}
+        {/* Badge de Visitantes Online */}
         <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[hsl(145,80%,8%)] border border-[hsl(145,50%,20%)] mr-1">
           <span className="relative flex h-2 w-2">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[hsl(145,70%,50%)] opacity-75" />
@@ -70,7 +90,7 @@ const DashboardTopBar = ({
           <span className="text-[10px] text-[hsl(145,40%,40%)] hidden sm:inline">online</span>
         </div>
 
-        {/* Sound toggle */}
+        {/* Alternar Alertas Sonoros */}
         <button
           onClick={onToggleSound}
           className="p-2 rounded-lg hover:bg-[hsl(220,15%,15%)] transition-all text-[hsl(220,10%,45%)] hover:text-white"
@@ -79,10 +99,10 @@ const DashboardTopBar = ({
           {soundEnabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
         </button>
 
-        {/* Divider */}
+        {/* Divisor */}
         <div className="w-px h-5 bg-[hsl(220,15%,18%)]" />
 
-        {/* Logout */}
+        {/* Sair do Sistema */}
         <button
           onClick={onLogout}
           className="p-2 rounded-lg hover:bg-[hsl(0,50%,12%)] transition-all text-[hsl(220,10%,45%)] hover:text-[hsl(0,80%,60%)]"

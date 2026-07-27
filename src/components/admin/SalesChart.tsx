@@ -1,6 +1,15 @@
+/**
+ * @file SalesChart.tsx
+ * @description Componente de gráfico de vendas que permite alternar entre visualização de área e barras, exibindo pedidos e faturamento.
+ */
+
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, BarChart, Bar } from "recharts";
 import { useMemo, useState } from "react";
 
+/**
+ * @interface Order
+ * @description Estrutura de um pedido para o gráfico.
+ */
 interface Order {
   id: string;
   amount: number;
@@ -8,16 +17,31 @@ interface Order {
   created_at: string;
 }
 
+/**
+ * @interface SalesChartProps
+ * @description Propriedades do componente SalesChart.
+ * @property {Order[]} orders - Lista de pedidos.
+ * @property {("today" | "7days" | "30days")} period - Período de tempo para filtrar os dados.
+ */
 interface SalesChartProps {
   orders: Order[];
   period: "today" | "7days" | "30days";
 }
 
+/**
+ * @component SalesChart
+ * @description Renderiza gráficos de desempenho de vendas (pedidos e faturamento) ao longo do tempo.
+ * @param {SalesChartProps} props - Propriedades do componente.
+ */
 const SalesChart = ({ orders, period }: SalesChartProps) => {
   const [chartType, setChartType] = useState<"area" | "bar">("area");
 
+  /**
+   * Prepara os dados para o Recharts com base no período selecionado.
+   */
   const chartData = useMemo(() => {
     const now = new Date();
+    // Visão horária para o período "hoje"
     if (period === "today") {
       const hours: Record<string, { label: string; vendas: number; valor: number }> = {};
       for (let i = 0; i < 24; i++) {
@@ -32,6 +56,7 @@ const SalesChart = ({ orders, period }: SalesChartProps) => {
       });
       return Object.values(hours);
     }
+    // Visão diária para 7 ou 30 dias
     const days = period === "7days" ? 7 : 30;
     const result: { label: string; vendas: number; valor: number }[] = [];
     for (let i = days - 1; i >= 0; i--) {
@@ -48,6 +73,10 @@ const SalesChart = ({ orders, period }: SalesChartProps) => {
     return result;
   }, [orders, period]);
 
+  /**
+   * @component CustomTooltip
+   * @description Tooltip customizado para exibir valores formatados em moeda e quantidade.
+   */
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (!active || !payload?.length) return null;
     return (
@@ -68,6 +97,7 @@ const SalesChart = ({ orders, period }: SalesChartProps) => {
 
   return (
     <div className="bg-[hsl(220,20%,11%)] border border-[hsl(220,15%,16%)] rounded-xl p-5">
+      {/* Cabeçalho do Gráfico */}
       <div className="flex items-center justify-between mb-5">
         <div>
           <h3 className="text-sm font-semibold text-white">Vendas por {period === "today" ? "Hora" : "Dia"}</h3>
@@ -93,7 +123,7 @@ const SalesChart = ({ orders, period }: SalesChartProps) => {
         </div>
       </div>
 
-      {/* Legend */}
+      {/* Legenda */}
       <div className="flex items-center gap-4 mb-4">
         <div className="flex items-center gap-1.5">
           <div className="w-2.5 h-2.5 rounded-full bg-[hsl(210,100%,65%)]" />

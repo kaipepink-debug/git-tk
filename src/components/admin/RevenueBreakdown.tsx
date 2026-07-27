@@ -1,6 +1,15 @@
+/**
+ * @file RevenueBreakdown.tsx
+ * @description Componente que exibe um detalhamento da receita, incluindo faturamento total, ticket médio, taxa de conversão e receita potencial perdida (pendente).
+ */
+
 import { useMemo } from "react";
 import { DollarSign, TrendingUp, Percent, ShoppingBag } from "lucide-react";
 
+/**
+ * @interface Order
+ * @description Representação de um pedido para cálculos estatísticos.
+ */
 interface Order {
   id: string;
   amount: number;
@@ -9,12 +18,26 @@ interface Order {
   quantity: number;
 }
 
+/**
+ * @interface RevenueBreakdownProps
+ * @description Propriedades do componente RevenueBreakdown.
+ * @property {Order[]} orders - Lista de pedidos.
+ * @property {{ from: Date; to: Date }} dateRange - Intervalo de datas selecionado.
+ */
 interface RevenueBreakdownProps {
   orders: Order[];
   dateRange: { from: Date; to: Date };
 }
 
+/**
+ * @component RevenueBreakdown
+ * @description Exibe métricas consolidadas de receita e comparação com o período anterior.
+ * @param {RevenueBreakdownProps} props - Propriedades do componente.
+ */
 const RevenueBreakdown = ({ orders, dateRange }: RevenueBreakdownProps) => {
+  /**
+   * Calcula as estatísticas de receita baseado nos pedidos e no intervalo de datas.
+   */
   const stats = useMemo(() => {
     const filtered = orders.filter(o => {
       const d = new Date(o.created_at);
@@ -29,7 +52,7 @@ const RevenueBreakdown = ({ orders, dateRange }: RevenueBreakdownProps) => {
     const conversionRate = pixGenerated.length > 0 ? (paid.length / pixGenerated.length) * 100 : 0;
     const potentialLost = pixGenerated.filter(o => o.status === "pix_generated").reduce((s, o) => s + o.amount, 0) / 100;
 
-    // Previous period
+    // Cálculo do período anterior para comparação
     const diffMs = dateRange.to.getTime() - dateRange.from.getTime();
     const prevFrom = new Date(dateRange.from.getTime() - diffMs);
     const prevTo = new Date(dateRange.from.getTime());
@@ -50,7 +73,7 @@ const RevenueBreakdown = ({ orders, dateRange }: RevenueBreakdownProps) => {
       <h3 className="text-sm font-semibold text-white mb-1">Resumo de Receita</h3>
       <p className="text-[10px] text-[hsl(220,10%,40%)] mb-4">Visão consolidada do período</p>
 
-      {/* Main revenue */}
+      {/* Faturamento Principal */}
       <div className="flex items-end gap-3 mb-5">
         <div>
           <p className="text-3xl font-bold text-white tracking-tight">
@@ -65,7 +88,7 @@ const RevenueBreakdown = ({ orders, dateRange }: RevenueBreakdownProps) => {
         </div>
       </div>
 
-      {/* Grid stats */}
+      {/* Grade de Estatísticas Secundárias */}
       <div className="grid grid-cols-2 gap-3">
         <div className="bg-[hsl(220,20%,8%)] rounded-lg p-3">
           <div className="flex items-center gap-2 mb-2">
@@ -97,7 +120,7 @@ const RevenueBreakdown = ({ orders, dateRange }: RevenueBreakdownProps) => {
         </div>
       </div>
 
-      {/* Conversion funnel mini */}
+      {/* Mini-funil de conversão */}
       <div className="mt-4 pt-4 border-t border-[hsl(220,15%,14%)]">
         <div className="flex items-center justify-between text-[10px]">
           <span className="text-[hsl(220,10%,42%)]">Total pedidos: <span className="text-white font-bold">{stats.totalOrders}</span></span>

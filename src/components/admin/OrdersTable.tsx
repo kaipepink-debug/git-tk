@@ -1,7 +1,16 @@
+/**
+ * @file OrdersTable.tsx
+ * @description Componente de tabela para exibição e gerenciamento de pedidos, incluindo busca, filtragem por status e exportação para CSV.
+ */
+
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Search, Download, ChevronLeft, ChevronRight } from "lucide-react";
 
+/**
+ * @interface Order
+ * @description Representação de um pedido na tabela.
+ */
 interface Order {
   id: string;
   customer_name: string;
@@ -15,10 +24,18 @@ interface Order {
   created_at: string;
 }
 
+/**
+ * @interface OrdersTableProps
+ * @description Propriedades do componente OrdersTable.
+ * @property {Order[]} orders - Lista de pedidos a serem exibidos.
+ */
 interface OrdersTableProps {
   orders: Order[];
 }
 
+/**
+ * Configuração visual para os diferentes status de pedido.
+ */
 const statusConfig: Record<string, { label: string; bg: string; text: string; dot: string }> = {
   pix_generated: { label: "PIX Gerado", bg: "hsl(45,100%,10%)", text: "hsl(45,100%,60%)", dot: "hsl(45,100%,60%)" },
   paid: { label: "Pago", bg: "hsl(145,50%,10%)", text: "hsl(145,70%,55%)", dot: "hsl(145,70%,50%)" },
@@ -28,15 +45,24 @@ const statusConfig: Record<string, { label: string; bg: string; text: string; do
 
 const ITEMS_PER_PAGE = 20;
 
+/**
+ * @component OrdersTable
+ * @description Exibe uma lista paginada de pedidos com ferramentas de busca e filtro.
+ * @param {OrdersTableProps} props - Propriedades do componente.
+ */
 const OrdersTable = ({ orders }: OrdersTableProps) => {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [page, setPage] = useState(0);
 
+  /**
+   * Atualiza o status de um pedido no banco de dados.
+   */
   const updateStatus = async (id: string, status: string) => {
     await supabase.from("orders").update({ status }).eq("id", id);
   };
 
+  // Lógica de filtragem: busca por nome, email ou documento + filtro de status
   const filtered = orders.filter(o => {
     const matchSearch = !search ||
       o.customer_name.toLowerCase().includes(search.toLowerCase()) ||
@@ -49,8 +75,12 @@ const OrdersTable = ({ orders }: OrdersTableProps) => {
   const totalPages = Math.ceil(filtered.length / ITEMS_PER_PAGE);
   const paged = filtered.slice(page * ITEMS_PER_PAGE, (page + 1) * ITEMS_PER_PAGE);
 
+  // Calcula faturamento total apenas de vendas pagas
   const totalPaid = orders.filter(o => o.status === "paid").reduce((s, o) => s + o.amount, 0) / 100;
 
+  /**
+   * Gera e faz o download de um arquivo CSV com os dados filtrados.
+   */
   const exportCSV = () => {
     const header = "Nome,Email,CPF,Telefone,Valor,Status,Data\n";
     const rows = filtered.map(o =>
@@ -66,7 +96,7 @@ const OrdersTable = ({ orders }: OrdersTableProps) => {
 
   return (
     <div className="bg-[hsl(220,20%,11%)] border border-[hsl(220,15%,16%)] rounded-xl overflow-hidden">
-      {/* Header with search and filters */}
+      {/* Cabeçalho com busca e filtros */}
       <div className="px-5 py-4 border-b border-[hsl(220,15%,16%)]">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
           <div>
@@ -108,7 +138,7 @@ const OrdersTable = ({ orders }: OrdersTableProps) => {
         </div>
       </div>
 
-      {/* Table */}
+      {/* Tabela de Dados */}
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
@@ -184,7 +214,7 @@ const OrdersTable = ({ orders }: OrdersTableProps) => {
         </table>
       </div>
 
-      {/* Pagination */}
+      {/* Paginação */}
       {totalPages > 1 && (
         <div className="px-5 py-3 border-t border-[hsl(220,15%,14%)] flex items-center justify-between">
           <span className="text-[10px] text-[hsl(220,10%,40%)]">

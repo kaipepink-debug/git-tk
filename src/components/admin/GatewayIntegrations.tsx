@@ -1,8 +1,17 @@
+/**
+ * @file GatewayIntegrations.tsx
+ * @description Gerenciador de integrações de gateway de pagamento. Permite configurar tokens de API, IDs de produtos e ativar/desativar gateways específicos.
+ */
+
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2, CheckCircle, Eye, EyeOff, Zap, Shield } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
+/**
+ * @interface GatewayRow
+ * @description Estrutura de configuração de um gateway no banco de dados.
+ */
 interface GatewayRow {
   id: string;
   gateway_name: string;
@@ -11,6 +20,9 @@ interface GatewayRow {
   is_active: boolean;
 }
 
+/**
+ * Metadados visuais para cada gateway suportado.
+ */
 const gatewayMeta: Record<string, { color: string; description: string; icon: string }> = {
   SigmaPay: { color: "hsl(210,100%,65%)", description: "api.sigmapay.com.br", icon: "Σ" },
   GoatPay: { color: "hsl(145,70%,50%)", description: "api.goatpayments.com.br", icon: "G" },
@@ -21,6 +33,12 @@ const gatewayMeta: Record<string, { color: string; description: string; icon: st
   ZenixPay: { color: "hsl(260,80%,60%)", description: "api.zenixpay.com.br", icon: "ZX" },
 };
 
+/**
+ * @component GatewayIntegrations
+ * @description Painel administrativo para gerenciar credenciais e ativação de gateways.
+ * @param {Object} props - Propriedades do componente.
+ * @param {(name: string) => void} [props.onGatewayChange] - Callback disparado ao ativar um novo gateway.
+ */
 const GatewayIntegrations = ({ onGatewayChange }: { onGatewayChange?: (name: string) => void }) => {
   const [gateways, setGateways] = useState<GatewayRow[]>([]);
   const [loading, setLoading] = useState(true);
@@ -28,6 +46,9 @@ const GatewayIntegrations = ({ onGatewayChange }: { onGatewayChange?: (name: str
   const [showTokens, setShowTokens] = useState<Record<string, boolean>>({});
   const { toast } = useToast();
 
+  /**
+   * Busca a lista de gateways configurados no Supabase.
+   */
   const fetchGateways = async () => {
     const { data } = await supabase.from("gateway_settings").select("*").order("created_at");
     if (data) setGateways(data as GatewayRow[]);
@@ -36,11 +57,14 @@ const GatewayIntegrations = ({ onGatewayChange }: { onGatewayChange?: (name: str
 
   useEffect(() => { fetchGateways(); }, []);
 
+  /**
+   * Ativa um gateway específico e desativa todos os outros.
+   */
   const activateGateway = async (id: string) => {
     setSaving(id);
-    // First deactivate ALL gateways
+    // Primeiro desativa TODOS os gateways
     await supabase.from("gateway_settings").update({ is_active: false }).neq("id", id);
-    // Then activate only the selected one
+    // Depois ativa apenas o selecionado
     await supabase.from("gateway_settings").update({ is_active: true }).eq("id", id);
     toast({ title: "Gateway ativado com sucesso!" });
     await fetchGateways();
@@ -49,10 +73,16 @@ const GatewayIntegrations = ({ onGatewayChange }: { onGatewayChange?: (name: str
     setSaving(null);
   };
 
+  /**
+   * Atualiza localmente o estado das credenciais de um gateway antes de salvar.
+   */
   const updateCredentials = async (id: string, field: "api_token" | "product_id", value: string) => {
     setGateways(prev => prev.map(g => g.id === id ? { ...g, [field]: value } : g));
   };
 
+  /**
+   * Salva as credenciais (token e product_id) no banco de dados.
+   */
   const saveCredentials = async (gw: GatewayRow) => {
     setSaving(gw.id);
     await supabase.from("gateway_settings").update({
@@ -96,13 +126,13 @@ const GatewayIntegrations = ({ onGatewayChange }: { onGatewayChange?: (name: str
                   : "border-[hsl(220,15%,16%)] hover:border-[hsl(220,15%,22%)]"
               }`}
             >
-              {/* Active indicator bar */}
+              {/* Barra indicadora de status ativo */}
               {gw.is_active && (
                 <div className="h-0.5 bg-gradient-to-r from-transparent via-[hsl(145,70%,50%)] to-transparent" />
               )}
 
               <div className="p-5">
-                {/* Header */}
+                {/* Cabeçalho do Card */}
                 <div className="flex items-center justify-between mb-5">
                   <div className="flex items-center gap-3">
                     <div
@@ -131,7 +161,7 @@ const GatewayIntegrations = ({ onGatewayChange }: { onGatewayChange?: (name: str
                   )}
                 </div>
 
-                {/* Credentials */}
+                {/* Campos de Credenciais */}
                 <div className="space-y-3">
                   <div>
                     <label className="text-[10px] text-[hsl(220,10%,45%)] block mb-1.5 uppercase tracking-wider font-medium">API Token</label>

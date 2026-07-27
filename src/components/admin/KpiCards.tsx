@@ -1,5 +1,14 @@
+/**
+ * @file KpiCards.tsx
+ * @description Conjunto de cartões que exibem os principais indicadores de desempenho (KPIs), comparando o período atual com o anterior.
+ */
+
 import { TrendingUp, TrendingDown, DollarSign, ShoppingCart, Target, CreditCard, CheckCircle, BarChart3 } from "lucide-react";
 
+/**
+ * @interface Order
+ * @description Representação de um pedido para cálculo de métricas.
+ */
 interface Order {
   id: string;
   amount: number;
@@ -8,38 +17,57 @@ interface Order {
   quantity: number;
 }
 
+/**
+ * @interface KpiCardsProps
+ * @description Propriedades do componente KpiCards.
+ * @property {Order[]} orders - Lista completa de pedidos.
+ * @property {("today" | "7days" | "30days")} period - Período de tempo selecionado para análise.
+ */
 interface KpiCardsProps {
   orders: Order[];
   period: "today" | "7days" | "30days";
 }
 
+/**
+ * @component KpiCards
+ * @description Renderiza cartões de métricas (Vendas, Pedidos, Ticket Médio, Conversão, PIX) com indicadores de variação percentual.
+ * @param {KpiCardsProps} props - Propriedades do componente.
+ */
 const KpiCards = ({ orders, period }: KpiCardsProps) => {
   const now = new Date();
   const filterDate = new Date();
+  
+  // Define a data inicial do período atual
   if (period === "today") filterDate.setHours(0, 0, 0, 0);
   else if (period === "7days") filterDate.setDate(now.getDate() - 7);
   else filterDate.setDate(now.getDate() - 30);
 
+  // Define a data inicial do período anterior para comparação
   const prevFilterDate = new Date(filterDate);
   if (period === "today") prevFilterDate.setDate(prevFilterDate.getDate() - 1);
   else if (period === "7days") prevFilterDate.setDate(prevFilterDate.getDate() - 7);
   else prevFilterDate.setDate(prevFilterDate.getDate() - 30);
 
+  // Filtra pedidos dos dois períodos
   const current = orders.filter(o => new Date(o.created_at) >= filterDate);
   const previous = orders.filter(o => {
     const d = new Date(o.created_at);
     return d >= prevFilterDate && d < filterDate;
   });
 
+  // Cálculos de Volume de Vendas (Receita)
   const totalRevenue = current.filter(o => o.status === "paid").reduce((s, o) => s + o.amount, 0) / 100;
   const prevRevenue = previous.filter(o => o.status === "paid").reduce((s, o) => s + o.amount, 0) / 100;
 
+  // Cálculos de Total de Pedidos
   const totalSales = current.length;
   const prevSales = previous.length;
 
+  // Cálculos de Ticket Médio
   const paidOrders = current.filter(o => o.status === "paid").length;
   const ticketMedio = paidOrders > 0 ? totalRevenue / paidOrders : 0;
 
+  // Cálculos de Conversão PIX
   const pixGenerated = current.filter(o => o.status === "pix_generated" || o.status === "paid").length;
   const pixPaid = paidOrders;
   const conversionRate = pixGenerated > 0 ? (pixPaid / pixGenerated) * 100 : 0;
@@ -48,11 +76,15 @@ const KpiCards = ({ orders, period }: KpiCardsProps) => {
   const prevPixPaid = previous.filter(o => o.status === "paid").length;
   const prevConversion = prevPixGenerated > 0 ? (prevPixPaid / prevPixGenerated) * 100 : 0;
 
+  /**
+   * Função auxiliar para calcular a variação percentual entre dois valores.
+   */
   const calcChange = (curr: number, prev: number) => {
     if (prev === 0) return curr > 0 ? 100 : 0;
     return ((curr - prev) / prev) * 100;
   };
 
+  // Definição dos cartões de KPI
   const cards = [
     {
       label: "Volume de Vendas",
@@ -117,7 +149,7 @@ const KpiCards = ({ orders, period }: KpiCardsProps) => {
           key={card.label}
           className="group relative bg-[hsl(220,20%,11%)] border border-[hsl(220,15%,16%)] rounded-xl p-4 hover:border-[hsl(220,15%,22%)] transition-all duration-300 overflow-hidden"
         >
-          {/* Subtle gradient glow on hover */}
+          {/* Brilho sutil no hover */}
           <div
             className={`absolute inset-0 opacity-0 group-hover:opacity-[0.03] transition-opacity duration-500 bg-gradient-to-br ${card.gradient}`}
           />
