@@ -5,6 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ScrollToTop } from "./components/ScrollToTop";
+import TikTokPixel from "./components/TikTokPixel";
 import Index from "./pages/Index";
 import Produto from "./pages/Produto";
 import MinhaConta from "./pages/MinhaConta";
@@ -37,6 +38,7 @@ const App = () => (
       <ProductProvider>
         <BrowserRouter>
           <ScrollToTop />
+          <TikTokPixel />
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/produto" element={<Produto />} />

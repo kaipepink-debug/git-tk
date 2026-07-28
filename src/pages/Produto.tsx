@@ -17,8 +17,9 @@ import PreSell from "@/components/PreSell";
 import ExitIntentPopup from "@/components/ExitIntentPopup";
 
 import { useSessionTracker } from "@/hooks/useSessionTracker";
-import { useTikTokPixel } from "@/hooks/useTikTokPixel";
+import { useTikTokPixel, trackTikTokEvent } from "@/hooks/useTikTokPixel";
 import { useAnalyticsTracker } from "@/hooks/useAnalyticsTracker";
+import { useProduct } from "@/contexts/ProductContext";
 import { supabase } from "@/integrations/supabase/client";
 
 /**
@@ -67,6 +68,24 @@ const Produto = () => {
   useSessionTracker(showPresell ? "/produto/presell" : "/produto");
   useTikTokPixel();
   useAnalyticsTracker(showPresell ? "/produto/presell" : "/produto");
+
+  // Evento ViewContent do TikTok quando o produto é exibido (após a pré-venda)
+  const { product, price } = useProduct();
+  useEffect(() => {
+    if (showPresell || !product.id) return;
+    trackTikTokEvent("ViewContent", {
+      contents: [{
+        content_id: product.id,
+        content_type: "product",
+        content_name: product.title || "Produto",
+        quantity: 1,
+        price,
+      }],
+      currency: "BRL",
+      value: price,
+    });
+  }, [showPresell, product.id, product.title, price]);
+
 
   return (
     <>

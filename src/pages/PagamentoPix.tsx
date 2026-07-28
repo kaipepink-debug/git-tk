@@ -12,6 +12,7 @@ import { QRCodeSVG } from "qrcode.react";
 import { useSessionTracker } from "@/hooks/useSessionTracker";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { trackTikTokEvent } from "@/hooks/useTikTokPixel";
 
 /**
  * Componente da página de Pagamento Pix.
@@ -80,6 +81,13 @@ const PagamentoPix = () => {
         if (data?.status === "paid" && !stopped) {
           stopped = true;
           setPaymentStatus("paid");
+          // Conversão confirmada: dispara CompletePayment no TikTok Pixel
+          trackTikTokEvent("CompletePayment", {
+            content_type: "product",
+            content_id: pixData?.transactionId || "product",
+            currency: "BRL",
+            value: pixData?.total || 0,
+          });
           if (pollingRef.current) clearInterval(pollingRef.current);
 
           // Redireciona para página externa de confirmação/sucesso
