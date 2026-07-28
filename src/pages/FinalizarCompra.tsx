@@ -66,11 +66,18 @@ const FinalizarCompra = () => {
   // Dispara evento de checkout no TikTok Pixel
   useEffect(() => {
     trackTikTokEvent("InitiateCheckout", {
-      content_type: "product",
-      content_id: product.id || "product",
+      contents: [{
+        content_id: product.id || "product",
+        content_type: "product",
+        content_name: product.title || "Produto",
+        quantity: 1,
+        price,
+      }],
       currency: "BRL",
+      value: price,
     });
-  }, [product.id]);
+  }, [product.id, product.title, price]);
+
 
   // Preparação de imagem e cálculos de valores
   const productImageRaw = product.cart_image || "/images/escada-carrinho.webp";
