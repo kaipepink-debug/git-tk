@@ -38,6 +38,7 @@ const App = () => (
       <ProductProvider>
         <BrowserRouter>
           <ScrollToTop />
+          <TikTokPixel />
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/produto" element={<Produto />} />
