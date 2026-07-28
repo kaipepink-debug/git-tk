@@ -1,33 +1,43 @@
 /**
  * @file useTikTokPixel.ts
- * @description Hook e utilitário para integração com o Pixel do TikTok, permitindo
- * rastreio de visualização de página e conversões personalizadas.
+ * @description Hook e utilitários para integração com o Pixel do TikTok, permitindo
+ * rastreio de visualização de página e eventos de conversão do funil de compra.
  */
 
 import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
 /**
+ * ID padrão do Pixel do TikTok.
+ * Usado como fallback caso não exista configuração salva em `site_settings`.
+ */
+export const DEFAULT_TIKTOK_PIXEL_ID = "D9KA513C77U7C1P7T9NG";
+
+/**
  * @hook useTikTokPixel
- * @description Busca o ID do Pixel do TikTok no banco de dados e injeta o script
- * oficial de rastreamento no cabeçalho do documento.
+ * @description Busca o ID do Pixel do TikTok no banco de dados (com fallback para o ID padrão)
+ * e injeta o script oficial de rastreamento no cabeçalho do documento uma única vez.
+ * @returns {string | null} O ID do pixel efetivamente carregado.
  */
 export function useTikTokPixel() {
   /** Garante que o script seja carregado apenas uma vez */
   const loaded = useRef(false);
   /** Armazena o ID do pixel configurado */
-  const [pixelId, setPixelId] = useState<string | null>(null);
+  const [pixelId, setPixelId] = useState<string | null>(DEFAULT_TIKTOK_PIXEL_ID);
 
-  // Busca o ID do pixel nas configurações do site no Supabase
+  // Busca o ID do pixel nas configurações do site; mantém o padrão em caso de falha
   useEffect(() => {
     const fetchPixelId = async () => {
-      // BUGFIX: usar maybeSingle para não lançar erro quando a linha não existe
-      const { data } = await supabase
-        .from("site_settings")
-        .select("value")
-        .eq("key", "tiktok_pixel_id")
-        .maybeSingle();
-      if (data?.value) setPixelId(data.value);
+      try {
+        const { data } = await supabase
+          .from("site_settings")
+          .select("value")
+          .eq("key", "tiktok_pixel_id")
+          .maybeSingle();
+        if (data?.value) setPixelId(data.value);
+      } catch {
+        // Silencioso: mantém o DEFAULT_TIKTOK_PIXEL_ID
+      }
     };
     fetchPixelId();
   }, []);
@@ -47,6 +57,8 @@ export function useTikTokPixel() {
     `;
     document.head.appendChild(script);
   }, [pixelId]);
+
+  return pixelId;
 }
 
 /**
@@ -56,8 +68,25 @@ export function useTikTokPixel() {
  * @param {Record<string, any>} [params] Parâmetros adicionais do evento (preço, moeda, etc).
  */
 export function trackTikTokEvent(eventName: string, params?: Record<string, any>) {
-  // Verifica se o script do TikTok foi carregado e está disponível no escopo global
-  if (typeof window !== "undefined" && (window as any).ttq) {
-    (window as any).ttq.track(eventName, params);
+  try {
+    if (typeof window !== "undefined" && (window as any).ttq) {
+      (window as any).ttq.track(eventName, params);
+    }
+  } catch (err) {
+    console.warn("Falha ao enviar evento TikTok:", err);
+  }
+}
+
+/**
+ * @function trackTikTokPageView
+ * @description Dispara o evento de visualização de página (SPA navigation).
+ */
+export function trackTikTokPageView() {
+  try {
+    if (typeof window !== "undefined" && (window as any).ttq) {
+      (window as any).ttq.page();
+    }
+  } catch (err) {
+    console.warn("Falha ao enviar PageView TikTok:", err);
   }
 }
