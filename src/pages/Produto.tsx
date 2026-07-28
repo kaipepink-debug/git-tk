@@ -69,6 +69,24 @@ const Produto = () => {
   useTikTokPixel();
   useAnalyticsTracker(showPresell ? "/produto/presell" : "/produto");
 
+  // Evento ViewContent do TikTok quando o produto é exibido (após a pré-venda)
+  const { product, price } = useProduct();
+  useEffect(() => {
+    if (showPresell || !product.id) return;
+    trackTikTokEvent("ViewContent", {
+      contents: [{
+        content_id: product.id,
+        content_type: "product",
+        content_name: product.title || "Produto",
+        quantity: 1,
+        price,
+      }],
+      currency: "BRL",
+      value: price,
+    });
+  }, [showPresell, product.id, product.title, price]);
+
+
   return (
     <>
       {showPresell && <PreSell onUnlock={handleUnlock} />}
