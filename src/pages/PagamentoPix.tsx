@@ -81,6 +81,13 @@ const PagamentoPix = () => {
         if (data?.status === "paid" && !stopped) {
           stopped = true;
           setPaymentStatus("paid");
+          // Conversão confirmada: dispara CompletePayment no TikTok Pixel
+          trackTikTokEvent("CompletePayment", {
+            content_type: "product",
+            content_id: pixData?.transactionId || "product",
+            currency: "BRL",
+            value: pixData?.total || 0,
+          });
           if (pollingRef.current) clearInterval(pollingRef.current);
 
           // Redireciona para página externa de confirmação/sucesso
