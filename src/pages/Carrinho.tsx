@@ -28,15 +28,21 @@ const Carrinho = () => {
   // Recupera dados do produto do contexto global
   const { price, oldPrice, discount, priceDisplay, oldPriceDisplay, product } = useProduct();
 
-  // Dispara evento de "InitiateCheckout" no TikTok Pixel ao carregar o carrinho
+  // Dispara evento de "AddToCart" no TikTok Pixel ao carregar o carrinho
   useEffect(() => {
-    trackTikTokEvent("InitiateCheckout", {
-      content_type: "product",
-      content_id: product.id || "product",
+    trackTikTokEvent("AddToCart", {
+      contents: [{
+        content_id: product.id || "product",
+        content_type: "product",
+        content_name: product.title || "Produto",
+        quantity: 1,
+        price,
+      }],
       currency: "BRL",
       value: price,
     });
-  }, [price, product.id]);
+  }, [price, product.id, product.title]);
+
 
   // Otimização de imagem para o carrinho
   const productImageRaw = product.cart_image || "/images/escada-carrinho.webp";
