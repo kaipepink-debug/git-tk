@@ -12,6 +12,7 @@ import { QRCodeSVG } from "qrcode.react";
 import { useSessionTracker } from "@/hooks/useSessionTracker";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { trackTikTokEvent } from "@/hooks/useTikTokPixel";
 
 /**
  * Componente da página de Pagamento Pix.
