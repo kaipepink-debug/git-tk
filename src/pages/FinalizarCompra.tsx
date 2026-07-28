@@ -315,12 +315,18 @@ const FinalizarCompra = () => {
 
               if (!pixCode) throw new Error("Não foi possível gerar o código PIX. Tente novamente em instantes.");
 
-              trackTikTokEvent("CompletePayment", {
+              // PIX gerado: informações de pagamento adicionadas + pedido criado.
+              // A conversão (CompletePayment) só é disparada após a confirmação do pagamento.
+              const pixContents = [{
+                content_id: product.id || "product",
                 content_type: "product",
-                content_id: "escada-telescopica",
-                currency: "BRL",
-                value: total,
-              });
+                content_name: product.title || "Produto",
+                quantity: 1,
+                price: total,
+              }];
+              trackTikTokEvent("AddPaymentInfo", { contents: pixContents, currency: "BRL", value: total });
+              trackTikTokEvent("PlaceAnOrder", { contents: pixContents, currency: "BRL", value: total });
+
 
               navigate("/pagamento-pix", {
                 state: { pixCode, pixQrCode, total, transactionId },
