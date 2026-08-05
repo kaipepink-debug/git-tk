@@ -1,50 +1,34 @@
-import { Star } from "lucide-react";
-
 /**
- * Componente que exibe informações básicas sobre a loja/vendedor.
- * Mostra o avatar da loja, nome, status online e estatísticas (nota, vendas, avaliações positivas).
+ * Componente que exibe a seção "Nossa História" da loja Zyro,
+ * apresentando a fachada da loja e informações institucionais de confiança.
  */
 const StoreInfo = () => {
   return (
-    <div className="bg-background px-4 py-4 mt-2">
-      <div className="flex items-center gap-3">
-        {/* Avatar da Loja */}
-        <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-border flex-shrink-0">
-          <img
-            src="/images/loja-logo.png"
-            alt="Mestre de Obra"
-            className="w-full h-full object-cover"
-          />
-        </div>
-
-        {/* Informações Textuais da Loja */}
-        <div className="flex-1 min-w-0">
-          {/* Nome e Indicador de Status Online */}
-          <div className="flex items-center gap-1.5 flex-wrap">
-            <h3 className="text-sm font-bold text-foreground">Mestre de Obra</h3>
-            <div className="flex items-center gap-1">
-              <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-success opacity-75" />
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-success" />
-              </span>
-              <span className="text-[10px] text-success font-medium">Online</span>
-            </div>
-          </div>
-
-          {/* Estatísticas da Loja (Nota, Vendas e Positividade) */}
-          <div className="flex items-center gap-2 mt-1">
-            <div className="flex items-center gap-0.5">
-              <Star className="w-3 h-3 fill-star text-star" />
-              <span className="text-xs font-semibold text-foreground">4.98</span>
-            </div>
-            <span className="text-muted-foreground text-[10px]">|</span>
-            <span className="text-xs text-muted-foreground whitespace-nowrap">+16 mil vendas</span>
-            <span className="text-muted-foreground text-[10px]">|</span>
-            <span className="text-xs text-muted-foreground whitespace-nowrap">98% positivas</span>
+    <section className="border-t border-border py-10">
+      <h2 className="text-2xl font-extrabold text-foreground mb-6">Nossa História</h2>
+      <div className="grid md:grid-cols-2 gap-6 items-center">
+        <img
+          src="https://zyroofc.lovable.app/assets/fachada-loja-BL_6rAq4.png"
+          alt="Fachada da loja Zyro"
+          className="w-full rounded-2xl object-cover"
+          loading="lazy"
+        />
+        <div>
+          <p className="text-sm text-foreground/80 leading-relaxed mb-4">
+            Desde 2015 no mercado, a Zyro nasceu da paixão pelo esporte. São mais de 50.000 clientes atendidos com
+            excelência e compromisso em oferecer os melhores tênis de corrida do Brasil.
+          </p>
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="bg-muted text-foreground text-xs font-semibold px-3 py-1.5 rounded-full">
+              9 anos de tradição
+            </span>
+            <span className="bg-muted text-foreground text-xs font-semibold px-3 py-1.5 rounded-full">
+              São Paulo, SP
+            </span>
           </div>
         </div>
       </div>
-    </div>
+    </section>
   );
 };
 

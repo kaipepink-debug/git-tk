@@ -6,7 +6,6 @@
 import { useState, useEffect } from "react";
 import TopBar from "@/components/TopBar";
 import ImageCarousel from "@/components/ImageCarousel";
-import FlashSaleTimer from "@/components/FlashSaleTimer";
 import ProductInfo from "@/components/ProductInfo";
 import ProductDescription from "@/components/ProductDescription";
 import StoreInfo from "@/components/StoreInfo";
@@ -91,14 +90,22 @@ const Produto = () => {
     <>
       {showPresell && <PreSell onUnlock={handleUnlock} />}
       <ExitIntentPopup />
-      <div className="min-h-screen bg-secondary max-w-lg mx-auto pb-20">
+      <div className="min-h-screen bg-background pb-24 lg:pb-0">
         <TopBar />
-        <ImageCarousel />
-        <FlashSaleTimer />
-        <ProductInfo />
-        <ProductDescription />
-        <StoreInfo />
-        <ReviewsSection />
+
+        <div className="max-w-6xl mx-auto px-4 py-6 lg:py-10">
+          {/* Bloco principal do produto: galeria + informações */}
+          <div className="grid lg:grid-cols-2 gap-8 lg:gap-12">
+            <ImageCarousel />
+            <ProductInfo />
+          </div>
+
+          {/* Seções de conteúdo complementar */}
+          <ProductDescription />
+          <StoreInfo />
+          <ReviewsSection />
+        </div>
+
         <Footer />
         <BottomBar />
       </div>
