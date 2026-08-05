@@ -1,61 +1,80 @@
+import { CheckCircle2, ShieldCheck } from "lucide-react";
 import { useProduct } from "@/contexts/ProductContext";
 
+/** Lista de destaques de performance exibidos como bullets com ícone de verificação */
+const HIGHLIGHTS = [
+  "Placa de carbono para propulsão máxima",
+  "Amortecimento leve de alta resposta",
+  "Cabedal respirável e ultraleve",
+  "Solado de alta aderência e durabilidade",
+];
+
 /**
- * Componente que exibe a descrição detalhada do produto.
- * Processa texto em formato markdown-like simples, suportando:
- * - Seções separadas por '---'
- * - Títulos em negrito (**texto**)
- * - Listas com marcadores (✔ ou •)
- * - Formatação de descrição com travessão (—)
+ * Componente que exibe a descrição detalhada do produto,
+ * os destaques de performance e a tabela de tamanhos.
  */
 const ProductDescription = () => {
   const { product } = useProduct();
 
-  // Divide a descrição em seções maiores usando o separador ---
-  const sections = product.description.split("---").map(s => s.trim()).filter(Boolean);
+  // Remove marcações de markdown simples para obter um parágrafo de texto corrido
+  const bodyText = product.description
+    .split("\n")
+    .map((l) => l.trim())
+    .filter((l) => l && !l.startsWith("✔") && !l.startsWith("•") && !l.startsWith("**"))
+    .join(" ")
+    .replace(/\*\*/g, "");
 
   return (
-    <div className="bg-background px-4 py-4 mt-2">
-      <h3 className="text-base font-bold text-foreground mb-3">Descrição</h3>
-      <div className="text-sm text-foreground/80 space-y-4 leading-relaxed">
-        {sections.map((section, i) => {
-          const lines = section.split("\n").filter(l => l.trim());
-          return (
-            <div key={i} className={i > 0 ? "border-t border-border pt-4" : ""}>
-              {lines.map((line, j) => {
-                const trimmed = line.trim();
-                
-                // Cabeçalhos em negrito: **texto**
-                if (trimmed.startsWith("**") && trimmed.endsWith("**")) {
-                  return <p key={j} className="font-semibold text-foreground mb-2">{trimmed.replace(/\*\*/g, "")}</p>;
-                }
-                
-                // Itens de lista com checkmarks ou bullets
-                if (trimmed.startsWith("✔") || trimmed.startsWith("•")) {
-                  const parts = trimmed.replace(/^\*\*/, "").replace(/\*\*$/, "");
-                  const dashIdx = parts.indexOf("—");
-                  
-                  // Formatação especial para itens com descrição após travessão
-                  if (dashIdx > -1) {
-                    return (
-                      <li key={j} className="list-none">
-                        <strong>{parts.substring(0, dashIdx).trim()}</strong>
-                        <br />{parts.substring(dashIdx + 1).trim()}
-                      </li>
-                    );
-                  }
-                  return <li key={j} className="list-none">{parts}</li>;
-                }
-                
-                // Parágrafo regular - trata negrito inline usando regex e dangerouslySetInnerHTML
-                const html = trimmed.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
-                return <p key={j} dangerouslySetInnerHTML={{ __html: html }} />;
-              })}
-            </div>
-          );
-        })}
-      </div>
-    </div>
+    <>
+      {/* Seção de Descrição */}
+      <section className="border-t border-border py-10">
+        <h2 className="text-2xl font-extrabold text-foreground mb-1">Descrição</h2>
+        <p className="text-sm text-muted-foreground mb-6">Placa de carbono para máxima performance</p>
+
+        {product.images[1] && (
+          <img
+            src={product.images[1]}
+            alt={`Detalhe de ${product.title}`}
+            className="w-full max-h-[420px] object-cover rounded-2xl mb-6"
+            loading="lazy"
+          />
+        )}
+
+        {bodyText && <p className="text-sm text-foreground/80 leading-relaxed mb-6">{bodyText}</p>}
+
+        <h3 className="text-lg font-bold text-foreground mb-3">Destaques de Performance</h3>
+        <ul className="space-y-2.5 mb-6">
+          {HIGHLIGHTS.map((item) => (
+            <li key={item} className="flex items-start gap-2.5 text-sm text-foreground/80">
+              <CheckCircle2 className="w-4 h-4 text-primary flex-shrink-0 mt-0.5" />
+              {item}
+            </li>
+          ))}
+        </ul>
+
+        <div className="flex items-center gap-3 bg-muted rounded-xl px-4 py-3">
+          <ShieldCheck className="w-5 h-5 text-primary flex-shrink-0" />
+          <span className="text-sm font-medium text-foreground">Produto original Zyro / Qualidade garantida.</span>
+        </div>
+      </section>
+
+      {/* Seção de Tabela de Tamanhos */}
+      <section id="tabela-tamanhos" className="border-t border-border py-10 scroll-mt-24">
+        <h2 className="text-2xl font-extrabold text-foreground mb-6">Tabela de Tamanhos</h2>
+        <img
+          src="https://zyroofc.lovable.app/assets/tabela-tamanhos-BZmeMTcH.jpg"
+          alt="Tabela de tamanhos Zyro"
+          className="w-full rounded-2xl mb-6"
+          loading="lazy"
+        />
+        <h3 className="text-lg font-bold text-foreground mb-3">Encontre seu tamanho</h3>
+        <ol className="space-y-2 list-decimal list-inside text-sm text-foreground/80">
+          <li>Meça a palmilha de um tênis que você já usa e goste do caimento.</li>
+          <li>Anote o comprimento em centímetros.</li>
+          <li>Compare a medida com a tabela acima para encontrar seu tamanho ideal.</li>
+        </ol>
+      </section>
+    </>
   );
 };
 

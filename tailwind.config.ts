@@ -51,10 +51,17 @@ export default {
             DEFAULT: "hsl(var(--sale))",
             foreground: "hsl(var(--sale-foreground))",
           },
+          ink: {
+            DEFAULT: "hsl(var(--ink))",
+            foreground: "hsl(var(--ink-foreground))",
+          },
+          "primary-dark": "hsl(var(--primary-dark))",
+          urgent: "hsl(var(--urgent))",
           flash: "hsl(var(--flash-bg))",
           star: "hsl(var(--star))",
           success: "hsl(var(--success))",
           shipping: "hsl(var(--shipping))",
+
           sidebar: {
             DEFAULT: "hsl(var(--sidebar-background))",
             foreground: "hsl(var(--sidebar-foreground))",

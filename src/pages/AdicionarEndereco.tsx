@@ -5,9 +5,10 @@
  */
 
 import { useNavigate } from "react-router-dom";
-import { ChevronLeft } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useSessionTracker } from "@/hooks/useSessionTracker";
+import CheckoutHeader from "@/components/CheckoutHeader";
+import CheckoutTrustRow from "@/components/CheckoutTrustRow";
 
 /**
  * Valida se uma string é um e-mail válido usando expressão regular.
@@ -156,220 +157,212 @@ const AdicionarEndereco = () => {
    * @param label - Texto do label.
    */
   const req = (label: string) => (
-    <>{label}<span style={{ color: "#FF2B56" }}> *</span></>
+    <>{label}<span className="text-destructive"> *</span></>
   );
 
-  return (
-    <div className="min-h-screen bg-secondary max-w-lg mx-auto flex flex-col" style={{ fontFamily: "-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Oxygen,Ubuntu,Cantarell,sans-serif" }}>
-      {/* Header com botão de voltar */}
-      <div className="sticky top-0 z-50 bg-background flex items-center px-4 py-3 border-b border-border">
-        <button onClick={() => navigate(-1)} className="mr-3">
-          <ChevronLeft className="w-6 h-6 text-foreground" />
-        </button>
-        <h1 className="text-base font-semibold text-foreground flex-1 text-center pr-9">Adicionar o novo endereço</h1>
-      </div>
+  const inputClass = (hasError?: string) =>
+    `w-full py-2.5 px-3 rounded-xl border text-sm text-foreground placeholder:text-muted-foreground outline-none bg-background focus:ring-2 focus:ring-primary transition-shadow ${hasError ? "border-destructive" : "border-border"}`;
 
-      {/* Informações de contato — Nome, Tel, Email e CPF */}
-      <div className="bg-background mt-2 px-4 py-4">
-        <h2 className="text-sm font-bold text-foreground mb-3">Informações de contato</h2>
-        <div className="space-y-0">
+  return (
+    <div className="min-h-screen bg-background flex flex-col">
+      <CheckoutHeader onBack={() => navigate(-1)} step="dados" />
+
+      <div className="flex-1 w-full max-w-2xl mx-auto px-4 py-6 space-y-4">
+        <h1 className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Adicionar o novo endereço</h1>
+
+        {/* Informações de contato — Nome, Tel, Email e CPF */}
+        <div className="rounded-2xl bg-card border border-border p-4 sm:p-5 space-y-3">
+          <h2 className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Informações de contato</h2>
           <div>
-            <label className="text-xs text-muted-foreground">Nome e sobrenome<span className="text-[#FF2B56]"> *</span></label>
+            <label className="text-xs text-muted-foreground mb-1 block">{req("Nome e sobrenome")}</label>
             <input
               type="text"
               placeholder="Nome e sobrenome"
               value={nome}
               onChange={(e) => { setNome(e.target.value); setErrors(p => ({ ...p, nome: "" })); }}
-              className={`w-full py-2 border-b text-sm text-foreground placeholder:text-muted-foreground outline-none bg-transparent ${errors.nome ? "border-[#FF2B56]" : "border-border"}`}
+              className={inputClass(errors.nome)}
             />
-            {errors.nome && <p className="text-xs py-0.5" style={{ color: "#FF2B56" }}>{errors.nome}</p>}
+            {errors.nome && <p className="text-xs py-0.5 text-destructive">{errors.nome}</p>}
           </div>
           <div>
-            <label className="text-xs text-muted-foreground mt-2 block">Telefone<span className="text-[#FF2B56]"> *</span></label>
-            <div className={`flex items-center border-b ${errors.telefone ? "border-[#FF2B56]" : "border-border"}`}>
-              <span className="text-sm text-muted-foreground pr-3 py-2">BR +55</span>
+            <label className="text-xs text-muted-foreground mb-1 block">{req("Telefone")}</label>
+            <div className={`flex items-center rounded-xl border overflow-hidden focus-within:ring-2 focus-within:ring-primary ${errors.telefone ? "border-destructive" : "border-border"}`}>
+              <span className="text-sm text-muted-foreground pl-3 pr-2">BR +55</span>
               <input
                 type="tel"
                 placeholder="Número de telefone"
                 value={telefone}
                 onChange={(e) => { setTelefone(formatarTelefone(e.target.value)); setErrors(p => ({ ...p, telefone: "" })); }}
-                className="flex-1 py-2 text-sm text-foreground placeholder:text-muted-foreground outline-none bg-transparent"
+                className="flex-1 py-2.5 pr-3 text-sm text-foreground placeholder:text-muted-foreground outline-none bg-background"
               />
             </div>
-            {errors.telefone && <p className="text-xs py-0.5" style={{ color: "#FF2B56" }}>{errors.telefone}</p>}
+            {errors.telefone && <p className="text-xs py-0.5 text-destructive">{errors.telefone}</p>}
           </div>
           <div>
-            <label className="text-xs text-muted-foreground mt-2 block">E-mail<span className="text-[#FF2B56]"> *</span></label>
+            <label className="text-xs text-muted-foreground mb-1 block">{req("E-mail")}</label>
             <input
               type="email"
               placeholder="E-mail"
               value={email}
               onChange={(e) => { setEmail(e.target.value); setErrors(p => ({ ...p, email: "" })); }}
-              className={`w-full py-2 border-b text-sm text-foreground placeholder:text-muted-foreground outline-none bg-transparent ${errors.email ? "border-[#FF2B56]" : "border-border"}`}
+              className={inputClass(errors.email)}
             />
-            {errors.email && <p className="text-xs py-0.5" style={{ color: "#FF2B56" }}>{errors.email}</p>}
+            {errors.email && <p className="text-xs py-0.5 text-destructive">{errors.email}</p>}
           </div>
           <div>
-            <label className="text-xs text-muted-foreground mt-2 block">CPF<span className="text-[#FF2B56]"> *</span></label>
+            <label className="text-xs text-muted-foreground mb-1 block">{req("CPF")}</label>
             <input
               type="text"
               placeholder="000.000.000-00"
               value={cpf}
               onChange={(e) => { setCpf(formatarCpf(e.target.value)); setErrors(p => ({ ...p, cpf: "" })); }}
-              className={`w-full py-2 text-sm text-foreground placeholder:text-muted-foreground outline-none bg-transparent ${errors.cpf ? "border-b border-[#FF2B56]" : ""}`}
+              className={inputClass(errors.cpf)}
             />
-            {errors.cpf && <p className="text-xs py-0.5" style={{ color: "#FF2B56" }}>{errors.cpf}</p>}
+            {errors.cpf && <p className="text-xs py-0.5 text-destructive">{errors.cpf}</p>}
           </div>
         </div>
-      </div>
 
-      {/* Busca de CEP */}
-      <div className="bg-background mt-2 px-4 py-4">
-        <h2 className="text-sm font-bold text-foreground mb-3">Endereço de entrega</h2>
-        <div className="space-y-0">
-          <div>
-            <label className="text-xs text-muted-foreground">CEP/Código postal<span className="text-[#FF2B56]"> *</span></label>
-            <input
-              type="text"
-              placeholder="00000-000"
-              value={cep}
-              onChange={(e) => { handleCepChange(e.target.value); setErrors(p => ({ ...p, cep: "" })); }}
-              className={`w-full py-2 border-b text-sm text-foreground placeholder:text-muted-foreground outline-none bg-transparent ${errors.cep ? "border-[#FF2B56]" : "border-border"}`}
-            />
-          </div>
-          {errors.cep && <p className="text-xs py-0.5" style={{ color: "#FF2B56" }}>{errors.cep}</p>}
+        {/* Busca de CEP */}
+        <div className="rounded-2xl bg-card border border-border p-4 sm:p-5">
+          <h2 className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-3">Endereço de entrega</h2>
+          <label className="text-xs text-muted-foreground mb-1 block">{req("CEP/Código postal")}</label>
+          <input
+            type="text"
+            placeholder="00000-000"
+            value={cep}
+            onChange={(e) => { handleCepChange(e.target.value); setErrors(p => ({ ...p, cep: "" })); }}
+            className={inputClass(errors.cep)}
+          />
+          {errors.cep && <p className="text-xs py-0.5 text-destructive">{errors.cep}</p>}
           {loadingCep && <p className="text-xs text-muted-foreground py-1">Buscando endereço...</p>}
         </div>
-      </div>
 
-      {/* Detalhes do endereço — Só são exibidos quando o CEP é preenchido */}
-      {cepFilled && (
-        <div className="bg-background mt-2 px-4 py-4">
-          <h2 className="text-sm font-bold text-foreground mb-3">Detalhes do endereço</h2>
-          <div className="space-y-0">
-            <div>
-              <div className="flex gap-2">
-                <label className="text-xs text-muted-foreground flex-1">Estado/UF<span className="text-[#FF2B56]"> *</span></label>
-                <label className="text-xs text-muted-foreground flex-1 pl-3">Cidade<span className="text-[#FF2B56]"> *</span></label>
-              </div>
-              <div className={`flex border-b ${errors.estado || errors.cidade ? "border-[#FF2B56]" : "border-border"}`}>
+        {/* Detalhes do endereço — Só são exibidos quando o CEP é preenchido */}
+        {cepFilled && (
+          <div className="rounded-2xl bg-card border border-border p-4 sm:p-5 space-y-3">
+            <h2 className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Detalhes do endereço</h2>
+            <div className="flex gap-3">
+              <div className="w-24">
+                <label className="text-xs text-muted-foreground mb-1 block">{req("UF")}</label>
                 <input
                   type="text"
                   placeholder="UF"
                   value={estado}
                   onChange={(e) => { setEstado(e.target.value.toUpperCase().slice(0, 2)); setErrors(p => ({ ...p, estado: "" })); }}
                   maxLength={2}
-                  className="flex-1 py-2 text-sm text-foreground placeholder:text-muted-foreground outline-none bg-transparent border-r border-border pr-3"
+                  className={inputClass(errors.estado)}
                 />
+              </div>
+              <div className="flex-1">
+                <label className="text-xs text-muted-foreground mb-1 block">{req("Cidade")}</label>
                 <input
                   type="text"
                   placeholder="Cidade"
                   value={cidade}
                   onChange={(e) => { setCidade(e.target.value); setErrors(p => ({ ...p, cidade: "" })); }}
-                  className="flex-1 py-2 pl-3 text-sm text-foreground placeholder:text-muted-foreground outline-none bg-transparent"
+                  className={inputClass(errors.cidade)}
                 />
               </div>
-              {(errors.estado || errors.cidade) && <p className="text-xs py-0.5" style={{ color: "#FF2B56" }}>{errors.estado || errors.cidade}</p>}
             </div>
+            {(errors.estado || errors.cidade) && <p className="text-xs py-0.5 text-destructive">{errors.estado || errors.cidade}</p>}
             <div>
-              <label className="text-xs text-muted-foreground mt-2 block">Bairro/Distrito<span className="text-[#FF2B56]"> *</span></label>
+              <label className="text-xs text-muted-foreground mb-1 block">{req("Bairro/Distrito")}</label>
               <input
                 type="text"
                 placeholder="Bairro/Distrito"
                 value={bairro}
                 onChange={(e) => { setBairro(e.target.value); setErrors(p => ({ ...p, bairro: "" })); }}
-                className={`w-full py-2 border-b text-sm text-foreground placeholder:text-muted-foreground outline-none bg-transparent ${errors.bairro ? "border-[#FF2B56]" : "border-border"}`}
+                className={inputClass(errors.bairro)}
               />
-              {errors.bairro && <p className="text-xs py-0.5" style={{ color: "#FF2B56" }}>{errors.bairro}</p>}
+              {errors.bairro && <p className="text-xs py-0.5 text-destructive">{errors.bairro}</p>}
             </div>
             <div>
-              <label className="text-xs text-muted-foreground mt-2 block">Endereço<span className="text-[#FF2B56]"> *</span></label>
+              <label className="text-xs text-muted-foreground mb-1 block">{req("Endereço")}</label>
               <input
                 type="text"
                 placeholder="Endereço"
                 value={endereco}
                 onChange={(e) => { setEndereco(e.target.value); setErrors(p => ({ ...p, endereco: "" })); }}
-                className={`w-full py-2 border-b text-sm text-foreground placeholder:text-muted-foreground outline-none bg-transparent ${errors.endereco ? "border-[#FF2B56]" : "border-border"}`}
+                className={inputClass(errors.endereco)}
               />
-              {errors.endereco && <p className="text-xs py-0.5" style={{ color: "#FF2B56" }}>{errors.endereco}</p>}
+              {errors.endereco && <p className="text-xs py-0.5 text-destructive">{errors.endereco}</p>}
             </div>
             <div>
-              <label className="text-xs text-muted-foreground mt-2 block">Nº da residência<span className="text-[#FF2B56]"> *</span></label>
+              <label className="text-xs text-muted-foreground mb-1 block">{req("Nº da residência")}</label>
               <input
                 type="text"
                 placeholder='Use "s/n" se nenhum'
                 value={numero}
                 onChange={(e) => { setNumero(e.target.value); setErrors(p => ({ ...p, numero: "" })); }}
-                className={`w-full py-2 border-b text-sm text-foreground placeholder:text-muted-foreground outline-none bg-transparent ${errors.numero ? "border-[#FF2B56]" : "border-border"}`}
+                className={inputClass(errors.numero)}
               />
-              {errors.numero && <p className="text-xs py-0.5" style={{ color: "#FF2B56" }}>{errors.numero}</p>}
+              {errors.numero && <p className="text-xs py-0.5 text-destructive">{errors.numero}</p>}
             </div>
             <div>
-              <label className="text-xs text-muted-foreground mt-2 block">Complemento <span className="text-muted-foreground text-[10px]">(opcional)</span></label>
+              <label className="text-xs text-muted-foreground mb-1 block">Complemento <span className="text-muted-foreground text-[10px]">(opcional)</span></label>
               <input
                 type="text"
                 placeholder="Apartamento, bloco, unidade etc."
-                className="w-full py-2 text-sm text-foreground placeholder:text-muted-foreground outline-none bg-transparent"
+                className={inputClass()}
               />
             </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {/* Configuração de endereço padrão */}
-      <div className="bg-background mt-2 px-4 py-4">
-        <h2 className="text-sm font-bold text-foreground mb-3">Configurações</h2>
-        <div className="flex items-center justify-between">
-          <span className="text-sm text-foreground">Definir como padrão</span>
+        {/* Configuração de endereço padrão */}
+        <div className="rounded-2xl bg-card border border-border p-4 sm:p-5">
+          <h2 className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-3">Configurações</h2>
+          <div className="flex items-center justify-between">
+            <span className="text-sm text-foreground">Definir como padrão</span>
+            <button
+              onClick={() => setPadrao(!padrao)}
+              className={`w-11 h-6 rounded-full transition-colors relative ${padrao ? "bg-primary" : "bg-muted"}`}
+            >
+              <div
+                className="w-5 h-5 rounded-full bg-card absolute top-0.5 transition-all shadow"
+                style={{ left: padrao ? 22 : 2 }}
+              />
+            </button>
+          </div>
+        </div>
+
+        {/* Rodapé com botão de salvar e validação final */}
+        <div className="text-center pt-2">
+          <p className="text-xs text-muted-foreground mb-4">
+            Leia a para saber mais sobre como usamos suas informações pessoais.
+            <span className="text-primary underline ml-0.5">Política de privacidade</span>
+          </p>
           <button
-            onClick={() => setPadrao(!padrao)}
-            className="w-11 h-6 rounded-full transition-colors relative"
-            style={{ background: padrao ? "#FF2B56" : "#ccc" }}
+            onClick={() => {
+              const newErrors: Record<string, string> = {};
+              // Validações antes de prosseguir
+              if (!nome.trim()) newErrors.nome = "Informe seu nome e sobrenome";
+              if (!validarTelefone(telefone)) newErrors.telefone = "Informe um telefone válido (mín. 10 dígitos)";
+              if (!validarEmail(email)) newErrors.email = "Informe um e-mail válido";
+              if (!validarCpf(cpf)) newErrors.cpf = "Informe um CPF válido";
+              if (cep.replace(/\D/g, "").length !== 8) newErrors.cep = "Informe um CEP válido";
+              if (!estado.trim()) newErrors.estado = "Informe o estado";
+              if (!cidade.trim()) newErrors.cidade = "Informe a cidade";
+              if (!bairro.trim()) newErrors.bairro = "Informe o bairro";
+              if (!endereco.trim()) newErrors.endereco = "Informe o endereço";
+              if (!numero.trim()) newErrors.numero = "Informe o número";
+
+              setErrors(newErrors);
+              if (Object.keys(newErrors).length > 0) return;
+
+              // Salva no localStorage para persistência entre sessões
+              const data = { nome, telefone, email, cpf, cep, estado, cidade, bairro, endereco, numero };
+              localStorage.setItem("endereco", JSON.stringify(data));
+              localStorage.setItem("cpfSalvo", cpf);
+              navigate("/finalizar-compra");
+            }}
+            className="w-full py-4 rounded-full text-base font-bold bg-primary text-primary-foreground"
           >
-            <div
-              className="w-5 h-5 rounded-full bg-white absolute top-0.5 transition-all shadow"
-              style={{ left: padrao ? 22 : 2 }}
-            />
+            Salvar
           </button>
         </div>
-      </div>
 
-      {/* Rodapé com botão de salvar e validação final */}
-      <div className="flex-1" />
-      <div className="bg-background px-4 py-3 text-center">
-        <p className="text-xs text-muted-foreground mb-4">
-          Leia a para saber mais sobre como usamos suas informações pessoais.
-          <span className="text-primary underline ml-0.5">Política de privacidade</span>
-        </p>
-        <button
-          onClick={() => {
-            const newErrors: Record<string, string> = {};
-            // Validações antes de prosseguir
-            if (!nome.trim()) newErrors.nome = "Informe seu nome e sobrenome";
-            if (!validarTelefone(telefone)) newErrors.telefone = "Informe um telefone válido (mín. 10 dígitos)";
-            if (!validarEmail(email)) newErrors.email = "Informe um e-mail válido";
-            if (!validarCpf(cpf)) newErrors.cpf = "Informe um CPF válido";
-            if (cep.replace(/\D/g, "").length !== 8) newErrors.cep = "Informe um CEP válido";
-            if (!estado.trim()) newErrors.estado = "Informe o estado";
-            if (!cidade.trim()) newErrors.cidade = "Informe a cidade";
-            if (!bairro.trim()) newErrors.bairro = "Informe o bairro";
-            if (!endereco.trim()) newErrors.endereco = "Informe o endereço";
-            if (!numero.trim()) newErrors.numero = "Informe o número";
-
-            setErrors(newErrors);
-            if (Object.keys(newErrors).length > 0) return;
-
-            // Salva no localStorage para persistência entre sessões
-            const data = { nome, telefone, email, cpf, cep, estado, cidade, bairro, endereco, numero };
-            localStorage.setItem("endereco", JSON.stringify(data));
-            localStorage.setItem("cpfSalvo", cpf);
-            navigate("/finalizar-compra");
-          }}
-          className="w-full py-3 rounded-lg text-base font-bold text-white"
-          style={{ background: "#FF2B56" }}
-        >
-          Salvar
-        </button>
+        <CheckoutTrustRow />
       </div>
     </div>
   );
