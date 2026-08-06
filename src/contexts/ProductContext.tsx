@@ -31,6 +31,8 @@ interface Model {
   name: string;
   /** URL da imagem do modelo */
   image: string;
+  /** Índice da imagem correspondente no carrossel */
+  imageIndex: number;
 }
 
 /**
