@@ -6,20 +6,24 @@ import { toast } from "sonner";
 import FlashSaleTimer from "./FlashSaleTimer";
 
 /**
- * Componente para seleção de tamanho do produto.
- * Exibe uma grade de botões com status de estoque (esgotado, disponível, selecionado).
+ * Componente para seleção de variante (Modelo ou Tamanho) do produto.
+ * Exibe uma grade de botões com o rótulo dinâmico vindo do banco.
  */
-const SizeSelector = () => {
-  const { sizes, selectedSize, setSelectedSize } = useProduct();
+const VariantSelector = () => {
+  const { sizes, selectedSize, setSelectedSize, product } = useProduct();
+  const label = product.variant_label || "Tamanho";
+  
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between">
-        <span className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Tamanho</span>
-        <a href="#tabela-tamanhos" className="text-xs text-primary font-medium hover:underline">
-          Tabela de tamanhos
-        </a>
+        <span className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">{label}</span>
+        {label === "Tamanho" && (
+          <a href="#tabela-tamanhos" className="text-xs text-primary font-medium hover:underline">
+            Tabela de tamanhos
+          </a>
+        )}
       </div>
-      <div className="grid grid-cols-5 gap-2">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
         {sizes.map((s, i) => {
           const outOfStock = s.stock === 0;
           const selected = selectedSize === i;
@@ -28,11 +32,11 @@ const SizeSelector = () => {
               key={s.label}
               onClick={() => !outOfStock && setSelectedSize(i)}
               disabled={outOfStock}
-              className={`relative flex items-center justify-center rounded-xl border-2 py-2.5 text-sm font-semibold transition-all ${
+              className={`relative flex items-center justify-center rounded-xl border-2 py-2.5 px-2 text-xs font-semibold transition-all ${
                 outOfStock
                   ? "border-border bg-muted text-muted-foreground line-through cursor-not-allowed opacity-60"
                   : selected
-                  ? "border-primary bg-primary/10 text-primary"
+                  ? "border-primary bg-primary/10 text-primary shadow-sm shadow-primary/10"
                   : "border-border text-foreground hover:border-primary/50"
               }`}
             >
@@ -96,7 +100,7 @@ const ProductInfo = () => {
 
       {/* Seletor de tamanho */}
       <div className="border-t border-border pt-4">
-        <SizeSelector />
+        <VariantSelector />
       </div>
 
       {/* Bloco de preço */}
