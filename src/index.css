@@ -63,10 +63,15 @@
 
 @layer base {
   * {
-    @apply border-border;
+    @apply border-border outline-none;
   }
+  
+  *:focus-visible {
+    @apply ring-2 ring-primary ring-offset-2 ring-offset-background;
+  }
+
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground antialiased;
     font-family: "DM Sans", system-ui, sans-serif;
   }
   h1,
