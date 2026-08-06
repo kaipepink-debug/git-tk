@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useProduct } from "@/contexts/ProductContext";
 
 /**
@@ -7,10 +7,17 @@ import { useProduct } from "@/contexts/ProductContext";
  * no mobile funciona como um carrossel deslizável (swipe) com miniaturas abaixo.
  */
 const ImageCarousel = () => {
-  const { product } = useProduct();
+  const { product, selectedModel, models } = useProduct();
   const images = product.images.length > 0 ? product.images : ["/placeholder.svg"];
   const [current, setCurrent] = useState(0);
   const [touchStart, setTouchStart] = useState(0);
+
+  // Sincroniza a imagem do carrossel quando um modelo é selecionado
+  useEffect(() => {
+    if (models && models[selectedModel] && typeof models[selectedModel].imageIndex === 'number') {
+      setCurrent(models[selectedModel].imageIndex);
+    }
+  }, [selectedModel, models]);
 
   /** Avança para a próxima imagem */
   const next = () => setCurrent((c) => (c === images.length - 1 ? 0 : c + 1));
