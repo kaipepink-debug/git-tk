@@ -239,6 +239,7 @@ export type Database = {
           id: string
           images: Json
           is_active: boolean
+          models: Json | null
           rating: number
           rating_count: number
           sold_count: number
@@ -256,6 +257,7 @@ export type Database = {
           id?: string
           images?: Json
           is_active?: boolean
+          models?: Json | null
           rating?: number
           rating_count?: number
           sold_count?: number
@@ -273,6 +275,7 @@ export type Database = {
           id?: string
           images?: Json
           is_active?: boolean
+          models?: Json | null
           rating?: number
           rating_count?: number
           sold_count?: number

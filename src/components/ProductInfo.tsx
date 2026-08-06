@@ -6,11 +6,56 @@ import { toast } from "sonner";
 import FlashSaleTimer from "./FlashSaleTimer";
 
 /**
- * Componente para seleção de tamanho do produto.
- * Exibe uma grade de botões com status de estoque (esgotado, disponível, selecionado).
+ * Componente para seleção de modelo (cor) do produto.
+ * Exibe uma grade de miniaturas dos modelos disponíveis.
+ */
+const ModelSelector = () => {
+  const { models, selectedModel, setSelectedModel } = useProduct();
+  
+  if (!models || models.length === 0) return null;
+
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center justify-between">
+        <span className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Modelo</span>
+        <span className="text-xs font-bold text-primary">{models[selectedModel]?.name}</span>
+      </div>
+      <div className="grid grid-cols-4 sm:grid-cols-5 gap-3">
+        {models.map((model, i) => {
+          const selected = selectedModel === i;
+          return (
+            <button
+              key={model.name}
+              onClick={() => setSelectedModel(i)}
+              className={`relative aspect-square rounded-lg border-2 overflow-hidden transition-all ${
+                selected
+                  ? "border-primary ring-2 ring-primary/20 shadow-md scale-105"
+                  : "border-border hover:border-primary/50"
+              }`}
+            >
+              <img 
+                src={model.image} 
+                alt={model.name} 
+                className="w-full h-full object-cover"
+                loading="lazy"
+              />
+              {selected && (
+                <div className="absolute inset-0 bg-primary/5 pointer-events-none" />
+              )}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+};
+
+/**
+ * Componente para seleção de variante (Tamanho) do produto.
  */
 const SizeSelector = () => {
   const { sizes, selectedSize, setSelectedSize } = useProduct();
+  
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between">
@@ -94,8 +139,9 @@ const ProductInfo = () => {
         <span className="text-sm text-muted-foreground">({product.rating_count} avaliações)</span>
       </div>
 
-      {/* Seletor de tamanho */}
-      <div className="border-t border-border pt-4">
+      {/* Seletor de modelo e tamanho */}
+      <div className="border-t border-border pt-4 space-y-6">
+        <ModelSelector />
         <SizeSelector />
       </div>
 
