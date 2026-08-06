@@ -15,8 +15,8 @@ const StoreInfo = () => {
         />
         <div>
           <p className="text-sm text-foreground/80 leading-relaxed mb-4">
-            Desde 2015 no mercado, a Zyro nasceu da paixão pelo esporte. São mais de 50.000 clientes atendidos com
-            excelência e compromisso em oferecer os melhores tênis de corrida do Brasil.
+            Desde 2018 no mercado, a Chiqueb nasceu da paixão pelo estilo e conforto. São mais de 80.000 clientes atendidos com
+            excelência e compromisso em oferecer os melhores calçados tecnológicos do Brasil.
           </p>
           <div className="flex items-center gap-2 flex-wrap">
             <span className="bg-muted text-foreground text-xs font-semibold px-3 py-1.5 rounded-full">

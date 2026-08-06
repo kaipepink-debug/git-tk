@@ -64,7 +64,7 @@ const ProductInfo = () => {
         </div>
         <div className="flex items-center gap-1.5 text-xs font-medium text-primary">
           <Award className="w-4 h-4" />
-          Alta Performance
+          Conforto Premium
         </div>
       </div>
 

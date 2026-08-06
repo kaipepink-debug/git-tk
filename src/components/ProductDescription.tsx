@@ -3,10 +3,10 @@ import { useProduct } from "@/contexts/ProductContext";
 
 /** Lista de destaques de performance exibidos como bullets com ícone de verificação */
 const HIGHLIGHTS = [
-  "Placa de carbono para propulsão máxima",
-  "Amortecimento leve de alta resposta",
-  "Cabedal respirável e ultraleve",
-  "Solado de alta aderência e durabilidade",
+  "Tecnologia de amortecimento ultra macio",
+  "Design anatômico para conforto prolongado",
+  "Material resistente de alta durabilidade",
+  "Cabedal tecnológico respirável",
 ];
 
 /**
@@ -29,7 +29,7 @@ const ProductDescription = () => {
       {/* Seção de Descrição */}
       <section className="border-t border-border py-10">
         <h2 className="text-2xl font-extrabold text-foreground mb-1">Descrição</h2>
-        <p className="text-sm text-muted-foreground mb-6">Placa de carbono para máxima performance</p>
+        <p className="text-sm text-muted-foreground mb-6">Conforto e tecnologia para o seu dia a dia</p>
 
         {product.images[1] && (
           <img
@@ -54,7 +54,7 @@ const ProductDescription = () => {
 
         <div className="flex items-center gap-3 bg-muted rounded-xl px-4 py-3">
           <ShieldCheck className="w-5 h-5 text-primary flex-shrink-0" />
-          <span className="text-sm font-medium text-foreground">Produto original Zyro / Qualidade garantida.</span>
+          <span className="text-sm font-medium text-foreground">Produto original Chiqueb / Qualidade garantida.</span>
         </div>
       </section>
 
