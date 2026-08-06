@@ -14,6 +14,7 @@ import Footer from "@/components/Footer";
 import BottomBar from "@/components/BottomBar";
 import PreSell from "@/components/PreSell";
 import ExitIntentPopup from "@/components/ExitIntentPopup";
+import { SEO } from "@/components/SEO";
 
 import { useSessionTracker } from "@/hooks/useSessionTracker";
 import { useTikTokPixel, trackTikTokEvent } from "@/hooks/useTikTokPixel";
@@ -88,6 +89,11 @@ const Produto = () => {
 
   return (
     <>
+      <SEO 
+        title={product.title}
+        description={product.description ? product.description.substring(0, 160) + "..." : "Confira o novo Chunta 6.0 na Chiqueb Loja."}
+        image={product.images?.[0]}
+      />
       {showPresell && <PreSell onUnlock={handleUnlock} />}
       <ExitIntentPopup />
       <div className="min-h-screen bg-background pb-24 lg:pb-0">
