@@ -27,7 +27,7 @@ const ProductDescription = () => {
   return (
     <>
       {/* Seção de Descrição */}
-      <section className="border-t border-border py-10">
+      <section className="border-t border-border py-10 px-4 sm:px-0">
         <h2 className="text-2xl font-extrabold text-foreground mb-1">Descrição</h2>
         <p className="text-sm text-muted-foreground mb-6">Conforto e tecnologia para o seu dia a dia</p>
 
@@ -59,7 +59,7 @@ const ProductDescription = () => {
       </section>
 
       {/* Seção de Tabela de Tamanhos */}
-      <section id="tabela-tamanhos" className="border-t border-border py-10 scroll-mt-24">
+      <section id="tabela-tamanhos" className="border-t border-border py-10 scroll-mt-24 px-4 sm:px-0">
         <h2 className="text-2xl font-extrabold text-foreground mb-6">Tabela de Tamanhos</h2>
         <img
           src="https://chiquebloja.com/cdn/shop/files/D_Q_NP_945111-CBT110725393957_042026-B-tnis-de-corrida-responsivos-leves-e-confortaveis-tamanhos.webp"
