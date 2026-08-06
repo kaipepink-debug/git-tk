@@ -6,24 +6,65 @@ import { toast } from "sonner";
 import FlashSaleTimer from "./FlashSaleTimer";
 
 /**
- * Componente para seleção de variante (Modelo ou Tamanho) do produto.
- * Exibe uma grade de botões com o rótulo dinâmico vindo do banco.
+ * Componente para seleção de modelo (cor) do produto.
+ * Exibe uma grade de miniaturas dos modelos disponíveis.
  */
-const VariantSelector = () => {
-  const { sizes, selectedSize, setSelectedSize, product } = useProduct();
-  const label = product.variant_label || "Tamanho";
+const ModelSelector = () => {
+  const { models, selectedModel, setSelectedModel } = useProduct();
+  
+  if (!models || models.length === 0) return null;
+
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center justify-between">
+        <span className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Modelo</span>
+        <span className="text-xs font-bold text-primary">{models[selectedModel]?.name}</span>
+      </div>
+      <div className="grid grid-cols-4 sm:grid-cols-5 gap-3">
+        {models.map((model, i) => {
+          const selected = selectedModel === i;
+          return (
+            <button
+              key={model.name}
+              onClick={() => setSelectedModel(i)}
+              className={`relative aspect-square rounded-lg border-2 overflow-hidden transition-all ${
+                selected
+                  ? "border-primary ring-2 ring-primary/20 shadow-md scale-105"
+                  : "border-border hover:border-primary/50"
+              }`}
+            >
+              <img 
+                src={model.image} 
+                alt={model.name} 
+                className="w-full h-full object-cover"
+                loading="lazy"
+              />
+              {selected && (
+                <div className="absolute inset-0 bg-primary/5 pointer-events-none" />
+              )}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+};
+
+/**
+ * Componente para seleção de variante (Tamanho) do produto.
+ */
+const SizeSelector = () => {
+  const { sizes, selectedSize, setSelectedSize } = useProduct();
   
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between">
-        <span className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">{label}</span>
-        {label === "Tamanho" && (
-          <a href="#tabela-tamanhos" className="text-xs text-primary font-medium hover:underline">
-            Tabela de tamanhos
-          </a>
-        )}
+        <span className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Tamanho</span>
+        <a href="#tabela-tamanhos" className="text-xs text-primary font-medium hover:underline">
+          Tabela de tamanhos
+        </a>
       </div>
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+      <div className="grid grid-cols-5 gap-2">
         {sizes.map((s, i) => {
           const outOfStock = s.stock === 0;
           const selected = selectedSize === i;
@@ -32,11 +73,11 @@ const VariantSelector = () => {
               key={s.label}
               onClick={() => !outOfStock && setSelectedSize(i)}
               disabled={outOfStock}
-              className={`relative flex items-center justify-center rounded-xl border-2 py-2.5 px-2 text-xs font-semibold transition-all ${
+              className={`relative flex items-center justify-center rounded-xl border-2 py-2.5 text-sm font-semibold transition-all ${
                 outOfStock
                   ? "border-border bg-muted text-muted-foreground line-through cursor-not-allowed opacity-60"
                   : selected
-                  ? "border-primary bg-primary/10 text-primary shadow-sm shadow-primary/10"
+                  ? "border-primary bg-primary/10 text-primary"
                   : "border-border text-foreground hover:border-primary/50"
               }`}
             >
@@ -98,9 +139,10 @@ const ProductInfo = () => {
         <span className="text-sm text-muted-foreground">({product.rating_count} avaliações)</span>
       </div>
 
-      {/* Seletor de tamanho */}
-      <div className="border-t border-border pt-4">
-        <VariantSelector />
+      {/* Seletor de modelo e tamanho */}
+      <div className="border-t border-border pt-4 space-y-6">
+        <ModelSelector />
+        <SizeSelector />
       </div>
 
       {/* Bloco de preço */}
