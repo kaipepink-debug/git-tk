@@ -20,7 +20,7 @@ const ModelSelector = () => {
         <span className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Modelo</span>
         <span className="text-xs font-bold text-primary">{models[selectedModel]?.name}</span>
       </div>
-      <div className="grid grid-cols-4 sm:grid-cols-5 gap-3">
+      <div className="grid grid-cols-4 sm:grid-cols-5 gap-3 overflow-x-auto no-scrollbar py-1">
         {models.map((model, i) => {
           const selected = selectedModel === i;
           return (
@@ -64,7 +64,7 @@ const SizeSelector = () => {
           Tabela de tamanhos
         </a>
       </div>
-      <div className="grid grid-cols-5 gap-2">
+      <div className="grid grid-cols-5 gap-2 overflow-x-auto no-scrollbar py-1">
         {sizes.map((s, i) => {
           const outOfStock = s.stock === 0;
           const selected = selectedSize === i;
@@ -125,7 +125,7 @@ const ProductInfo = () => {
 
       {/* Título e subtítulo */}
       <div>
-        <h1 className="text-2xl sm:text-3xl font-extrabold leading-tight text-foreground">
+        <h1 className="text-xl sm:text-3xl font-extrabold leading-tight text-foreground uppercase tracking-tight">
           {product.title}
         </h1>
         {subtitle && <p className="text-sm text-muted-foreground mt-1">{subtitle}</p>}

@@ -16,7 +16,7 @@ const TopBar = () => {
       </div>
 
       {/* Cabeçalho com logo centralizada */}
-      <div className="bg-ink text-ink-foreground flex items-center justify-between px-4 py-3">
+      <div className="bg-ink text-ink-foreground flex items-center justify-between px-4 py-2.5">
         <button className="p-1" aria-label="Menu">
           <Menu className="w-5 h-5" />
         </button>
@@ -28,19 +28,21 @@ const TopBar = () => {
         </button>
       </div>
 
-      {/* Faixa de confiança */}
-      <div className="bg-background border-b border-border px-4 py-2 flex items-center justify-center gap-4 sm:gap-8 flex-wrap">
-        <div className="flex items-center gap-1.5 text-[10px] sm:text-xs text-muted-foreground">
-          <Truck className="w-3.5 h-3.5 text-primary flex-shrink-0" />
-          <span>Frete grátis para todo o Brasil</span>
-        </div>
-        <div className="flex items-center gap-1.5 text-[10px] sm:text-xs text-muted-foreground">
-          <ShieldCheck className="w-3.5 h-3.5 text-primary flex-shrink-0" />
-          <span>Garantia de 30 dias</span>
-        </div>
-        <div className="flex items-center gap-1.5 text-[10px] sm:text-xs text-muted-foreground">
-          <Phone className="w-3.5 h-3.5 text-primary flex-shrink-0" />
-          <span>SAC: (14) 3256-5533</span>
+      {/* Faixa de confiança - Otimizada para Mobile */}
+      <div className="bg-background border-b border-border overflow-x-auto no-scrollbar">
+        <div className="flex items-center whitespace-nowrap px-4 py-2 gap-6 min-w-max mx-auto lg:justify-center">
+          <div className="flex items-center gap-1.5 text-[10px] sm:text-xs text-muted-foreground">
+            <Truck className="w-3.5 h-3.5 text-primary flex-shrink-0" />
+            <span>Frete grátis para todo o Brasil</span>
+          </div>
+          <div className="flex items-center gap-1.5 text-[10px] sm:text-xs text-muted-foreground border-l border-border pl-6">
+            <ShieldCheck className="w-3.5 h-3.5 text-primary flex-shrink-0" />
+            <span>Garantia de 30 dias</span>
+          </div>
+          <div className="flex items-center gap-1.5 text-[10px] sm:text-xs text-muted-foreground border-l border-border pl-6">
+            <Phone className="w-3.5 h-3.5 text-primary flex-shrink-0" />
+            <span>SAC: (14) 3256-5533</span>
+          </div>
         </div>
       </div>
     </div>

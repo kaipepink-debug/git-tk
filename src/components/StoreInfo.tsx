@@ -4,7 +4,7 @@
  */
 const StoreInfo = () => {
   return (
-    <section className="border-t border-border py-10">
+    <section className="border-t border-border py-10 px-4 sm:px-0">
       <h2 className="text-2xl font-extrabold text-foreground mb-6">Nossa História</h2>
       <div className="grid md:grid-cols-2 gap-6 items-center">
         <img
