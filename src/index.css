@@ -17,9 +17,9 @@
     --popover-foreground: 0 0% 7%;
 
     /* Verde de performance */
-    --primary: 151 84% 38%;
+    --primary: 0 84% 60%;
     --primary-foreground: 0 0% 100%;
-    --primary-dark: 151 88% 28%;
+    --primary-dark: 0 84% 50%;
 
     --secondary: 40 14% 97%;
     --secondary-foreground: 0 0% 7%;
@@ -35,14 +35,14 @@
 
     --border: 36 8% 88%;
     --input: 36 8% 88%;
-    --ring: 151 84% 38%;
+    --ring: 0 84% 60%;
 
     --radius: 0.75rem;
 
     /* Tokens de apoio */
     --ink: 0 0% 7%;
     --ink-foreground: 0 0% 100%;
-    --sale: 151 84% 38%;
+    --sale: 0 84% 60%;
     --sale-foreground: 0 0% 100%;
     --flash-bg: 0 0% 7%;
     --star: 45 100% 50%;

@@ -47,7 +47,7 @@ const CheckoutHeader = ({ onBack, step }: CheckoutHeaderProps) => {
           <ChevronLeft className="w-5 h-5" />
         </button>
         <span className="font-extrabold tracking-tight text-lg" style={{ fontFamily: "'Archivo', system-ui, sans-serif" }}>
-          ZYRO
+          CHIQUEB
         </span>
       </div>
 
