@@ -62,7 +62,7 @@ const ProductDescription = () => {
       <section id="tabela-tamanhos" className="border-t border-border py-10 scroll-mt-24">
         <h2 className="text-2xl font-extrabold text-foreground mb-6">Tabela de Tamanhos</h2>
         <img
-          src="https://zyroofc.lovable.app/assets/tabela-tamanhos-BZmeMTcH.jpg"
+          src="https://chiquebloja.com/cdn/shop/files/D_Q_NP_945111-CBT110725393957_042026-B-tnis-de-corrida-responsivos-leves-e-confortaveis-tamanhos.webp"
           alt="Tabela de tamanhos Zyro"
           className="w-full rounded-2xl mb-6"
           loading="lazy"
