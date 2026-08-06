@@ -23,6 +23,17 @@ interface Variant {
 }
 
 /**
+ * @interface Model
+ * @description Representa uma variação de modelo/cor do produto.
+ */
+interface Model {
+  /** Nome do modelo/cor */
+  name: string;
+  /** URL da imagem do modelo */
+  image: string;
+}
+
+/**
  * @interface ProductData
  * @description Estrutura completa dos dados de um produto vindos do banco de dados.
  */
@@ -37,8 +48,10 @@ interface ProductData {
   images: string[];
   /** URL da imagem simplificada para o carrinho */
   cart_image: string;
-  /** Lista de variantes disponíveis */
+  /** Lista de variantes (ex: tamanhos) disponíveis */
   variants: Variant[];
+  /** Lista de modelos (ex: cores) disponíveis */
+  models: Model[];
   /** Rótulo para o seletor de variantes (ex: "Tamanho") */
   variant_label: string;
   /** Avaliação média (0 a 5) */
@@ -64,6 +77,7 @@ const defaultProduct: ProductData = {
   images: [],
   cart_image: "",
   variants: [{ label: "-", price: 0, oldPrice: 0, stock: 0 }],
+  models: [],
   variant_label: "Tamanho",
   rating: 4.6,
   rating_count: 0,
@@ -77,12 +91,18 @@ const defaultProduct: ProductData = {
  * @description Define a estrutura do valor exposto pelo contexto de produto.
  */
 interface ProductContextType {
-  /** Índice da variante atualmente selecionada */
+  /** Índice da variante atualmente selecionada (ex: tamanho) */
   selectedSize: number;
   /** Função para atualizar a variante selecionada */
   setSelectedSize: (i: number) => void;
+  /** Índice do modelo atualmente selecionado (ex: cor) */
+  selectedModel: number;
+  /** Função para atualizar o modelo selecionado */
+  setSelectedModel: (i: number) => void;
   /** Lista de todas as variantes (tamanhos) disponíveis */
   sizes: Variant[];
+  /** Lista de todos os modelos disponíveis */
+  models: Model[];
   /** Preço da variante selecionada */
   price: number;
   /** Preço antigo da variante selecionada */
@@ -95,6 +115,8 @@ interface ProductContextType {
   oldPriceDisplay: string;
   /** Rótulo da variante selecionada */
   sizeLabel: string;
+  /** Rótulo do modelo selecionado */
+  modelLabel: string;
   /** Dados completos do produto */
   product: ProductData;
   /** Indica se os dados estão sendo buscados */
@@ -111,6 +133,7 @@ const ProductContext = createContext<ProductContextType | null>(null);
 export const ProductProvider = ({ children }: { children: ReactNode }) => {
   const [product, setProduct] = useState<ProductData>(defaultProduct);
   const [selectedSize, setSelectedSize] = useState(0);
+  const [selectedModel, setSelectedModel] = useState(0);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -143,6 +166,7 @@ export const ProductProvider = ({ children }: { children: ReactNode }) => {
             variants: Array.isArray(data.variants) && (data.variants as any).length > 0
               ? (data.variants as any)
               : defaultProduct.variants,
+            models: Array.isArray(data.models) ? (data.models as any) : [],
             variant_label: data.variant_label || "Tamanho",
             rating: Number(data.rating) || 0,
             rating_count: Number(data.rating_count) || 0,
@@ -152,6 +176,7 @@ export const ProductProvider = ({ children }: { children: ReactNode }) => {
           };
           setProduct(p);
           setSelectedSize(Math.max(0, Math.min(p.default_variant, p.variants.length - 1)));
+          setSelectedModel(0);
         }
       } catch (err) {
         console.error("[ProductContext] Erro inesperado ao carregar produto:", err);
@@ -174,13 +199,17 @@ export const ProductProvider = ({ children }: { children: ReactNode }) => {
       value={{
         selectedSize,
         setSelectedSize,
+        selectedModel,
+        setSelectedModel,
         sizes: variants,
+        models: product.models,
         price: s.price,
         oldPrice: s.oldPrice,
         discount,
         priceDisplay: s.price.toFixed(2).replace(".", ","),
         oldPriceDisplay: s.oldPrice.toFixed(2).replace(".", ","),
         sizeLabel: s.label,
+        modelLabel: product.models[selectedModel]?.name || "",
         product,
         loading,
       }}
