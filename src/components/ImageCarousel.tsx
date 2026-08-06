@@ -45,7 +45,7 @@ const ImageCarousel = () => {
       )}
 
       {/* Imagem principal */}
-      <div className="relative flex-1 bg-card rounded-2xl overflow-hidden aspect-square">
+      <div className="relative flex-1 bg-card sm:rounded-2xl overflow-hidden aspect-square">
         {/* Selo de últimas unidades */}
         <div className="absolute top-3 left-3 z-10 bg-ink text-ink-foreground text-[10px] font-semibold uppercase tracking-wide px-3 py-1 rounded-full">
           Últimas unidades

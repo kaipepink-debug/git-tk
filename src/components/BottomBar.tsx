@@ -24,29 +24,31 @@ const BottomBar = () => {
   return (
     <>
       <ProductChat open={chatOpen} onClose={() => setChatOpen(false)} />
-      <div className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-background border-t border-border px-4 py-3 flex items-center gap-3 shadow-[0_-2px_8px_rgba(0,0,0,0.06)]">
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-border px-4 py-3 pb-safe flex items-center gap-4 shadow-[0_-4px_12px_rgba(0,0,0,0.08)]">
         {/* Atalho para o chat de suporte */}
         <button
           onClick={() => setChatOpen(true)}
-          className="flex-shrink-0 w-11 h-11 rounded-full bg-muted flex items-center justify-center text-foreground"
+          className="flex-shrink-0 w-12 h-12 rounded-full bg-[#25D366]/10 flex items-center justify-center text-[#25D366] transition-transform active:scale-95"
           aria-label="Abrir chat"
         >
-          <MessageCircle className="w-5 h-5" />
+          <MessageCircle className="w-6 h-6 fill-current" />
         </button>
 
-        {/* Preço atual */}
-        <div className="flex flex-col leading-tight">
-          <span className="text-[10px] text-muted-foreground">A partir de</span>
-          <span className="text-lg font-extrabold text-primary">R$ {priceDisplay}</span>
-        </div>
-
-        {/* CTA principal */}
+        {/* CTA principal robusto */}
         <button
           onClick={handleBuy}
           disabled={loading}
-          className="flex-1 rounded-full bg-primary text-primary-foreground font-bold py-3 flex items-center justify-center disabled:opacity-70"
+          className="flex-1 h-12 rounded-xl bg-primary text-white font-bold text-base flex items-center justify-center gap-2 shadow-lg shadow-primary/20 transition-all active:scale-[0.98] disabled:opacity-70"
         >
-          {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Comprar agora"}
+          {loading ? (
+            <Loader2 className="w-5 h-5 animate-spin" />
+          ) : (
+            <>
+              <span>Comprar agora</span>
+              <span className="text-white/50 font-normal">|</span>
+              <span>R$ {priceDisplay}</span>
+            </>
+          )}
         </button>
       </div>
     </>

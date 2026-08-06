@@ -96,10 +96,10 @@ const Produto = () => {
       />
       {showPresell && <PreSell onUnlock={handleUnlock} />}
       <ExitIntentPopup />
-      <div className="min-h-screen bg-background pb-24 lg:pb-0">
+      <div className="min-h-screen bg-background pb-28 lg:pb-0">
         <TopBar />
 
-        <div className="max-w-6xl mx-auto px-4 py-6 lg:py-10">
+        <div className="max-w-6xl mx-auto px-0 sm:px-4 py-0 sm:py-6 lg:py-10">
           {/* Bloco principal do produto: galeria + informações */}
           <div className="grid lg:grid-cols-2 gap-8 lg:gap-12">
             <ImageCarousel />
