@@ -215,7 +215,7 @@ const ReviewsSection = () => {
 
   return (
     <>
-      <section id="avaliacoes" className="border-t border-border py-10 scroll-mt-24">
+      <section id="avaliacoes" className="border-t border-border py-10 scroll-mt-24 px-4 sm:px-0">
         <h2 className="text-2xl font-extrabold text-foreground mb-1">Avaliações</h2>
         <p className="text-sm text-muted-foreground mb-6">O que nossos clientes dizem</p>
 
