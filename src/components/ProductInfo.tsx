@@ -1,6 +1,8 @@
-import { Star, Truck, ShieldCheck, Zap, BadgeCheck, Award } from "lucide-react";
+import { Star, Truck, ShieldCheck, Zap, BadgeCheck, Award, Loader2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useProduct } from "@/contexts/ProductContext";
+import { useState } from "react";
+import { toast } from "sonner";
 import FlashSaleTimer from "./FlashSaleTimer";
 
 /**
@@ -50,6 +52,14 @@ const SizeSelector = () => {
 const ProductInfo = () => {
   const { product, price, priceDisplay, oldPriceDisplay, discount } = useProduct();
   const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
+
+  const handleBuy = (path: string) => {
+    setLoading(true);
+    setTimeout(() => {
+      navigate(path);
+    }, 600);
+  };
 
   // Extrai a primeira linha da descrição para usar como subtítulo
   const subtitle = product.description.split("\n").map(l => l.trim()).find(Boolean) || "";
@@ -122,16 +132,21 @@ const ProductInfo = () => {
       {/* CTAs */}
       <div className="flex flex-col gap-3 pt-2">
         <button
-          onClick={() => navigate("/finalizar-compra")}
-          className="w-full rounded-full bg-primary text-primary-foreground font-bold py-3.5 hover:bg-primary-dark transition-colors"
+          onClick={() => handleBuy("/finalizar-compra")}
+          disabled={loading}
+          className="w-full rounded-full bg-primary text-primary-foreground font-bold py-3.5 hover:bg-primary-dark transition-colors flex items-center justify-center disabled:opacity-70"
         >
-          Comprar agora
+          {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : "Comprar agora"}
         </button>
         <button
-          onClick={() => navigate("/finalizar-compra")}
-          className="w-full rounded-full border-2 border-primary text-primary font-bold py-3.5 hover:bg-primary/5 transition-colors"
+          onClick={() => {
+            toast.success("Produto adicionado ao carrinho!");
+            handleBuy("/carrinho");
+          }}
+          disabled={loading}
+          className="w-full rounded-full border-2 border-primary text-primary font-bold py-3.5 hover:bg-primary/5 transition-colors flex items-center justify-center disabled:opacity-70"
         >
-          Adicionar ao carrinho
+          {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : "Adicionar ao carrinho"}
         </button>
       </div>
     </div>
