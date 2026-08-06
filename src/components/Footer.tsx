@@ -36,7 +36,7 @@ const Footer = () => {
     <footer className="bg-ink text-ink-foreground px-4 py-10 mt-2">
       <div className="max-w-6xl mx-auto">
         <span className="font-extrabold italic text-2xl tracking-tighter block mb-8" style={{ fontFamily: "Archivo, system-ui, sans-serif" }}>
-          ZYRO
+          CHIQUEB
         </span>
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-10">
