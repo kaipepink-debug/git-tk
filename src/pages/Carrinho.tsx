@@ -120,7 +120,7 @@ const Carrinho = () => {
           </div>
           <button
             onClick={() => navigate("/finalizar-compra")}
-            className="w-full py-4 rounded-full text-base font-bold bg-primary text-primary-foreground"
+            className="w-full py-4 rounded-full text-base font-bold bg-ink text-ink-foreground hover:bg-black transition-colors shadow-lg shadow-black/10"
           >
             Finalizar Compra (1)
           </button>

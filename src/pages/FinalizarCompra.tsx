@@ -322,7 +322,7 @@ const FinalizarCompra = () => {
               }
             }}
             disabled={loading}
-            className="w-full py-4 rounded-full text-base font-bold bg-primary text-primary-foreground flex flex-col items-center disabled:opacity-70"
+            className="w-full py-4 rounded-full text-base font-bold bg-ink text-ink-foreground hover:bg-black transition-colors shadow-lg shadow-black/10 flex flex-col items-center disabled:opacity-70"
           >
             {loading ? (
               <Loader2 className="w-5 h-5 animate-spin" />

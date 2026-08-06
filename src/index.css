@@ -6,8 +6,8 @@
 
 @layer base {
   :root {
-    /* Base neutra off-white (estilo Zyro) */
-    --background: 40 14% 97%;
+    /* Base neutra off-white (estilo Chiqueb Premium) */
+    --background: 0 0% 98%;
     --foreground: 0 0% 7%;
 
     --card: 0 0% 100%;
@@ -16,25 +16,25 @@
     --popover: 0 0% 100%;
     --popover-foreground: 0 0% 7%;
 
-    /* Verde de performance */
+    /* Vermelho Premium Chiqueb */
     --primary: 0 84% 60%;
     --primary-foreground: 0 0% 100%;
     --primary-dark: 0 84% 50%;
 
-    --secondary: 40 14% 97%;
+    --secondary: 0 0% 96%;
     --secondary-foreground: 0 0% 7%;
 
-    --muted: 40 10% 94%;
+    --muted: 0 0% 96%;
     --muted-foreground: 0 0% 45%;
 
-    --accent: 40 10% 94%;
+    --accent: 0 0% 96%;
     --accent-foreground: 0 0% 7%;
 
     --destructive: 0 84% 55%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 36 8% 88%;
-    --input: 36 8% 88%;
+    --border: 0 0% 92%;
+    --input: 0 0% 92%;
     --ring: 0 84% 60%;
 
     --radius: 0.75rem;
