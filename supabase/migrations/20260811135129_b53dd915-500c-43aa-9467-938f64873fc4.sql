@@ -1,0 +1,1 @@
+UPDATE public.site_settings SET value = 'Minas Escadas' WHERE key = 'company_name';

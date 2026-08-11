@@ -46,7 +46,7 @@ const ProductDescription = () => {
 
         <div className="flex items-center gap-3 bg-muted rounded-xl px-4 py-3">
           <ShieldCheck className="w-5 h-5 text-primary flex-shrink-0" />
-          <span className="text-sm font-medium text-foreground">Produto original Charbs / Qualidade garantida.</span>
+          <span className="text-sm font-medium text-foreground">Produto original Minas Escadas / Qualidade garantida.</span>
         </div>
       </section>
 

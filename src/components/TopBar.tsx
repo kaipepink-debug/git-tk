@@ -21,7 +21,7 @@ const TopBar = () => {
           <Menu className="w-5 h-5" />
         </button>
         <span className="font-extrabold italic text-xl tracking-tighter" style={{ fontFamily: "Archivo, system-ui, sans-serif" }}>
-          CHIQUEB
+          MINAS ESCADAS
         </span>
         <button className="p-1" aria-label="Carrinho">
           <ShoppingCart className="w-5 h-5" />
