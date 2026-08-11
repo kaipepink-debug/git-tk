@@ -8,22 +8,21 @@ const StoreInfo = () => {
       <h2 className="text-2xl font-extrabold text-foreground mb-6">Nossa História</h2>
       <div className="grid md:grid-cols-2 gap-6 items-center">
         <img
-          src="https://chiquebloja.com/cdn/shop/files/chunta6-menta-costas-sq.jpg"
-          alt="Fachada da loja Chiqueb"
+          src="https://minasescadas.cdn.magazord.com.br/img/2025/03/produto/1308/telescolica-16-degraus-capa.jpg?ims=fit-in/600x600/filters:fill(white)"
+          alt="Fachada da loja Minas Escadas"
           className="w-full rounded-2xl object-cover"
           loading="lazy"
         />
         <div>
           <p className="text-sm text-foreground/80 leading-relaxed mb-4">
-            Desde 2018 no mercado, a Chiqueb Loja nasceu da paixão pelo estilo e conforto. São mais de 80.000 clientes atendidos com
-            excelência e compromisso em oferecer os melhores calçados tecnológicos do Brasil.
+            A Minas Escadas é especialista em soluções de acesso em altura. Oferecemos as melhores escadas telescópicas e articuladas do mercado, com foco total na segurança e durabilidade para nossos clientes.
           </p>
           <div className="flex items-center gap-2 flex-wrap">
             <span className="bg-muted text-foreground text-xs font-semibold px-3 py-1.5 rounded-full">
-              9 anos de tradição
+              Qualidade Garantida
             </span>
             <span className="bg-muted text-foreground text-xs font-semibold px-3 py-1.5 rounded-full">
-              São Paulo, SP
+              Atendimento Especializado
             </span>
           </div>
         </div>
