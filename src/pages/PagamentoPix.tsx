@@ -6,15 +6,12 @@
  */
 
 import { useNavigate, useLocation } from "react-router-dom";
-import { Copy, Check, Loader2 } from "lucide-react";
+import { ChevronLeft, Copy, Check, Loader2 } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { QRCodeSVG } from "qrcode.react";
 import { useSessionTracker } from "@/hooks/useSessionTracker";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { trackTikTokEvent } from "@/hooks/useTikTokPixel";
-import CheckoutHeader from "@/components/CheckoutHeader";
-import CheckoutTrustRow from "@/components/CheckoutTrustRow";
 
 /**
  * Componente da página de Pagamento Pix.
@@ -83,13 +80,6 @@ const PagamentoPix = () => {
         if (data?.status === "paid" && !stopped) {
           stopped = true;
           setPaymentStatus("paid");
-          // Conversão confirmada: dispara CompletePayment no TikTok Pixel
-          trackTikTokEvent("CompletePayment", {
-            content_type: "product",
-            content_id: pixData?.transactionId || "product",
-            currency: "BRL",
-            value: pixData?.total || 0,
-          });
           if (pollingRef.current) clearInterval(pollingRef.current);
 
           // Redireciona para página externa de confirmação/sucesso
@@ -121,6 +111,9 @@ const PagamentoPix = () => {
   };
 
   /**
+   * Copia o código Pix para a área de transferência.
+   */
+  /**
    * Copia o código Pix para a área de transferência com tratamento de erros
    * (ex.: navegador sem suporte ou permissão negada).
    */
@@ -141,10 +134,10 @@ const PagamentoPix = () => {
   // Tela de transição exibida quando o pagamento é detectado como pago
   if (paymentStatus === "paid") {
     return (
-      <div className="min-h-screen bg-background flex flex-col items-center justify-center px-4">
-        <div className="rounded-2xl bg-card p-8 border border-border text-center w-full max-w-sm">
-          <div className="w-16 h-16 rounded-full mx-auto mb-4 flex items-center justify-center bg-primary/10">
-            <Check className="w-8 h-8 text-primary" />
+      <div className="min-h-screen bg-secondary max-w-lg mx-auto flex flex-col items-center justify-center px-4" style={{ fontFamily: "-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Oxygen,Ubuntu,Cantarell,sans-serif" }}>
+        <div className="bg-background rounded-xl p-8 border border-border text-center w-full">
+          <div className="w-16 h-16 rounded-full mx-auto mb-4 flex items-center justify-center" style={{ background: "#00b94a20" }}>
+            <Check className="w-8 h-8" style={{ color: "#00b94a" }} />
           </div>
           <h2 className="text-xl font-bold text-foreground mb-2">Pagamento Confirmado!</h2>
           <p className="text-sm text-muted-foreground mb-4">Redirecionando você...</p>
@@ -155,65 +148,64 @@ const PagamentoPix = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
-      <CheckoutHeader onBack={() => navigate("/finalizar-compra")} step="pagamento" />
+    <div className="min-h-screen bg-secondary max-w-lg mx-auto flex flex-col" style={{ fontFamily: "-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Oxygen,Ubuntu,Cantarell,sans-serif" }}>
+      {/* Header */}
+      <div className="sticky top-0 z-50 bg-background flex items-center px-4 py-3 border-b border-border">
+        <button onClick={() => navigate("/finalizar-compra")} className="mr-3">
+          <ChevronLeft className="w-6 h-6 text-foreground" />
+        </button>
+        <h1 className="text-base font-semibold text-foreground flex-1 text-center pr-9">Pagamento PIX</h1>
+      </div>
 
-      <div className="flex-1 w-full max-w-2xl mx-auto px-4 py-6 space-y-4">
-        <h1 className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Pagamento PIX</h1>
-
-        <div className="rounded-2xl bg-card w-full p-3 border border-border flex items-center justify-center gap-2">
-          <Loader2 className="w-4 h-4 animate-spin text-primary" />
+      <div className="flex-1 flex flex-col items-center px-4 py-6 gap-5">
+        <div className="bg-background rounded-xl w-full p-3 border border-border flex items-center justify-center gap-2">
+          <Loader2 className="w-4 h-4 animate-spin" style={{ color: "#FF2B56" }} />
           <p className="text-xs text-muted-foreground">Aguardando pagamento...</p>
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
-          <div className="rounded-2xl bg-card w-full p-4 text-center border border-border">
-            <p className="text-xs uppercase tracking-widest text-muted-foreground mb-1">Pague em até</p>
-            <p className="text-2xl font-bold text-primary">{formatTime(timeLeft)}</p>
-          </div>
+        <div className="bg-background rounded-xl w-full p-4 text-center border border-border">
+          <p className="text-sm text-muted-foreground mb-1">Pague em até</p>
+          <p className="text-2xl font-bold" style={{ color: "#FF2B56" }}>{formatTime(timeLeft)}</p>
+        </div>
 
-          <div className="rounded-2xl bg-card w-full p-4 text-center border border-border">
-            <p className="text-xs uppercase tracking-widest text-muted-foreground mb-1">Valor total</p>
-            <p className="text-2xl font-bold text-foreground">R$ {pixData.total?.toFixed(2).replace(".", ",")}</p>
-          </div>
+        <div className="bg-background rounded-xl w-full p-4 text-center border border-border">
+          <p className="text-sm text-muted-foreground">Valor total</p>
+          <p className="text-2xl font-bold text-foreground">R$ {pixData.total?.toFixed(2).replace(".", ",")}</p>
         </div>
 
         {/* Renderização do QR Code SVG */}
         {pixData.pixCode && (
-          <div className="rounded-2xl bg-card p-6 border border-border flex flex-col items-center">
-            <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-4">Escaneie o QR Code</p>
-            <div className="p-3 bg-card rounded-xl border border-border">
-              <QRCodeSVG value={pixData.pixCode} size={208} />
-            </div>
+          <div className="bg-background rounded-xl p-6 border border-border flex flex-col items-center">
+            <p className="text-sm font-semibold text-foreground mb-3">Escaneie o QR Code</p>
+            <QRCodeSVG value={pixData.pixCode} size={208} />
           </div>
         )}
 
         {/* Área para copiar o código "Copia e Cola" */}
-        <div className="rounded-2xl bg-card w-full p-4 sm:p-5 border border-border">
-          <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-3 text-center">Ou copie o código PIX</p>
-          <div className="bg-muted rounded-xl p-3 text-xs text-muted-foreground break-all mb-4 max-h-24 overflow-y-auto">
+        <div className="bg-background rounded-xl w-full p-4 border border-border">
+          <p className="text-sm font-semibold text-foreground mb-2 text-center">Ou copie o código PIX</p>
+          <div className="bg-secondary rounded-lg p-3 text-xs text-muted-foreground break-all mb-3 max-h-24 overflow-y-auto">
             {pixData.pixCode}
           </div>
           <button
             onClick={handleCopy}
-            className="w-full py-4 rounded-full text-base font-bold bg-ink text-ink-foreground hover:bg-black transition-colors shadow-lg shadow-black/10 flex items-center justify-center gap-2"
+            className="w-full py-3 rounded-lg text-base font-bold text-white flex items-center justify-center gap-2"
+            style={{ background: "#FF2B56" }}
           >
             {copied ? <Check className="w-5 h-5" /> : <Copy className="w-5 h-5" />}
             {copied ? "Copiado!" : "Copiar código PIX"}
           </button>
         </div>
 
-        <div className="rounded-2xl bg-muted w-full p-4 sm:p-5">
-          <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-3">Como pagar</p>
-          <ol className="text-sm text-foreground space-y-2 list-decimal list-inside">
+        <div className="bg-background rounded-xl w-full p-4 border border-border">
+          <p className="text-sm font-semibold text-foreground mb-2">Como pagar</p>
+          <ol className="text-xs text-muted-foreground space-y-2 list-decimal list-inside">
             <li>Abra o app do seu banco</li>
             <li>Escolha pagar via PIX</li>
             <li>Escaneie o QR Code ou cole o código</li>
             <li>Confirme o pagamento</li>
           </ol>
         </div>
-
-        <CheckoutTrustRow />
       </div>
     </div>
   );

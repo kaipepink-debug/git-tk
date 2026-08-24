@@ -1,5 +1,5 @@
-import { Star, X, ChevronLeft, ChevronRight, Play, BadgeCheck } from "lucide-react";
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { Star, X, ChevronLeft, ChevronRight, Play } from "lucide-react";
+import { useState, useEffect, useCallback } from "react";
 import { useProduct } from "@/contexts/ProductContext";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -92,14 +92,14 @@ const MediaCarousel = ({
 
   return (
     <div
-      className="fixed inset-0 z-[9999] bg-ink/95 flex flex-col"
+      className="fixed inset-0 z-[9999] bg-black/95 flex flex-col"
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
     >
       {/* Cabeçalho do modal */}
       <div className="flex items-center justify-between px-4 py-3 shrink-0">
-        <span className="text-ink-foreground/70 text-sm">{idx + 1} / {items.length}</span>
-        <button onClick={onClose} className="text-ink-foreground p-1">
+        <span className="text-white/70 text-sm">{idx + 1} / {items.length}</span>
+        <button onClick={onClose} className="text-white p-1">
           <X className="w-6 h-6" />
         </button>
       </div>
@@ -107,7 +107,7 @@ const MediaCarousel = ({
       {/* Visualizador de mídia central */}
       <div className="flex-1 flex items-center justify-center relative min-h-0 px-2">
         {items.length > 1 && (
-          <button onClick={prev} className="absolute left-2 z-10 text-ink-foreground/70 hover:text-ink-foreground p-1">
+          <button onClick={prev} className="absolute left-2 z-10 text-white/70 hover:text-white p-1">
             <ChevronLeft className="w-8 h-8" />
           </button>
         )}
@@ -132,7 +132,7 @@ const MediaCarousel = ({
         )}
 
         {items.length > 1 && (
-          <button onClick={next} className="absolute right-2 z-10 text-ink-foreground/70 hover:text-ink-foreground p-1">
+          <button onClick={next} className="absolute right-2 z-10 text-white/70 hover:text-white p-1">
             <ChevronRight className="w-8 h-8" />
           </button>
         )}
@@ -150,7 +150,7 @@ const MediaCarousel = ({
             >
               {isVideo(item) ? (
                 <div className="w-full h-full bg-muted flex items-center justify-center">
-                  <Play className="w-4 h-4 text-ink-foreground" />
+                  <Play className="w-4 h-4 text-white" />
                 </div>
               ) : (
                 <img src={item} alt="" className="w-full h-full object-cover" />
@@ -165,7 +165,7 @@ const MediaCarousel = ({
 
 /**
  * Componente de Seção de Avaliações.
- * Exibe a nota média, distribuição por estrelas e a lista de feedbacks dos clientes
+ * Exibe a nota média, contador de avaliações e a lista de feedbacks dos clientes
  * com suporte a fotos, vídeos e paginação (carregar mais).
  */
 const ReviewsSection = () => {
@@ -195,17 +195,6 @@ const ReviewsSection = () => {
     load();
   }, [product.id]);
 
-  // Calcula a distribuição de notas (5 a 1 estrelas) para o gráfico de barras
-  const distribution = useMemo(() => {
-    const counts = [0, 0, 0, 0, 0];
-    reviews.forEach((r) => {
-      const idx = Math.min(5, Math.max(1, Math.round(r.rating))) - 1;
-      counts[idx]++;
-    });
-    const max = Math.max(...counts, 1);
-    return counts.map((c, i) => ({ star: i + 1, count: c, pct: (c / max) * 100 })).reverse();
-  }, [reviews]);
-
   if (loading || reviews.length === 0) return null;
 
   const totalReviews = reviews.length;
@@ -215,55 +204,31 @@ const ReviewsSection = () => {
 
   return (
     <>
-      <section id="avaliacoes" className="border-t border-border py-10 scroll-mt-24 px-4 sm:px-0">
-        <h2 className="text-2xl font-extrabold text-foreground mb-1">Avaliações</h2>
-        <p className="text-sm text-muted-foreground mb-6">O que nossos clientes dizem</p>
-
-        {/* Resumo geral: nota média e distribuição por estrelas */}
-        <div className="grid sm:grid-cols-[auto_1fr] gap-6 items-center bg-muted rounded-2xl p-6 mb-8">
-          <div className="text-center sm:border-r sm:border-border sm:pr-6">
-            <div className="text-5xl font-extrabold text-foreground">{product.rating}</div>
-            <div className="flex items-center justify-center gap-0.5 my-1">
-              {Array.from({ length: 5 }).map((_, s) => (
-                <Star key={s} className="w-4 h-4" style={{ fill: s < Math.round(product.rating) ? "hsl(var(--star))" : "transparent", color: "hsl(var(--star))" }} />
-              ))}
-            </div>
-            <div className="text-xs text-muted-foreground">{displayTotal} avaliações</div>
-          </div>
-          <div className="space-y-1.5">
-            {distribution.map((d) => (
-              <div key={d.star} className="flex items-center gap-2 text-xs text-muted-foreground">
-                <span className="w-3">{d.star}</span>
-                <Star className="w-3 h-3 fill-star text-star flex-shrink-0" />
-                <div className="flex-1 h-2 rounded-full bg-border overflow-hidden">
-                  <div className="h-full bg-primary rounded-full" style={{ width: `${d.pct}%` }} />
-                </div>
-                <span className="w-6 text-right">{d.count}</span>
-              </div>
-            ))}
+      <div className="bg-background px-4 py-4 mt-2">
+        {/* Cabeçalho da seção com nota média */}
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-base font-bold text-foreground">Avaliações dos clientes ({displayTotal})</h3>
+          <div className="flex items-center gap-1">
+            <span className="text-lg font-bold text-foreground">{product.rating}</span>
+            <span className="text-muted-foreground text-sm">/5</span>
           </div>
         </div>
 
         {/* Lista de avaliações individuais */}
-        <div className="space-y-6">
+        <div className="space-y-4">
           {visibleReviews.map((review) => (
-            <div key={review.id} className="border-b border-border pb-6 last:border-0">
+            <div key={review.id} className="border-b border-border pb-4 last:border-0">
               {/* Autor da avaliação */}
               <div className="flex items-center gap-2 mb-2">
                 {review.avatar_url ? (
-                  <img src={review.avatar_url} alt="" className="w-9 h-9 rounded-full object-cover" loading="lazy" decoding="async" width={36} height={36} />
+                  <img src={review.avatar_url} alt="" className="w-8 h-8 rounded-full object-cover" loading="lazy" decoding="async" width={32} height={32} />
                 ) : (
-                  <div className="w-9 h-9 rounded-full bg-primary flex items-center justify-center text-primary-foreground text-sm font-bold">
+                  <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground text-sm font-bold">
                     {review.reviewer_initial}
                   </div>
                 )}
-                <div className="flex-1">
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-sm font-semibold text-foreground">{review.reviewer_name}</span>
-                    <span className="inline-flex items-center gap-0.5 text-[10px] text-primary font-medium">
-                      <BadgeCheck className="w-3 h-3" /> Compra verificada
-                    </span>
-                  </div>
+                <div>
+                  <div className="text-sm font-medium text-foreground">{review.reviewer_name}</div>
                   <div className="text-xs text-muted-foreground">{formatDate(review.days_ago)}</div>
                 </div>
               </div>
@@ -291,13 +256,13 @@ const ReviewsSection = () => {
                     <button
                       key={j}
                       onClick={() => setCarousel({ items: review.photos, index: j })}
-                      className="relative w-20 h-20 rounded-lg overflow-hidden flex-shrink-0"
+                      className="relative w-20 h-20 rounded overflow-hidden flex-shrink-0"
                     >
                       {isVideo(media) ? (
                         <>
                           <video src={media} className="w-full h-full object-cover" muted playsInline preload="metadata" width={80} height={80} />
-                          <div className="absolute inset-0 flex items-center justify-center bg-ink/30">
-                            <Play className="w-6 h-6 text-ink-foreground fill-ink-foreground" />
+                          <div className="absolute inset-0 flex items-center justify-center bg-black/30">
+                            <Play className="w-6 h-6 text-white fill-white" />
                           </div>
                         </>
                       ) : (
@@ -315,12 +280,12 @@ const ReviewsSection = () => {
         {remaining > 0 && (
           <button
             onClick={() => setVisibleCount((prev) => Math.min(prev + LOAD_MORE_COUNT, totalReviews))}
-            className="w-full text-center text-sm text-primary font-semibold mt-4 py-2 border border-primary rounded-full hover:bg-primary/5 transition-colors"
+            className="w-full text-center text-sm text-primary font-semibold mt-3 py-2"
           >
             Ver mais avaliações ({displayTotal - visibleCount} restantes)
           </button>
         )}
-      </section>
+      </div>
 
       {/* Modal de visualização de mídia (Carousel) */}
       {carousel && (

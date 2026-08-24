@@ -7,7 +7,6 @@
 import { CheckCircle2, Package, Truck, Mail } from "lucide-react";
 import { useEffect } from "react";
 import { useSessionTracker } from "@/hooks/useSessionTracker";
-import { trackTikTokEvent } from "@/hooks/useTikTokPixel";
 
 /**
  * Componente da página de Obrigado.
@@ -18,16 +17,9 @@ const Obrigado = () => {
   useSessionTracker("/obrigado");
 
   useEffect(() => {
-    // Conversão finalizada: envia CompletePayment ao TikTok Pixel
-    trackTikTokEvent("CompletePayment", {
-      content_type: "product",
-      content_id: "pedido",
-      currency: "BRL",
-    });
     // Limpa dados de oferta da sessão após conclusão bem-sucedida
     sessionStorage.removeItem("presell_unlocked");
   }, []);
-
 
   return (
     <div className="min-h-screen bg-secondary max-w-lg mx-auto flex flex-col items-center px-6 pt-12 pb-20"

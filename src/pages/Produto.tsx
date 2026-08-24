@@ -6,6 +6,7 @@
 import { useState, useEffect } from "react";
 import TopBar from "@/components/TopBar";
 import ImageCarousel from "@/components/ImageCarousel";
+import FlashSaleTimer from "@/components/FlashSaleTimer";
 import ProductInfo from "@/components/ProductInfo";
 import ProductDescription from "@/components/ProductDescription";
 import StoreInfo from "@/components/StoreInfo";
@@ -14,12 +15,10 @@ import Footer from "@/components/Footer";
 import BottomBar from "@/components/BottomBar";
 import PreSell from "@/components/PreSell";
 import ExitIntentPopup from "@/components/ExitIntentPopup";
-import { SEO } from "@/components/SEO";
 
 import { useSessionTracker } from "@/hooks/useSessionTracker";
-import { useTikTokPixel, trackTikTokEvent } from "@/hooks/useTikTokPixel";
+import { useTikTokPixel } from "@/hooks/useTikTokPixel";
 import { useAnalyticsTracker } from "@/hooks/useAnalyticsTracker";
-import { useProduct } from "@/contexts/ProductContext";
 import { supabase } from "@/integrations/supabase/client";
 
 /**
@@ -69,49 +68,18 @@ const Produto = () => {
   useTikTokPixel();
   useAnalyticsTracker(showPresell ? "/produto/presell" : "/produto");
 
-  // Evento ViewContent do TikTok quando o produto é exibido (após a pré-venda)
-  const { product, price } = useProduct();
-  useEffect(() => {
-    if (showPresell || !product.id) return;
-    trackTikTokEvent("ViewContent", {
-      contents: [{
-        content_id: product.id,
-        content_type: "product",
-        content_name: product.title || "Produto",
-        quantity: 1,
-        price,
-      }],
-      currency: "BRL",
-      value: price,
-    });
-  }, [showPresell, product.id, product.title, price]);
-
-
   return (
     <>
-      <SEO 
-        title={product.title}
-        description={product.description ? product.description.substring(0, 160) + "..." : "Confira o novo Chunta 6.0 na Chiqueb Loja."}
-        image={product.images?.[0]}
-      />
       {showPresell && <PreSell onUnlock={handleUnlock} />}
       <ExitIntentPopup />
-      <div className="min-h-screen bg-background pb-28 lg:pb-0">
+      <div className="min-h-screen bg-secondary max-w-lg mx-auto pb-20">
         <TopBar />
-
-        <div className="max-w-6xl mx-auto px-0 sm:px-4 py-0 sm:py-6 lg:py-10">
-          {/* Bloco principal do produto: galeria + informações */}
-          <div className="grid lg:grid-cols-2 gap-8 lg:gap-12">
-            <ImageCarousel />
-            <ProductInfo />
-          </div>
-
-          {/* Seções de conteúdo complementar */}
-          <ProductDescription />
-          <StoreInfo />
-          <ReviewsSection />
-        </div>
-
+        <ImageCarousel />
+        <FlashSaleTimer />
+        <ProductInfo />
+        <ProductDescription />
+        <StoreInfo />
+        <ReviewsSection />
         <Footer />
         <BottomBar />
       </div>

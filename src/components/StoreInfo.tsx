@@ -1,33 +1,50 @@
+import { Star } from "lucide-react";
+
 /**
- * Componente que exibe a seção "Nossa História" da loja Zyro,
- * apresentando a fachada da loja e informações institucionais de confiança.
+ * Componente que exibe informações básicas sobre a loja/vendedor.
+ * Mostra o avatar da loja, nome, status online e estatísticas (nota, vendas, avaliações positivas).
  */
 const StoreInfo = () => {
   return (
-    <section className="border-t border-border py-10 px-4 sm:px-0">
-      <h2 className="text-2xl font-extrabold text-foreground mb-6">Nossa História</h2>
-      <div className="grid md:grid-cols-2 gap-6 items-center">
-        <img
-          src="https://minasescadas.cdn.magazord.com.br/img/2025/03/produto/1308/telescolica-16-degraus-capa.jpg?ims=fit-in/600x600/filters:fill(white)"
-          alt="Fachada da loja Minas Escadas"
-          className="w-full rounded-2xl object-cover"
-          loading="lazy"
-        />
-        <div>
-          <p className="text-sm text-foreground/80 leading-relaxed mb-4">
-            A Minas Escadas é especialista em soluções de acesso em altura. Oferecemos as melhores escadas telescópicas e articuladas do mercado, com foco total na segurança e durabilidade para nossos clientes.
-          </p>
-          <div className="flex items-center gap-2 flex-wrap">
-            <span className="bg-muted text-foreground text-xs font-semibold px-3 py-1.5 rounded-full">
-              Qualidade Garantida
-            </span>
-            <span className="bg-muted text-foreground text-xs font-semibold px-3 py-1.5 rounded-full">
-              Atendimento Especializado
-            </span>
+    <div className="bg-background px-4 py-4 mt-2">
+      <div className="flex items-center gap-3">
+        {/* Avatar da Loja */}
+        <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-border flex-shrink-0">
+          <img
+            src="/images/loja-logo.png"
+            alt="Mestre de Obra"
+            className="w-full h-full object-cover"
+          />
+        </div>
+
+        {/* Informações Textuais da Loja */}
+        <div className="flex-1 min-w-0">
+          {/* Nome e Indicador de Status Online */}
+          <div className="flex items-center gap-1.5 flex-wrap">
+            <h3 className="text-sm font-bold text-foreground">Mestre de Obra</h3>
+            <div className="flex items-center gap-1">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-success opacity-75" />
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-success" />
+              </span>
+              <span className="text-[10px] text-success font-medium">Online</span>
+            </div>
+          </div>
+
+          {/* Estatísticas da Loja (Nota, Vendas e Positividade) */}
+          <div className="flex items-center gap-2 mt-1">
+            <div className="flex items-center gap-0.5">
+              <Star className="w-3 h-3 fill-star text-star" />
+              <span className="text-xs font-semibold text-foreground">4.98</span>
+            </div>
+            <span className="text-muted-foreground text-[10px]">|</span>
+            <span className="text-xs text-muted-foreground whitespace-nowrap">+16 mil vendas</span>
+            <span className="text-muted-foreground text-[10px]">|</span>
+            <span className="text-xs text-muted-foreground whitespace-nowrap">98% positivas</span>
           </div>
         </div>
       </div>
-    </section>
+    </div>
   );
 };
 

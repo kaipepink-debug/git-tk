@@ -1,80 +1,63 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useProduct } from "@/contexts/ProductContext";
 
 /**
- * Componente de galeria de imagens do produto.
- * No desktop exibe uma coluna vertical de miniaturas ao lado de uma imagem grande;
- * no mobile funciona como um carrossel deslizável (swipe) com miniaturas abaixo.
+ * Componente de carrossel de imagens para visualização do produto.
+ * Suporta navegação por botões, toque (swipe) e exibe indicadores de posição.
  */
 const ImageCarousel = () => {
-  const { product, selectedModel, models } = useProduct();
+  const { product } = useProduct();
   const images = product.images.length > 0 ? product.images : ["/placeholder.svg"];
   const [current, setCurrent] = useState(0);
   const [touchStart, setTouchStart] = useState(0);
 
-  // Sincroniza a imagem do carrossel quando um modelo é selecionado
-  useEffect(() => {
-    if (models && models[selectedModel] && typeof models[selectedModel].imageIndex === 'number') {
-      setCurrent(models[selectedModel].imageIndex);
-    }
-  }, [selectedModel, models]);
-
   /** Avança para a próxima imagem */
   const next = () => setCurrent((c) => (c === images.length - 1 ? 0 : c + 1));
-
+  
   /** Volta para a imagem anterior */
   const prev = () => setCurrent((c) => (c === 0 ? images.length - 1 : c - 1));
 
   return (
-    <div className="flex flex-col-reverse lg:flex-row gap-3">
-      {/* Coluna de miniaturas (vertical no desktop, horizontal no mobile) */}
-      {images.length > 1 && (
-        <div className="flex lg:flex-col gap-2 overflow-x-auto lg:overflow-visible lg:w-20">
-          {images.map((src, i) => (
-            <button
-              key={i}
-              onClick={() => setCurrent(i)}
-              className={`flex-shrink-0 w-16 h-16 lg:w-20 lg:h-20 rounded-lg overflow-hidden border-2 transition-all ${
-                current === i ? "border-primary" : "border-border"
-              }`}
-            >
-              <img src={src} alt={`Miniatura ${i + 1}`} className="w-full h-full object-cover" loading="lazy" />
-            </button>
-          ))}
-        </div>
-      )}
+    <div className="relative w-full aspect-square bg-background overflow-hidden">
+      {/* Container das imagens com transição suave */}
+      <div
+        className="flex transition-transform duration-300 h-full"
+        style={{ transform: `translateX(-${current * 100}%)` }}
+        onTouchStart={(e) => setTouchStart(e.touches[0].clientX)}
+        onTouchEnd={(e) => {
+          // Lógica de detecção de swipe
+          const diff = touchStart - e.changedTouches[0].clientX;
+          if (diff > 50) next();
+          if (diff < -50) prev();
+        }}
+      >
+        {images.map((src, i) => (
+          <img
+            key={i}
+            src={src}
+            alt={`${product.title} - imagem ${i + 1}`}
+            className="w-full h-full object-contain flex-shrink-0"
+            loading={i === 0 ? "eager" : "lazy"}
+            decoding={i === 0 ? "sync" : "async"}
+            fetchPriority={i === 0 ? "high" : "low"}
+            width={500}
+            height={500}
+          />
+        ))}
+      </div>
 
-      {/* Imagem principal */}
-      <div className="relative flex-1 bg-card sm:rounded-2xl overflow-hidden aspect-square">
-        {/* Selo de últimas unidades */}
-        <div className="absolute top-3 left-3 z-10 bg-ink text-ink-foreground text-[10px] font-semibold uppercase tracking-wide px-3 py-1 rounded-full">
-          Últimas unidades
-        </div>
+      {/* Botões de navegação lateral */}
+      <button onClick={prev} className="absolute left-2 top-1/2 -translate-y-1/2 bg-foreground/20 rounded-full p-1">
+        <ChevronLeft className="w-5 h-5 text-background" />
+      </button>
+      <button onClick={next} className="absolute right-2 top-1/2 -translate-y-1/2 bg-foreground/20 rounded-full p-1">
+        <ChevronRight className="w-5 h-5 text-background" />
+      </button>
 
-        <div
-          className="flex transition-transform duration-300 h-full"
-          style={{ transform: `translateX(-${current * 100}%)` }}
-          onTouchStart={(e) => setTouchStart(e.touches[0].clientX)}
-          onTouchEnd={(e) => {
-            const diff = touchStart - e.changedTouches[0].clientX;
-            if (diff > 50) next();
-            if (diff < -50) prev();
-          }}
-        >
-          {images.map((src, i) => (
-            <img
-              key={i}
-              src={src}
-              alt={`${product.title} - imagem ${i + 1}`}
-              className="w-full h-full object-contain flex-shrink-0 p-6"
-              loading={i === 0 ? "eager" : "lazy"}
-              decoding={i === 0 ? "sync" : "async"}
-              fetchPriority={i === 0 ? "high" : "low"}
-              width={600}
-              height={600}
-            />
-          ))}
-        </div>
+      {/* Indicador numérico (ex: 1 / 5) */}
+      <div className="absolute bottom-3 right-3 bg-foreground/60 text-background text-xs px-2 py-0.5 rounded-full">
+        {current + 1} / {images.length}
       </div>
     </div>
   );
