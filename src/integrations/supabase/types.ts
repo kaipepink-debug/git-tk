@@ -139,6 +139,8 @@ export type Database = {
           quantity: number
           status: string
           transaction_id: string | null
+          ttclid: string | null
+          ttp: string | null
           updated_at: string
         }
         Insert: {
@@ -157,6 +159,8 @@ export type Database = {
           quantity?: number
           status?: string
           transaction_id?: string | null
+          ttclid?: string | null
+          ttp?: string | null
           updated_at?: string
         }
         Update: {
@@ -175,6 +179,8 @@ export type Database = {
           quantity?: number
           status?: string
           transaction_id?: string | null
+          ttclid?: string | null
+          ttp?: string | null
           updated_at?: string
         }
         Relationships: []
