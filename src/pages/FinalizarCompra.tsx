@@ -41,7 +41,7 @@ const FinalizarCompra = () => {
 
   const navigate = useNavigate();
   const [qty, setQty] = useState(1);
-  const [frete, setFrete] = useState<"gratis" | "expresso">("gratis");
+  const [frete, setFrete] = useState<"gratis" | "expresso">("expresso");
   const [pagamento, setPagamento] = useState<"pix" | "cartao">("pix");
   const [enderecoData, setEnderecoData] = useState<EnderecoData | null>(null);
   const [loading, setLoading] = useState(false);
