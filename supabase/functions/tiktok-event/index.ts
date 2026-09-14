@@ -104,8 +104,12 @@ serve(async (req) => {
     }
     if (typeof body?.ip === 'string' && body.ip) user.ip = body.ip;
     if (typeof body?.user_agent === 'string' && body.user_agent) user.user_agent = body.user_agent;
+    // Identificador do clique no anúncio: essencial para o TikTok atribuir a venda.
+    if (typeof body?.ttclid === 'string' && body.ttclid.trim()) user.ttclid = body.ttclid.trim();
+    if (typeof body?.ttp === 'string' && body.ttp.trim()) user.ttp = body.ttp.trim();
 
     const properties: Record<string, unknown> = { currency: body?.currency || 'BRL' };
+    if (body?.order_id) properties.order_id = String(body.order_id);
     const value = Number(body?.value);
     if (Number.isFinite(value) && value > 0) properties.value = value;
     if (body?.content_id) {

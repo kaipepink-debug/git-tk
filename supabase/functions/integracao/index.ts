@@ -121,7 +121,7 @@ serve(async (req) => {
         .from('orders')
         .update({ status: newStatus })
         .eq('transaction_id', String(transactionId))
-        .select('id, amount');
+        .select('id, amount, ttclid, ttp, customer_email, customer_phone');
 
       // Pagamento aprovado: envia CompletePayment ao TikTok pela API de Eventos.
       // O event_id é o ID da transação, o mesmo usado no navegador, para não contar duas vezes.
@@ -144,6 +144,12 @@ serve(async (req) => {
               currency: 'BRL',
               content_id: 'escada-telescopica',
               content_name: 'Escada Telescópica',
+              order_id: order.id ? String(order.id) : undefined,
+              // Identificadores do clique no anúncio, salvos na geração do PIX.
+              ttclid: order.ttclid || undefined,
+              ttp: order.ttp || undefined,
+              email: order.customer_email || undefined,
+              phone: order.customer_phone || undefined,
             }),
           });
         } catch (trackErr) {

@@ -54,6 +54,15 @@ serve(async (req) => {
 
     const { amount, customer, qty } = body || {};
 
+    // Identificadores de clique do TikTok (atribuição). Guardados como recebidos,
+    // apenas com limite defensivo de tamanho.
+    const ttclid = typeof body?.ttclid === 'string' && body.ttclid.trim()
+      ? body.ttclid.slice(0, 512)
+      : null;
+    const ttp = typeof body?.ttp === 'string' && body.ttp.trim()
+      ? body.ttp.slice(0, 512)
+      : null;
+
     // Validação de valor
     if (typeof amount !== 'number' || !Number.isFinite(amount) || amount < 100) {
       return new Response(JSON.stringify({ error: 'Valor do pedido inválido' }), {
@@ -382,6 +391,8 @@ serve(async (req) => {
         customer_city: customer.city || null,
         customer_state: customer.state || null,
         customer_cep: cleanCep || null,
+        ttclid,
+        ttp,
       });
     } catch (dbError) {
       console.error('Error saving order:', dbError);
