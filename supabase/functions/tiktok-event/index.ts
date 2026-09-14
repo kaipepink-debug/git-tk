@@ -17,6 +17,7 @@
  */
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 /** Cabeçalhos CORS padrão. */
 const corsHeaders = {
@@ -38,6 +39,24 @@ async function sha256(value: string): Promise<string> {
   const bytes = new TextEncoder().encode(value);
   const digest = await crypto.subtle.digest('SHA-256', bytes);
   return Array.from(new Uint8Array(digest)).map((b) => b.toString(16).padStart(2, '0')).join('');
+}
+
+/**
+ * Registra o evento na tabela `tiktok_events` para acompanhamento no painel admin.
+ * Falhas de registro nunca interrompem o envio ao TikTok.
+ *
+ * @param {Record<string, unknown>} row - Dados do evento a registrar.
+ */
+async function logEvent(row: Record<string, unknown>) {
+  try {
+    const url = Deno.env.get('SUPABASE_URL');
+    const key = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+    if (!url || !key) return;
+    const supabase = createClient(url, key);
+    await supabase.from('tiktok_events').insert(row);
+  } catch (err) {
+    console.warn('Não foi possível registrar o evento no painel:', err);
+  }
 }
 
 /**
@@ -125,6 +144,11 @@ serve(async (req) => {
     const text = await response.text();
     if (!response.ok) {
       console.error(`TikTok API falhou [${response.status}]: ${text}`);
+      await logEvent({
+        event_name: eventName, event_id: payload.data[0].event_id, source: 'server',
+        value: properties.value ?? null, currency: String(properties.currency ?? 'BRL'),
+        page: body?.url ? String(body.url) : null, status: `erro ${response.status}`,
+      });
       return json({ error: 'Falha ao enviar evento ao TikTok', status: response.status, details: text }, response.status);
     }
 
@@ -133,8 +157,19 @@ serve(async (req) => {
     try { parsed = JSON.parse(text); } catch { /* resposta não-JSON */ }
     if (parsed && parsed.code !== 0) {
       console.error('TikTok API retornou erro lógico:', text);
+      await logEvent({
+        event_name: eventName, event_id: payload.data[0].event_id, source: 'server',
+        value: properties.value ?? null, currency: String(properties.currency ?? 'BRL'),
+        page: body?.url ? String(body.url) : null, status: 'recusado',
+      });
       return json({ error: 'TikTok recusou o evento', details: parsed }, 400);
     }
+
+    await logEvent({
+      event_name: eventName, event_id: payload.data[0].event_id, source: 'server',
+      value: properties.value ?? null, currency: String(properties.currency ?? 'BRL'),
+      page: body?.url ? String(body.url) : null, status: 'sent',
+    });
 
     console.log(`Evento ${eventName} enviado ao TikTok (event_id: ${payload.data[0].event_id}).`);
     return json({ success: true, event: eventName, response: parsed ?? text });

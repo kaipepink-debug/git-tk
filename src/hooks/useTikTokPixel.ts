@@ -102,13 +102,43 @@ export function useTikTokPixel() {
 }
 
 /**
+ * @function logBrowserEvent
+ * @description Registra o evento na tabela `tiktok_events` para que o administrador
+ * acompanhe no painel quantos eventos o pixel recebeu. Nunca lança erro.
+ *
+ * @param {string} eventName - Nome do evento enviado ao pixel.
+ * @param {Record<string, any>} [params] - Parâmetros do evento (valor, moeda).
+ * @param {string} [eventId] - Identificador único, quando houver.
+ */
+function logBrowserEvent(eventName: string, params?: Record<string, any>, eventId?: string) {
+  const value = Number(params?.value);
+  supabase
+    .from("tiktok_events")
+    .insert({
+      event_name: eventName,
+      event_id: eventId ?? null,
+      source: "browser",
+      value: Number.isFinite(value) && value > 0 ? value : null,
+      currency: typeof params?.currency === "string" ? params.currency : "BRL",
+      page: typeof window !== "undefined" ? window.location.pathname : null,
+      status: "sent",
+    })
+    .then(({ error }) => {
+      if (error) console.warn("Não foi possível registrar o evento no painel:", error.message);
+    });
+}
+
+/**
  * @function trackTikTokPageView
  * @description Registra uma visualização de página (usado em navegações internas do site).
  */
 export function trackTikTokPageView() {
   if (!trackingAllowed) return;
   const ttq = (window as any)?.ttq;
-  if (ttq?.page) ttq.page();
+  if (ttq?.page) {
+    ttq.page();
+    logBrowserEvent("Pageview");
+  }
 }
 
 /**
@@ -132,6 +162,7 @@ export function trackTikTokEvent(
   try {
     if (eventId) ttq.track(eventName, params, { event_id: eventId });
     else ttq.track(eventName, params);
+    logBrowserEvent(eventName, params, eventId);
   } catch (err) {
     console.warn(`Falha ao enviar evento ${eventName} para o TikTok:`, err);
   }
