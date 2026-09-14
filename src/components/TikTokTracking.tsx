@@ -7,6 +7,7 @@
 import { useEffect, useRef } from "react";
 import { useLocation } from "react-router-dom";
 import { useTikTokPixel, trackTikTokPageView } from "@/hooks/useTikTokPixel";
+import { captureTikTokClickId } from "@/lib/tiktokClickId";
 
 /**
  * Componente sem interface: apenas ativa o rastreamento.
