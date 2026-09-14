@@ -307,6 +307,42 @@ export type Database = {
         }
         Relationships: []
       }
+      tiktok_events: {
+        Row: {
+          created_at: string
+          currency: string
+          event_id: string | null
+          event_name: string
+          id: string
+          page: string | null
+          source: string
+          status: string
+          value: number | null
+        }
+        Insert: {
+          created_at?: string
+          currency?: string
+          event_id?: string | null
+          event_name: string
+          id?: string
+          page?: string | null
+          source?: string
+          status?: string
+          value?: number | null
+        }
+        Update: {
+          created_at?: string
+          currency?: string
+          event_id?: string | null
+          event_name?: string
+          id?: string
+          page?: string | null
+          source?: string
+          status?: string
+          value?: number | null
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           id: string
