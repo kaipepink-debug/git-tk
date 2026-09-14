@@ -121,14 +121,16 @@ serve(async (req) => {
         .from('orders')
         .update({ status: newStatus })
         .eq('transaction_id', String(transactionId))
-        .select('id, amount, total, customer_email');
+        .select('id, amount, customer_email');
 
       // Pagamento aprovado: envia CompletePayment ao TikTok pela API de Eventos.
       // O event_id é o ID da transação, o mesmo usado no navegador, para não contar duas vezes.
       if (!error && newStatus === 'paid') {
         try {
           const order: any = data?.[0] ?? {};
-          const value = Number(order.total ?? order.amount ?? 0) || undefined;
+          // 'amount' é gravado em centavos pelo create-pix — o TikTok espera o valor em reais.
+          const cents = Number(order.amount ?? 0);
+          const value = Number.isFinite(cents) && cents > 0 ? cents / 100 : undefined;
           await fetch(`${Deno.env.get('SUPABASE_URL')}/functions/v1/tiktok-event`, {
             method: 'POST',
             headers: {
@@ -140,6 +142,7 @@ serve(async (req) => {
               event_id: String(transactionId),
               value,
               currency: 'BRL',
+              email: order.customer_email || undefined,
               content_id: 'escada-telescopica',
               content_name: 'Escada Telescópica',
             }),
