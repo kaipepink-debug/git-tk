@@ -23,6 +23,7 @@ import RevenueBreakdown from "@/components/admin/RevenueBreakdown";
 import DateRangePicker from "@/components/admin/DateRangePicker";
 import ProductManager from "@/components/admin/ProductManager";
 import TransactionsPanel from "@/components/admin/TransactionsPanel";
+import TikTokEventsPanel from "@/components/admin/TikTokEventsPanel";
 
 /**
  * Interface representando uma sessão ativa de usuário.
@@ -56,7 +57,7 @@ interface Order {
 /**
  * Chaves válidas para as abas do dashboard.
  */
-type TabKey = "overview" | "orders" | "transactions" | "visitors" | "analytics" | "customers" | "product" | "integrations" | "settings";
+type TabKey = "overview" | "orders" | "transactions" | "tiktok" | "visitors" | "analytics" | "customers" | "product" | "integrations" | "settings";
 
 /**
  * Componente principal do Painel Administrativo.
@@ -343,6 +344,7 @@ const AdminDashboard = () => {
     { key: "overview", label: "Visão Geral", icon: BarChart3 },
     { key: "orders", label: "Pedidos", icon: ShoppingCart },
     { key: "transactions", label: "Transações", icon: CreditCard },
+    { key: "tiktok", label: "TikTok", icon: Activity },
     { key: "customers", label: "Clientes", icon: Users },
     { key: "visitors", label: "Visitantes", icon: Eye },
     { key: "analytics", label: "Analytics", icon: MousePointerClick },
@@ -415,6 +417,7 @@ const AdminDashboard = () => {
 
         {activeTab === "orders" && <OrdersTable orders={orders} />}
         {activeTab === "transactions" && <TransactionsPanel />}
+        {activeTab === "tiktok" && <TikTokEventsPanel />}
         {activeTab === "customers" && <CustomerInsights orders={orders} dateRange={dateRange} />}
         {activeTab === "visitors" && <VisitorsPanel sessions={sessions} />}
         {activeTab === "analytics" && <AnalyticsPanel period={period} />}
