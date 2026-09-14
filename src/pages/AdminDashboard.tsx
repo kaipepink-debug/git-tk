@@ -342,6 +342,7 @@ const AdminDashboard = () => {
   const tabs: { key: TabKey; label: string; icon: any }[] = [
     { key: "overview", label: "Visão Geral", icon: BarChart3 },
     { key: "orders", label: "Pedidos", icon: ShoppingCart },
+    { key: "transactions", label: "Transações", icon: CreditCard },
     { key: "customers", label: "Clientes", icon: Users },
     { key: "visitors", label: "Visitantes", icon: Eye },
     { key: "analytics", label: "Analytics", icon: MousePointerClick },
