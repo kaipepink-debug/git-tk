@@ -39,7 +39,15 @@ const PoliticaCookies = () => {
         <p>Você pode gerenciar ou desativar cookies nas configurações do seu navegador. Note que desativar cookies essenciais pode afetar o funcionamento do site.</p>
 
         <h2 className="text-base font-semibold text-foreground">4. Consentimento</h2>
-        <p>Ao continuar navegando em nosso site, você consente com o uso de cookies conforme descrito nesta política.</p>
+        <p>Cookies de marketing (Pixel do TikTok) são usados para medir e otimizar nossos anúncios. Em regiões que exigem consentimento prévio (União Europeia, Reino Unido e Suíça), eles só são ativados após o seu aceite no aviso de cookies. Você pode revisar ou retirar sua escolha a qualquer momento no botão abaixo.</p>
+
+        {/* Reabre o aviso de cookies preservando a escolha atual até que ela seja alterada */}
+        <button
+          onClick={() => window.dispatchEvent(new Event("open-cookie-settings"))}
+          className="rounded-lg border border-border bg-secondary px-4 py-2 text-sm font-semibold text-foreground"
+        >
+          Alterar preferências de cookies
+        </button>
 
         <p className="text-xs text-muted-foreground pt-4 border-t border-border">
           Última atualização: março de 2026. JP VARIEDADES LTDA — CNPJ: 64.482.958/0001-00
