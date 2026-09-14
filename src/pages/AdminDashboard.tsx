@@ -414,6 +414,7 @@ const AdminDashboard = () => {
         )}
 
         {activeTab === "orders" && <OrdersTable orders={orders} />}
+        {activeTab === "transactions" && <TransactionsPanel />}
         {activeTab === "customers" && <CustomerInsights orders={orders} dateRange={dateRange} />}
         {activeTab === "visitors" && <VisitorsPanel sessions={sessions} />}
         {activeTab === "analytics" && <AnalyticsPanel period={period} />}
