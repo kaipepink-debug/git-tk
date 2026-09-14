@@ -17,7 +17,8 @@ import PreSell from "@/components/PreSell";
 import ExitIntentPopup from "@/components/ExitIntentPopup";
 
 import { useSessionTracker } from "@/hooks/useSessionTracker";
-import { useTikTokPixel } from "@/hooks/useTikTokPixel";
+import { trackTikTokEvent } from "@/hooks/useTikTokPixel";
+import { useProduct } from "@/contexts/ProductContext";
 import { useAnalyticsTracker } from "@/hooks/useAnalyticsTracker";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -35,6 +36,9 @@ const Produto = () => {
   
   // Estado que armazena se a funcionalidade de pré-venda está ativa nas configurações do banco de dados
   const [presellEnabled, setPresellEnabled] = useState<boolean | null>(null);
+
+  // Dados do produto usados no evento de visualização de conteúdo
+  const { product, price } = useProduct();
 
   useEffect(() => {
     /**
@@ -65,8 +69,24 @@ const Produto = () => {
 
   // Trackers de análise de tráfego
   useSessionTracker(showPresell ? "/produto/presell" : "/produto");
-  useTikTokPixel();
   useAnalyticsTracker(showPresell ? "/produto/presell" : "/produto");
+
+  // Evento ViewContent do TikTok: visualização da página de produto
+  useEffect(() => {
+    if (showPresell) return;
+    trackTikTokEvent("ViewContent", {
+      contents: [{
+        content_id: product?.id || "escada-telescopica",
+        content_type: "product",
+        content_name: product?.title || "Escada Telescópica",
+        price,
+        quantity: 1,
+      }],
+      content_type: "product",
+      value: price,
+      currency: "BRL",
+    });
+  }, [showPresell, product?.id, price]);
 
   return (
     <>
