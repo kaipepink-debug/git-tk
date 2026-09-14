@@ -38,7 +38,7 @@ export interface ConsentRecord {
   /** Momento (ISO) da escolha. */
   at: string;
   /** Versão do aviso exibido no momento da escolha. */
-  noticeVersion: CONSENT_NOTICE_VERSION | string;
+  noticeVersion: string;
   /** País detectado no momento da escolha (pode ser null). */
   region: string | null;
 }
