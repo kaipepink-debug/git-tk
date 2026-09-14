@@ -121,7 +121,35 @@ serve(async (req) => {
         .from('orders')
         .update({ status: newStatus })
         .eq('transaction_id', String(transactionId))
-        .select('id');
+        .select('id, amount, total, customer_email');
+
+      // Pagamento aprovado: envia CompletePayment ao TikTok pela API de Eventos.
+      // O event_id é o ID da transação, o mesmo usado no navegador, para não contar duas vezes.
+      if (!error && newStatus === 'paid') {
+        try {
+          const order: any = data?.[0] ?? {};
+          const value = Number(order.total ?? order.amount ?? 0) || undefined;
+          await fetch(`${Deno.env.get('SUPABASE_URL')}/functions/v1/tiktok-event`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')}`,
+            },
+            body: JSON.stringify({
+              event: 'CompletePayment',
+              event_id: String(transactionId),
+              value,
+              currency: 'BRL',
+              content_id: 'escada-telescopica',
+              content_name: 'Escada Telescópica',
+            }),
+          });
+        } catch (trackErr) {
+          // Falha de rastreamento nunca deve impedir a liberação do pedido.
+          console.warn('Falha ao enviar CompletePayment ao TikTok:', trackErr);
+        }
+      }
+
 
       if (error) {
         console.error('Erro ao atualizar pedido:', error);
