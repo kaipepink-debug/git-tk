@@ -11,6 +11,7 @@ import { useState, useEffect, useRef } from "react";
 import { QRCodeSVG } from "qrcode.react";
 import { useSessionTracker } from "@/hooks/useSessionTracker";
 import { supabase } from "@/integrations/supabase/client";
+import { trackTikTokEvent } from "@/hooks/useTikTokPixel";
 import { toast } from "sonner";
 
 /**
@@ -80,6 +81,19 @@ const PagamentoPix = () => {
         if (data?.status === "paid" && !stopped) {
           stopped = true;
           setPaymentStatus("paid");
+
+          // Pagamento confirmado — evento CompletePayment (event_id evita contagem dupla
+          // com o envio pelo servidor no webhook do gateway).
+          trackTikTokEvent(
+            "CompletePayment",
+            {
+              content_type: "product",
+              content_id: "escada-telescopica",
+              currency: "BRL",
+              value: pixData?.total,
+            },
+            String(pixData.transactionId),
+          );
           if (pollingRef.current) clearInterval(pollingRef.current);
 
           // Redireciona para página externa de confirmação/sucesso

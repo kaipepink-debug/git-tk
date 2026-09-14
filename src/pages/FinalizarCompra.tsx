@@ -271,6 +271,14 @@ const FinalizarCompra = () => {
             setLoading(true);
             try {
               const amountInCents = Math.round(total * 100);
+              // Escolha da forma de pagamento confirmada pelo cliente
+              trackTikTokEvent("AddPaymentInfo", {
+                content_type: "product",
+                content_id: product?.id || "escada-telescopica",
+                currency: "BRL",
+                value: total,
+              });
+
               const { data, error } = await supabase.functions.invoke("create-pix", {
                 body: {
                   amount: amountInCents,
@@ -310,12 +318,23 @@ const FinalizarCompra = () => {
 
               if (!pixCode) throw new Error("Não foi possível gerar o código PIX. Tente novamente em instantes.");
 
-              trackTikTokEvent("CompletePayment", {
-                content_type: "product",
-                content_id: "escada-telescopica",
-                currency: "BRL",
-                value: total,
-              });
+              // Pedido criado (PIX gerado) — pagamento ainda não confirmado
+              trackTikTokEvent(
+                "PlaceAnOrder",
+                {
+                  contents: [{
+                    content_id: product?.id || "escada-telescopica",
+                    content_type: "product",
+                    content_name: product?.title || "Escada Telescópica",
+                    price,
+                    quantity: qty,
+                  }],
+                  content_type: "product",
+                  currency: "BRL",
+                  value: total,
+                },
+                transactionId || undefined,
+              );
 
               navigate("/pagamento-pix", {
                 state: { pixCode, pixQrCode, total, transactionId },
