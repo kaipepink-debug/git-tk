@@ -391,6 +391,8 @@ serve(async (req) => {
         customer_city: customer.city || null,
         customer_state: customer.state || null,
         customer_cep: cleanCep || null,
+        ttclid,
+        ttp,
       });
     } catch (dbError) {
       console.error('Error saving order:', dbError);
