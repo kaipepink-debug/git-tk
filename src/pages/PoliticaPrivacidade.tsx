@@ -43,6 +43,10 @@ const PoliticaPrivacidade = () => {
         <h2 className="text-base font-semibold text-foreground">6. Cookies</h2>
         <p>Utilizamos cookies para melhorar sua experiência de navegação. Consulte nossa Política de Cookies para mais detalhes.</p>
 
+        <h2 className="text-base font-semibold text-foreground">7. Publicidade e Medição (TikTok)</h2>
+        <p>Utilizamos o Pixel do TikTok e a API de Eventos do TikTok (TikTok Pte. Ltd.) para medir e otimizar nossos anúncios. São compartilhados com o TikTok dados de navegação e de compra: páginas visitadas, endereço IP, identificadores de cookie/navegador, itens visualizados ou adicionados ao carrinho, valor e moeda do pedido e confirmação de pagamento. Quando você autoriza, também podem ser enviados e-mail e telefone de forma criptografada (hash), apenas para correspondência de conversões.</p>
+        <p>As finalidades são: medição dos resultados das campanhas e otimização/segmentação de anúncios. Em regiões que exigem consentimento prévio (União Europeia, Reino Unido e Suíça), esse envio só ocorre após o seu aceite no aviso de cookies, e você pode recusar ou mudar sua escolha a qualquer momento pelo mesmo aviso. Nas demais regiões, incluindo o Brasil, você pode solicitar a interrupção do uso dos seus dados para publicidade pelo e-mail contato@JPvariedadesltda.com.br, além de exercer os direitos previstos na LGPD descritos no item 5.</p>
+
         <p className="text-xs text-muted-foreground pt-4 border-t border-border">
           Última atualização: março de 2026. JP VARIEDADES LTDA — CNPJ: 64.482.958/0001-00
         </p>
