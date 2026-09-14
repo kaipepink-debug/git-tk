@@ -7,7 +7,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Settings, BarChart3, ShoppingCart, Plug, Eye, MousePointerClick, Activity, Lock, Mail, KeyRound, Users, Package } from "lucide-react";
+import { Settings, BarChart3, ShoppingCart, Plug, Eye, MousePointerClick, Activity, Lock, Mail, KeyRound, Users, Package, CreditCard } from "lucide-react";
 import DashboardTopBar from "@/components/admin/DashboardTopBar";
 import KpiCards from "@/components/admin/KpiCards";
 import SalesChart from "@/components/admin/SalesChart";
