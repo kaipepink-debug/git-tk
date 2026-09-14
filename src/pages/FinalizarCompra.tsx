@@ -8,7 +8,7 @@ import { useNavigate } from "react-router-dom";
 import { ChevronLeft, Minus, Plus, Loader2 } from "lucide-react";
 import { useProduct } from "@/contexts/ProductContext";
 import { useOptimizedImage } from "@/hooks/useOptimizedImage";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useSessionTracker } from "@/hooks/useSessionTracker";
@@ -64,14 +64,28 @@ const FinalizarCompra = () => {
   // BUGFIX: antes hardcoded "48,00" — quebrava se a oferta mudasse. Derivar do preço.
   const priceDisplay = exitOfferPrice ? price.toFixed(2).replace(".", ",") : originalPriceDisplay;
 
-  // Dispara evento de checkout no TikTok Pixel
+  // Evento InitiateCheckout do TikTok: disparado UMA única vez por visita ao checkout,
+  // somente depois que o preço real do produto está carregado, para que o TikTok receba
+  // o valor correto da conversão.
+  const checkoutTracked = useRef(false);
   useEffect(() => {
+    if (checkoutTracked.current) return;
+    if (!price || price <= 0) return;
+    checkoutTracked.current = true;
+
     trackTikTokEvent("InitiateCheckout", {
+      contents: [{
+        content_id: product.id || "escada-telescopica",
+        content_type: "product",
+        content_name: product.title || "Escada Telescópica",
+        price,
+        quantity: qty,
+      }],
       content_type: "product",
-      content_id: product.id || "product",
       currency: "BRL",
+      value: price * qty,
     });
-  }, [product.id]);
+  }, [price, qty, product.id, product.title]);
 
   // Preparação de imagem e cálculos de valores
   const productImageRaw = product.cart_image || "/images/escada-carrinho.webp";

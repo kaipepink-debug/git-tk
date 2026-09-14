@@ -10,8 +10,6 @@ import { useState } from "react";
 import { useSessionTracker } from "@/hooks/useSessionTracker";
 import { useProduct } from "@/contexts/ProductContext";
 import { useOptimizedImage } from "@/hooks/useOptimizedImage";
-import { trackTikTokEvent } from "@/hooks/useTikTokPixel";
-import { useEffect } from "react";
 
 /**
  * Componente da página de Carrinho.
@@ -28,15 +26,10 @@ const Carrinho = () => {
   // Recupera dados do produto do contexto global
   const { price, oldPrice, discount, priceDisplay, oldPriceDisplay, product } = useProduct();
 
-  // Dispara evento de "InitiateCheckout" no TikTok Pixel ao carregar o carrinho
-  useEffect(() => {
-    trackTikTokEvent("InitiateCheckout", {
-      content_type: "product",
-      content_id: product.id || "product",
-      currency: "BRL",
-      value: price,
-    });
-  }, [price, product.id]);
+  // O evento "InitiateCheckout" do TikTok é disparado uma única vez, na tela de
+  // finalização da compra (/finalizar-compra), com o valor real do pedido.
+
+
 
   // Otimização de imagem para o carrinho
   const productImageRaw = product.cart_image || "/images/escada-carrinho.webp";
