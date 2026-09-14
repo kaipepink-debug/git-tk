@@ -336,7 +336,8 @@ serve(async (req) => {
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
-          'X-API-Key': apiToken,
+          'X-API-Key': apiToken.trim(),
+          'Authorization': `Bearer ${apiToken.trim()}`,
         },
         body: JSON.stringify(zenixPayload),
       });
