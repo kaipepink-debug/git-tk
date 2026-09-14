@@ -285,6 +285,9 @@ const FinalizarCompra = () => {
                   qty,
                   // URL real da página do produto, usada pelo gateway de pagamento
                   product_url: `${window.location.origin}/produto`,
+                  // Identificadores do clique no anúncio do TikTok (atribuição da venda)
+                  ttclid: getTikTokClickId(),
+                  ttp: getTikTokTtp(),
                   customer: {
                     name: enderecoData.nome,
                     email: enderecoData.email,
