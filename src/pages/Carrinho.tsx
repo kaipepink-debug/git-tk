@@ -10,8 +10,6 @@ import { useState } from "react";
 import { useSessionTracker } from "@/hooks/useSessionTracker";
 import { useProduct } from "@/contexts/ProductContext";
 import { useOptimizedImage } from "@/hooks/useOptimizedImage";
-import { trackTikTokEvent } from "@/hooks/useTikTokPixel";
-import { useEffect } from "react";
 
 /**
  * Componente da página de Carrinho.
