@@ -19,6 +19,12 @@ const TikTokTracking = () => {
   const location = useLocation();
   const firstPath = useRef<string | null>(null);
 
+  // Captura o identificador de clique (ttclid) o quanto antes, em qualquer página
+  // de entrada, e mantém o valor guardado durante todo o funil.
+  useEffect(() => {
+    captureTikTokClickId();
+  }, [location.pathname, location.search, ready]);
+
   useEffect(() => {
     if (!ready) return;
 
