@@ -121,7 +121,7 @@ serve(async (req) => {
         .from('orders')
         .update({ status: newStatus })
         .eq('transaction_id', String(transactionId))
-        .select('id, amount');
+        .select('id, amount, ttclid, ttp, customer_email, customer_phone');
 
       // Pagamento aprovado: envia CompletePayment ao TikTok pela API de Eventos.
       // O event_id é o ID da transação, o mesmo usado no navegador, para não contar duas vezes.
