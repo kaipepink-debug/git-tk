@@ -317,17 +317,12 @@ serve(async (req) => {
 
     } else if (gateway === 'ZenixPay') {
       // ===== Integração ZenixPay (POST /api/v1/direct-payments com API Key) =====
-      // URL real do produto enviada pelo front-end (evita o link de exemplo do gateway).
-      // Fallback para a URL publicada caso o campo não venha na requisição.
-      const productUrl = typeof body?.product_url === 'string' && body.product_url.startsWith('http')
-        ? body.product_url
-        : 'https://escadaa.lovable.app/produto';
-
+      // Obs.: o endpoint direto valida os campos de forma estrita e NÃO aceita
+      // `productLink` (esse campo pertence apenas ao fluxo de checkout hospedado).
       const zenixPayload = {
         amount,
         description: "Pagamento Aprovado.",
         paymentMethod: "pix",
-        productLink: productUrl,
         customer: {
           name: customer.name,
           email: customer.email,
