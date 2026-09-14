@@ -275,6 +275,8 @@ const FinalizarCompra = () => {
                 body: {
                   amount: amountInCents,
                   qty,
+                  // URL real da página do produto, usada pelo gateway de pagamento
+                  product_url: `${window.location.origin}/produto`,
                   customer: {
                     name: enderecoData.nome,
                     email: enderecoData.email,
