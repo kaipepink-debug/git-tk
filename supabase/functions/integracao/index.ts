@@ -121,7 +121,7 @@ serve(async (req) => {
         .from('orders')
         .update({ status: newStatus })
         .eq('transaction_id', String(transactionId))
-        .select('id, amount, customer_email');
+        .select('id, amount');
 
       // Pagamento aprovado: envia CompletePayment ao TikTok pela API de Eventos.
       // O event_id é o ID da transação, o mesmo usado no navegador, para não contar duas vezes.
@@ -142,7 +142,6 @@ serve(async (req) => {
               event_id: String(transactionId),
               value,
               currency: 'BRL',
-              email: order.customer_email || undefined,
               content_id: 'escada-telescopica',
               content_name: 'Escada Telescópica',
             }),
