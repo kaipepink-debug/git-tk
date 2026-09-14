@@ -22,6 +22,7 @@ import ConversionTrends from "@/components/admin/ConversionTrends";
 import RevenueBreakdown from "@/components/admin/RevenueBreakdown";
 import DateRangePicker from "@/components/admin/DateRangePicker";
 import ProductManager from "@/components/admin/ProductManager";
+import TransactionsPanel from "@/components/admin/TransactionsPanel";
 
 /**
  * Interface representando uma sessão ativa de usuário.
