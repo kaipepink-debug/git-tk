@@ -7,7 +7,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Settings, BarChart3, ShoppingCart, Plug, Eye, MousePointerClick, Activity, Lock, Mail, KeyRound, Users, Package } from "lucide-react";
+import { Settings, BarChart3, ShoppingCart, Plug, Eye, MousePointerClick, Activity, Lock, Mail, KeyRound, Users, Package, CreditCard } from "lucide-react";
 import DashboardTopBar from "@/components/admin/DashboardTopBar";
 import KpiCards from "@/components/admin/KpiCards";
 import SalesChart from "@/components/admin/SalesChart";
@@ -22,6 +22,7 @@ import ConversionTrends from "@/components/admin/ConversionTrends";
 import RevenueBreakdown from "@/components/admin/RevenueBreakdown";
 import DateRangePicker from "@/components/admin/DateRangePicker";
 import ProductManager from "@/components/admin/ProductManager";
+import TransactionsPanel from "@/components/admin/TransactionsPanel";
 
 /**
  * Interface representando uma sessão ativa de usuário.
@@ -55,7 +56,7 @@ interface Order {
 /**
  * Chaves válidas para as abas do dashboard.
  */
-type TabKey = "overview" | "orders" | "visitors" | "analytics" | "customers" | "product" | "integrations" | "settings";
+type TabKey = "overview" | "orders" | "transactions" | "visitors" | "analytics" | "customers" | "product" | "integrations" | "settings";
 
 /**
  * Componente principal do Painel Administrativo.
@@ -341,6 +342,7 @@ const AdminDashboard = () => {
   const tabs: { key: TabKey; label: string; icon: any }[] = [
     { key: "overview", label: "Visão Geral", icon: BarChart3 },
     { key: "orders", label: "Pedidos", icon: ShoppingCart },
+    { key: "transactions", label: "Transações", icon: CreditCard },
     { key: "customers", label: "Clientes", icon: Users },
     { key: "visitors", label: "Visitantes", icon: Eye },
     { key: "analytics", label: "Analytics", icon: MousePointerClick },
@@ -412,6 +414,7 @@ const AdminDashboard = () => {
         )}
 
         {activeTab === "orders" && <OrdersTable orders={orders} />}
+        {activeTab === "transactions" && <TransactionsPanel />}
         {activeTab === "customers" && <CustomerInsights orders={orders} dateRange={dateRange} />}
         {activeTab === "visitors" && <VisitorsPanel sessions={sessions} />}
         {activeTab === "analytics" && <AnalyticsPanel period={period} />}
