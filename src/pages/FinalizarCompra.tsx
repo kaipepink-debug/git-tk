@@ -8,7 +8,7 @@ import { useNavigate } from "react-router-dom";
 import { ChevronLeft, Minus, Plus, Loader2 } from "lucide-react";
 import { useProduct } from "@/contexts/ProductContext";
 import { useOptimizedImage } from "@/hooks/useOptimizedImage";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useSessionTracker } from "@/hooks/useSessionTracker";
