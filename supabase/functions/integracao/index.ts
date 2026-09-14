@@ -144,6 +144,12 @@ serve(async (req) => {
               currency: 'BRL',
               content_id: 'escada-telescopica',
               content_name: 'Escada Telescópica',
+              order_id: order.id ? String(order.id) : undefined,
+              // Identificadores do clique no anúncio, salvos na geração do PIX.
+              ttclid: order.ttclid || undefined,
+              ttp: order.ttp || undefined,
+              email: order.customer_email || undefined,
+              phone: order.customer_phone || undefined,
             }),
           });
         } catch (trackErr) {
