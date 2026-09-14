@@ -56,7 +56,7 @@ interface Order {
 /**
  * Chaves válidas para as abas do dashboard.
  */
-type TabKey = "overview" | "orders" | "visitors" | "analytics" | "customers" | "product" | "integrations" | "settings";
+type TabKey = "overview" | "orders" | "transactions" | "visitors" | "analytics" | "customers" | "product" | "integrations" | "settings";
 
 /**
  * Componente principal do Painel Administrativo.
