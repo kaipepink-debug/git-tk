@@ -109,6 +109,7 @@ serve(async (req) => {
     if (typeof body?.ttp === 'string' && body.ttp.trim()) user.ttp = body.ttp.trim();
 
     const properties: Record<string, unknown> = { currency: body?.currency || 'BRL' };
+    if (body?.order_id) properties.order_id = String(body.order_id);
     const value = Number(body?.value);
     if (Number.isFinite(value) && value > 0) properties.value = value;
     if (body?.content_id) {
