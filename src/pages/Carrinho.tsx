@@ -10,6 +10,7 @@ import { useState } from "react";
 import { useSessionTracker } from "@/hooks/useSessionTracker";
 import { useProduct } from "@/contexts/ProductContext";
 import { useOptimizedImage } from "@/hooks/useOptimizedImage";
+import { ORDER_BUMPS, saveSelectedBumps, getSelectedBumps, formatBRL } from "@/lib/orderBumps";
 
 /**
  * Componente da página de Carrinho.
@@ -22,6 +23,21 @@ const Carrinho = () => {
   
   // Estado local para quantidade de itens
   const [qty, setQty] = useState(1);
+
+  // Ofertas adicionais (order bumps) escolhidas pelo cliente
+  const [bumpIds, setBumpIds] = useState<string[]>(() => getSelectedBumps().map((b) => b.id));
+
+  /** Adiciona ou remove uma oferta adicional e persiste a escolha na sessão. */
+  const toggleBump = (id: string) => {
+    setBumpIds((prev) => {
+      const next = prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id];
+      saveSelectedBumps(next);
+      return next;
+    });
+  };
+
+  // Soma dos itens extras selecionados
+  const bumpsTotal = ORDER_BUMPS.filter((b) => bumpIds.includes(b.id)).reduce((s, b) => s + b.price, 0);
   
   // Recupera dados do produto do contexto global
   const { price, oldPrice, discount, priceDisplay, oldPriceDisplay, product } = useProduct();
@@ -92,6 +108,60 @@ const Carrinho = () => {
 
       <div className="h-2 bg-secondary" />
 
+      {/* Ofertas adicionais (order bumps) — itens extras com desconto exclusivo */}
+      <div className="bg-background px-4 py-4">
+        <div className="flex items-center gap-2 mb-1">
+          <span className="text-xs font-bold px-2 py-0.5 rounded" style={{ background: "#FFE8ED", color: "#FF2B56" }}>OFERTA EXCLUSIVA</span>
+        </div>
+        <p className="text-sm font-semibold text-foreground mb-3">Aproveite e adicione ao seu pedido</p>
+
+        <div className="flex flex-col gap-2">
+          {ORDER_BUMPS.map((bump) => {
+            const selected = bumpIds.includes(bump.id);
+            const off = Math.round((1 - bump.price / bump.oldPrice) * 100);
+            return (
+              <button
+                key={bump.id}
+                onClick={() => toggleBump(bump.id)}
+                aria-pressed={selected}
+                className="w-full flex items-center gap-3 p-2 rounded-lg text-left transition-colors"
+                style={{
+                  border: selected ? "2px solid #FF2B56" : "1px solid #E8E8E8",
+                  background: selected ? "#FFF5F7" : "transparent",
+                }}
+              >
+                <img
+                  src={bump.image}
+                  alt={bump.title}
+                  loading="lazy"
+                  className="w-16 h-16 object-contain rounded bg-secondary flex-shrink-0"
+                />
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs text-foreground leading-snug line-clamp-2">{bump.title}</p>
+                  <div className="flex items-center gap-2 mt-1">
+                    <span className="text-sm font-bold" style={{ color: "#FF2B56" }}>R$ {formatBRL(bump.price)}</span>
+                    <span className="text-xs text-muted-foreground line-through">R$ {formatBRL(bump.oldPrice)}</span>
+                    <span className="text-[10px] font-semibold px-1 rounded" style={{ background: "#FFE8ED", color: "#FF2B56" }}>-{off}%</span>
+                  </div>
+                </div>
+                <div
+                  className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0"
+                  style={{ background: selected ? "#FF2B56" : "transparent", border: selected ? "none" : "2px solid #ccc" }}
+                >
+                  {selected ? (
+                    <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M3 8L6.5 11.5L13 4.5" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                  ) : (
+                    <Plus className="w-4 h-4 text-muted-foreground" />
+                  )}
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      <div className="h-2 bg-secondary" />
+
       {/* Seção de selos de confiança e proteção do cliente */}
       <div className="bg-background px-4 py-4">
         <div className="flex items-center gap-2 mb-3">
@@ -113,15 +183,15 @@ const Carrinho = () => {
       {/* Barra fixa inferior com total e botão de finalização */}
       <div className="sticky bottom-0 bg-background border-t border-border px-4 py-3">
         <div className="flex items-center justify-between mb-3">
-          <span className="text-sm text-muted-foreground">Total (1 item):</span>
-          <span className="text-lg font-bold" style={{ color: "#FF2B56", fontFamily: "'Segoe UI',Roboto,sans-serif" }}>R$ {(price * qty).toFixed(2).replace(".", ",")}</span>
+          <span className="text-sm text-muted-foreground">Total ({1 + bumpIds.length} {1 + bumpIds.length === 1 ? "item" : "itens"}):</span>
+          <span className="text-lg font-bold" style={{ color: "#FF2B56", fontFamily: "'Segoe UI',Roboto,sans-serif" }}>R$ {formatBRL(price * qty + bumpsTotal)}</span>
         </div>
         <button
           onClick={() => navigate("/finalizar-compra")}
           className="w-full py-3 rounded-full text-base font-semibold text-background"
           style={{ background: "#FF2B56", border: "none" }}
         >
-          Finalizar Compra (1)
+          Finalizar Compra ({1 + bumpIds.length})
         </button>
       </div>
     </div>

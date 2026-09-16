@@ -14,6 +14,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useSessionTracker } from "@/hooks/useSessionTracker";
 import { getTikTokClickId, getTikTokTtp } from "@/lib/tiktokClickId";
 import pixIcon from "@/assets/pix.svg";
+import { getSelectedBumps, formatBRL } from "@/lib/orderBumps";
 
 /**
  * Estrutura dos dados de endereço e contato do usuário.
@@ -69,7 +70,14 @@ const FinalizarCompra = () => {
   const productName = product.title ? product.title.substring(0, 40) + "..." : "Produto";
   const descontoValor = oldPrice - price;
   const freteExpresso = 9.80;
-  const total = frete === "gratis" ? price * qty : price * qty + freteExpresso;
+
+  // Ofertas adicionais escolhidas no carrinho
+  const bumps = useRef(getSelectedBumps()).current;
+  const bumpsTotal = bumps.reduce((s, b) => s + b.price, 0);
+  const bumpsOldTotal = bumps.reduce((s, b) => s + b.oldPrice, 0);
+  const totalItens = qty + bumps.length;
+
+  const total = (frete === "gratis" ? price * qty : price * qty + freteExpresso) + bumpsTotal;
 
   return (
     <div className="min-h-screen bg-secondary max-w-lg mx-auto flex flex-col pb-4" style={{ fontFamily: "-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Oxygen,Ubuntu,Cantarell,sans-serif" }}>
@@ -142,6 +150,21 @@ const FinalizarCompra = () => {
         </div>
       </div>
 
+      {/* Itens extras adicionados no carrinho */}
+      {bumps.length > 0 && bumps.map((bump) => (
+        <div key={bump.id} className="bg-background px-4 py-3 flex items-center gap-3 border-t border-border">
+          <img src={bump.image} alt={bump.title} loading="lazy" className="w-16 h-16 object-contain rounded bg-secondary flex-shrink-0" />
+          <div className="flex-1 min-w-0">
+            <p className="text-xs text-foreground leading-snug line-clamp-2">{bump.title}</p>
+            <div className="flex items-center gap-2 mt-1">
+              <span className="text-sm font-bold" style={{ color: "#FF2B56" }}>R$ {formatBRL(bump.price)}</span>
+              <span className="text-xs text-muted-foreground line-through">R$ {formatBRL(bump.oldPrice)}</span>
+            </div>
+          </div>
+          <span className="text-xs text-muted-foreground">x1</span>
+        </div>
+      ))}
+
       <div className="h-2 bg-secondary" />
 
       {/* Seleção de Frete */}
@@ -183,11 +206,11 @@ const FinalizarCompra = () => {
         <div className="mt-3 space-y-2">
           <div className="flex justify-between">
             <span className="text-sm text-muted-foreground">Subtotal</span>
-            <span className="text-sm text-foreground">R$ {(oldPrice * qty).toFixed(2).replace(".", ",")}</span>
+            <span className="text-sm text-foreground">R$ {formatBRL(oldPrice * qty + bumpsOldTotal)}</span>
           </div>
           <div className="flex justify-between">
             <span className="text-sm" style={{ color: "#00BFA5" }}>Descontos</span>
-            <span className="text-sm" style={{ color: "#00BFA5" }}>-R$ {(descontoValor * qty).toFixed(2).replace(".", ",")}</span>
+            <span className="text-sm" style={{ color: "#00BFA5" }}>-R$ {formatBRL(descontoValor * qty + (bumpsOldTotal - bumpsTotal))}</span>
           </div>
           <div className="flex justify-between">
             <span className="text-sm text-muted-foreground">Frete</span>
@@ -233,7 +256,7 @@ const FinalizarCompra = () => {
       {/* Rodapé fixo com o botão de criação de pedido/pix */}
       <div className="bg-background border-t border-border px-4 py-3">
         <div className="flex items-center justify-between mb-3">
-          <span className="text-sm font-medium text-foreground">Total ({qty} {qty === 1 ? "item" : "itens"})</span>
+          <span className="text-sm font-medium text-foreground">Total ({totalItens} {totalItens === 1 ? "item" : "itens"})</span>
           <span className="text-lg font-bold" style={{ color: "#FF2B56", fontFamily: "'Segoe UI',Roboto,sans-serif" }}>R$ {total.toFixed(2).replace(".", ",")}</span>
         </div>
         <button
