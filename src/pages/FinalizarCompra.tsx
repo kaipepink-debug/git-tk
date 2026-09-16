@@ -14,6 +14,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useSessionTracker } from "@/hooks/useSessionTracker";
 import { getTikTokClickId, getTikTokTtp } from "@/lib/tiktokClickId";
 import pixIcon from "@/assets/pix.svg";
+import { getSelectedBumps, formatBRL } from "@/lib/orderBumps";
 
 /**
  * Estrutura dos dados de endereço e contato do usuário.
@@ -69,7 +70,14 @@ const FinalizarCompra = () => {
   const productName = product.title ? product.title.substring(0, 40) + "..." : "Produto";
   const descontoValor = oldPrice - price;
   const freteExpresso = 9.80;
-  const total = frete === "gratis" ? price * qty : price * qty + freteExpresso;
+
+  // Ofertas adicionais escolhidas no carrinho
+  const bumps = useRef(getSelectedBumps()).current;
+  const bumpsTotal = bumps.reduce((s, b) => s + b.price, 0);
+  const bumpsOldTotal = bumps.reduce((s, b) => s + b.oldPrice, 0);
+  const totalItens = qty + bumps.length;
+
+  const total = (frete === "gratis" ? price * qty : price * qty + freteExpresso) + bumpsTotal;
 
   return (
     <div className="min-h-screen bg-secondary max-w-lg mx-auto flex flex-col pb-4" style={{ fontFamily: "-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Oxygen,Ubuntu,Cantarell,sans-serif" }}>
