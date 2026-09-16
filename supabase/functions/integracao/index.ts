@@ -117,15 +117,21 @@ serve(async (req) => {
     else if (FAILED.includes(rawStatus)) newStatus = 'failed';
 
     if (newStatus) {
-      // Estado ANTERIOR do pedido: usado para saber se esta é a primeira confirmação.
-      // Webhooks reenviados pelo gateway não disparam uma segunda conversão.
-      const { data: existing } = await supabaseAdmin
-        .from('orders')
-        .select('id, amount, quantity, ttclid, ttp, utm, status, tt_purchase_sent_at, customer_email, customer_phone')
-        .eq('transaction_id', String(transactionId))
-        .maybeSingle();
-
-      const alreadyCounted = existing?.status === 'paid' || Boolean(existing?.tt_purchase_sent_at);
+      // Primeira confirmação: a própria atualização é a trava. Só pedidos que AINDA
+      // não estavam pagos (e sem conversão registrada) são retornados aqui — assim um
+      // webhook reenviado pelo gateway nunca gera uma segunda conversão.
+      let firstConfirmation: any = null;
+      if (newStatus === 'paid') {
+        const { data: transitioned, error: transitionError } = await supabaseAdmin
+          .from('orders')
+          .update({ status: 'paid', tt_purchase_sent_at: new Date().toISOString() })
+          .eq('transaction_id', String(transactionId))
+          .neq('status', 'paid')
+          .is('tt_purchase_sent_at', null)
+          .select('id, amount, quantity, ttclid, ttp, utm, customer_email, customer_phone');
+        if (transitionError) console.error('Erro ao confirmar pedido:', transitionError);
+        firstConfirmation = transitioned?.[0] ?? null;
+      }
 
       const { data, error } = await supabaseAdmin
         .from('orders')
