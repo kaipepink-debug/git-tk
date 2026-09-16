@@ -10,6 +10,7 @@ import { useState } from "react";
 import { useSessionTracker } from "@/hooks/useSessionTracker";
 import { useProduct } from "@/contexts/ProductContext";
 import { useOptimizedImage } from "@/hooks/useOptimizedImage";
+import { ORDER_BUMPS, saveSelectedBumps, getSelectedBumps, formatBRL } from "@/lib/orderBumps";
 
 /**
  * Componente da página de Carrinho.
@@ -22,6 +23,21 @@ const Carrinho = () => {
   
   // Estado local para quantidade de itens
   const [qty, setQty] = useState(1);
+
+  // Ofertas adicionais (order bumps) escolhidas pelo cliente
+  const [bumpIds, setBumpIds] = useState<string[]>(() => getSelectedBumps().map((b) => b.id));
+
+  /** Adiciona ou remove uma oferta adicional e persiste a escolha na sessão. */
+  const toggleBump = (id: string) => {
+    setBumpIds((prev) => {
+      const next = prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id];
+      saveSelectedBumps(next);
+      return next;
+    });
+  };
+
+  // Soma dos itens extras selecionados
+  const bumpsTotal = ORDER_BUMPS.filter((b) => bumpIds.includes(b.id)).reduce((s, b) => s + b.price, 0);
   
   // Recupera dados do produto do contexto global
   const { price, oldPrice, discount, priceDisplay, oldPriceDisplay, product } = useProduct();
