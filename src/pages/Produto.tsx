@@ -17,7 +17,6 @@ import PreSell from "@/components/PreSell";
 import ExitIntentPopup from "@/components/ExitIntentPopup";
 
 import { useSessionTracker } from "@/hooks/useSessionTracker";
-import { trackTikTokEvent } from "@/hooks/useTikTokPixel";
 import { useProduct } from "@/contexts/ProductContext";
 import { useAnalyticsTracker } from "@/hooks/useAnalyticsTracker";
 import { supabase } from "@/integrations/supabase/client";

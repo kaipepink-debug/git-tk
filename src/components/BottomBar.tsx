@@ -2,7 +2,6 @@ import { useNavigate } from "react-router-dom";
 import { useProduct } from "@/contexts/ProductContext";
 import { useState } from "react";
 import ProductChat from "./ProductChat";
-import { trackTikTokEvent } from "@/hooks/useTikTokPixel";
 
 /**
  * Componente de barra inferior fixa para navegação rápida e compra.

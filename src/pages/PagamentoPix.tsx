@@ -11,7 +11,6 @@ import { useState, useEffect, useRef } from "react";
 import { QRCodeSVG } from "qrcode.react";
 import { useSessionTracker } from "@/hooks/useSessionTracker";
 import { supabase } from "@/integrations/supabase/client";
-import { trackTikTokEvent } from "@/hooks/useTikTokPixel";
 import { toast } from "sonner";
 
 /**
