@@ -12,7 +12,7 @@ const StoreInfo = () => {
         <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-border flex-shrink-0">
           <img
             src="/images/loja-logo.png"
-            alt="Mestre de Obra"
+            alt="GAMES ELETRONICOS"
             className="w-full h-full object-cover"
           />
         </div>
@@ -21,7 +21,7 @@ const StoreInfo = () => {
         <div className="flex-1 min-w-0">
           {/* Nome e Indicador de Status Online */}
           <div className="flex items-center gap-1.5 flex-wrap">
-            <h3 className="text-sm font-bold text-foreground">Mestre de Obra</h3>
+            <h3 className="text-sm font-bold text-foreground">GAMES ELETRONICOS</h3>
             <div className="flex items-center gap-1">
               <span className="relative flex h-2 w-2">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-success opacity-75" />
