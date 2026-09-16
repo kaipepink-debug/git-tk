@@ -1,43 +1,26 @@
 /**
  * @file TikTokTracking.tsx
- * @description Instala o Pixel do TikTok em todo o site e registra a visualização
- * de página em cada mudança de rota (aplicação de página única).
+ * @description O script do Pixel do TikTok foi REMOVIDO do site. Este componente
+ * apenas preserva o identificador de clique do anúncio (ttclid) presente na URL,
+ * usado para atribuir a venda no envio de conversão feito pelo servidor.
  */
 
-import { useEffect, useRef } from "react";
+import { useEffect } from "react";
 import { useLocation } from "react-router-dom";
-import { useTikTokPixel, trackTikTokPageView } from "@/hooks/useTikTokPixel";
 import { captureTikTokClickId } from "@/lib/tiktokClickId";
 
 /**
- * Componente sem interface: apenas ativa o rastreamento.
+ * Componente sem interface: nenhum script de terceiros é carregado.
  *
  * @returns {null} Nada é renderizado.
  */
 const TikTokTracking = () => {
-  const { ready } = useTikTokPixel();
   const location = useLocation();
-  const firstPath = useRef<string | null>(null);
 
-  // Captura o identificador de clique (ttclid) o quanto antes, em qualquer página
-  // de entrada, e mantém o valor guardado durante todo o funil.
+  // Mantém o identificador de clique guardado durante todo o funil.
   useEffect(() => {
     captureTikTokClickId();
-  }, [location.pathname, location.search, ready]);
-
-  useEffect(() => {
-    if (!ready) return;
-
-    // O carregamento do pixel já dispara a primeira visualização de página.
-    if (firstPath.current === null) {
-      firstPath.current = location.pathname;
-      return;
-    }
-    if (firstPath.current === location.pathname) return;
-
-    firstPath.current = location.pathname;
-    trackTikTokPageView();
-  }, [ready, location.pathname]);
+  }, [location.pathname, location.search]);
 
   return null;
 };

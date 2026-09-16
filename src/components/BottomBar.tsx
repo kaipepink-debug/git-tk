@@ -2,7 +2,6 @@ import { useNavigate } from "react-router-dom";
 import { useProduct } from "@/contexts/ProductContext";
 import { useState } from "react";
 import ProductChat from "./ProductChat";
-import { trackTikTokEvent } from "@/hooks/useTikTokPixel";
 
 /**
  * Componente de barra inferior fixa para navegação rápida e compra.
@@ -68,19 +67,6 @@ const BottomBar = () => {
         {/* Botão de CTA principal: Comprar Agora */}
         <button
           onClick={() => {
-            // Evento AddToCart: intenção de compra a partir da página do produto
-            trackTikTokEvent("AddToCart", {
-              contents: [{
-                content_id: product?.id || "escada-telescopica",
-                content_type: "product",
-                content_name: product?.title || "Escada Telescópica",
-                price,
-                quantity: 1,
-              }],
-              content_type: "product",
-              value: price,
-              currency: "BRL",
-            });
             navigate("/finalizar-compra");
           }}
           className="flex-1 flex flex-col items-center justify-center"

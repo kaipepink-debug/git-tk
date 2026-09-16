@@ -12,7 +12,6 @@ import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useSessionTracker } from "@/hooks/useSessionTracker";
-import { trackTikTokEvent } from "@/hooks/useTikTokPixel";
 import { getTikTokClickId, getTikTokTtp } from "@/lib/tiktokClickId";
 import pixIcon from "@/assets/pix.svg";
 
@@ -63,29 +62,6 @@ const FinalizarCompra = () => {
   const price = exitOfferPrice ? parseFloat(exitOfferPrice) : originalPrice;
   // BUGFIX: antes hardcoded "48,00" — quebrava se a oferta mudasse. Derivar do preço.
   const priceDisplay = exitOfferPrice ? price.toFixed(2).replace(".", ",") : originalPriceDisplay;
-
-  // Evento InitiateCheckout do TikTok: disparado UMA única vez por visita ao checkout,
-  // somente depois que o preço real do produto está carregado, para que o TikTok receba
-  // o valor correto da conversão.
-  const checkoutTracked = useRef(false);
-  useEffect(() => {
-    if (checkoutTracked.current) return;
-    if (!price || price <= 0) return;
-    checkoutTracked.current = true;
-
-    trackTikTokEvent("InitiateCheckout", {
-      contents: [{
-        content_id: product.id || "escada-telescopica",
-        content_type: "product",
-        content_name: product.title || "Escada Telescópica",
-        price,
-        quantity: qty,
-      }],
-      content_type: "product",
-      currency: "BRL",
-      value: price * qty,
-    });
-  }, [price, qty, product.id, product.title]);
 
   // Preparação de imagem e cálculos de valores
   const productImageRaw = product.cart_image || "/images/escada-carrinho.webp";
@@ -286,13 +262,6 @@ const FinalizarCompra = () => {
             setLoading(true);
             try {
               const amountInCents = Math.round(total * 100);
-              // Escolha da forma de pagamento confirmada pelo cliente
-              trackTikTokEvent("AddPaymentInfo", {
-                content_type: "product",
-                content_id: product?.id || "escada-telescopica",
-                currency: "BRL",
-                value: total,
-              });
 
               const { data, error } = await supabase.functions.invoke("create-pix", {
                 body: {
@@ -336,23 +305,6 @@ const FinalizarCompra = () => {
 
               if (!pixCode) throw new Error("Não foi possível gerar o código PIX. Tente novamente em instantes.");
 
-              // Pedido criado (PIX gerado) — pagamento ainda não confirmado
-              trackTikTokEvent(
-                "PlaceAnOrder",
-                {
-                  contents: [{
-                    content_id: product?.id || "escada-telescopica",
-                    content_type: "product",
-                    content_name: product?.title || "Escada Telescópica",
-                    price,
-                    quantity: qty,
-                  }],
-                  content_type: "product",
-                  currency: "BRL",
-                  value: total,
-                },
-                transactionId || undefined,
-              );
 
               navigate("/pagamento-pix", {
                 state: { pixCode, pixQrCode, total, transactionId },
