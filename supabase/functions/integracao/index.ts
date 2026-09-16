@@ -151,9 +151,9 @@ serve(async (req) => {
       // Pagamento REALMENTE confirmado: envia CompletePayment pela Events API.
       // O event_id é determinístico (purchase-<transação>) e igual ao usado no
       // navegador, permitindo a deduplicação pelo TikTok.
-      if (newStatus === 'paid' && !alreadyCounted) {
+      if (firstConfirmation) {
         try {
-          const order: any = existing ?? {};
+          const order: any = firstConfirmation;
           // 'amount' é gravado em centavos pelo create-pix — o TikTok espera reais.
           const cents = Number(order.amount ?? 0);
           const value = Number.isFinite(cents) && cents > 0 ? cents / 100 : undefined;
@@ -193,10 +193,10 @@ serve(async (req) => {
           if (!res.ok) {
             const details = await res.text();
             console.error(`Envio de CompletePayment falhou [${res.status}]: ${details.slice(0, 500)}`);
-          } else {
+            // Libera a marca para uma nova tentativa em um próximo webhook do gateway.
             await supabaseAdmin
               .from('orders')
-              .update({ tt_purchase_sent_at: new Date().toISOString() })
+              .update({ tt_purchase_sent_at: null })
               .eq('transaction_id', String(transactionId));
           }
         } catch (trackErr) {
