@@ -24,6 +24,7 @@ import DateRangePicker from "@/components/admin/DateRangePicker";
 import ProductManager from "@/components/admin/ProductManager";
 import TransactionsPanel from "@/components/admin/TransactionsPanel";
 import TikTokEventsPanel from "@/components/admin/TikTokEventsPanel";
+import TikTokDiagnostics from "@/components/admin/TikTokDiagnostics";
 
 /**
  * Interface representando uma sessão ativa de usuário.
@@ -417,7 +418,14 @@ const AdminDashboard = () => {
 
         {activeTab === "orders" && <OrdersTable orders={orders} />}
         {activeTab === "transactions" && <TransactionsPanel />}
-        {activeTab === "tiktok" && <TikTokEventsPanel />}
+        {activeTab === "tiktok" && (
+          <div className="space-y-6">
+            {/* Diagnóstico técnico do rastreamento (sem exibir o token) */}
+            <TikTokDiagnostics />
+            {/* Lista completa de eventos registrados */}
+            <TikTokEventsPanel />
+          </div>
+        )}
         {activeTab === "customers" && <CustomerInsights orders={orders} dateRange={dateRange} />}
         {activeTab === "visitors" && <VisitorsPanel sessions={sessions} />}
         {activeTab === "analytics" && <AnalyticsPanel period={period} />}
