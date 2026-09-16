@@ -14,7 +14,7 @@
  */
 
 import { supabase } from "@/integrations/supabase/client";
-import { isAdsTrackingAllowed } from "@/lib/consent";
+import { isAdsTrackingAllowed, onConsentChange } from "@/lib/consent";
 import { captureAttribution, getAttribution, getTrackingSessionId } from "@/lib/tracking/attribution";
 
 /** ID público do Pixel do TikTok (valor público, pode ficar no navegador). */
@@ -75,6 +75,41 @@ declare global {
 
 /** Evita carregar o pixel mais de uma vez por página. */
 let pixelLoading = false;
+
+/** Item aguardando o consentimento do cliente para ser enviado. */
+type PendingItem =
+  | { kind: "event"; event: TikTokEventName; params: TrackParams }
+  | { kind: "page"; path: string };
+
+/** Fila de eventos capturados antes da resposta ao aviso de cookies. */
+const pending: PendingItem[] = [];
+
+/** Indica se o ouvinte de mudança de consentimento já foi registrado. */
+let consentListenerReady = false;
+
+/**
+ * Coloca um evento na fila e garante que ele será enviado quando (e se) o cliente
+ * autorizar o rastreamento de publicidade.
+ *
+ * @param {PendingItem} item - Evento ou visualização de página pendente.
+ */
+function enqueue(item: PendingItem) {
+  // Evita acumular o mesmo evento várias vezes na fila.
+  const key = item.kind === "event" ? item.params.eventId : `pv-${item.path}`;
+  const exists = pending.some((p) => (p.kind === "event" ? p.params.eventId : `pv-${p.path}`) === key);
+  if (!exists) pending.push(item);
+
+  if (consentListenerReady) return;
+  consentListenerReady = true;
+  onConsentChange(async () => {
+    if (!(await isAdsTrackingAllowed())) return;
+    const items = pending.splice(0, pending.length);
+    for (const p of items) {
+      if (p.kind === "event") await trackTikTokEvent(p.event, p.params);
+      else await trackPageView(p.path);
+    }
+  });
+}
 
 /**
  * Lê o mapa de eventos já disparados, descartando registros expirados.
