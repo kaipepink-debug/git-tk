@@ -150,6 +150,21 @@ const FinalizarCompra = () => {
         </div>
       </div>
 
+      {/* Itens extras adicionados no carrinho */}
+      {bumps.length > 0 && bumps.map((bump) => (
+        <div key={bump.id} className="bg-background px-4 py-3 flex items-center gap-3 border-t border-border">
+          <img src={bump.image} alt={bump.title} loading="lazy" className="w-16 h-16 object-contain rounded bg-secondary flex-shrink-0" />
+          <div className="flex-1 min-w-0">
+            <p className="text-xs text-foreground leading-snug line-clamp-2">{bump.title}</p>
+            <div className="flex items-center gap-2 mt-1">
+              <span className="text-sm font-bold" style={{ color: "#FF2B56" }}>R$ {formatBRL(bump.price)}</span>
+              <span className="text-xs text-muted-foreground line-through">R$ {formatBRL(bump.oldPrice)}</span>
+            </div>
+          </div>
+          <span className="text-xs text-muted-foreground">x1</span>
+        </div>
+      ))}
+
       <div className="h-2 bg-secondary" />
 
       {/* Seleção de Frete */}
@@ -191,11 +206,11 @@ const FinalizarCompra = () => {
         <div className="mt-3 space-y-2">
           <div className="flex justify-between">
             <span className="text-sm text-muted-foreground">Subtotal</span>
-            <span className="text-sm text-foreground">R$ {(oldPrice * qty).toFixed(2).replace(".", ",")}</span>
+            <span className="text-sm text-foreground">R$ {formatBRL(oldPrice * qty + bumpsOldTotal)}</span>
           </div>
           <div className="flex justify-between">
             <span className="text-sm" style={{ color: "#00BFA5" }}>Descontos</span>
-            <span className="text-sm" style={{ color: "#00BFA5" }}>-R$ {(descontoValor * qty).toFixed(2).replace(".", ",")}</span>
+            <span className="text-sm" style={{ color: "#00BFA5" }}>-R$ {formatBRL(descontoValor * qty + (bumpsOldTotal - bumpsTotal))}</span>
           </div>
           <div className="flex justify-between">
             <span className="text-sm text-muted-foreground">Frete</span>
