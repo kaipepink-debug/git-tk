@@ -11,6 +11,7 @@ import { useSessionTracker } from "@/hooks/useSessionTracker";
 import { useProduct } from "@/contexts/ProductContext";
 import { useOptimizedImage } from "@/hooks/useOptimizedImage";
 import { ORDER_BUMPS, saveSelectedBumps, getSelectedBumps, formatBRL } from "@/lib/orderBumps";
+import { trackAddToCart } from "@/lib/tracking/tiktok";
 
 /**
  * Componente da página de Carrinho.
@@ -30,8 +31,17 @@ const Carrinho = () => {
   /** Adiciona ou remove uma oferta adicional e persiste a escolha na sessão. */
   const toggleBump = (id: string) => {
     setBumpIds((prev) => {
-      const next = prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id];
+      const adding = !prev.includes(id);
+      const next = adding ? [...prev, id] : prev.filter((x) => x !== id);
       saveSelectedBumps(next);
+
+      // AddToCart do item extra: só quando o cliente realmente adiciona a oferta.
+      if (adding) {
+        const bump = ORDER_BUMPS.find((b) => b.id === id);
+        if (bump) {
+          void trackAddToCart({ contentId: bump.id, contentName: bump.title, value: bump.price, quantity: 1 });
+        }
+      }
       return next;
     });
   };

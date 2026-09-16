@@ -20,6 +20,7 @@ import { useSessionTracker } from "@/hooks/useSessionTracker";
 import { useProduct } from "@/contexts/ProductContext";
 import { useAnalyticsTracker } from "@/hooks/useAnalyticsTracker";
 import { supabase } from "@/integrations/supabase/client";
+import { trackViewContent } from "@/lib/tracking/tiktok";
 
 /**
  * Componente principal da página de produto.
@@ -65,6 +66,16 @@ const Produto = () => {
 
   // Lógica para decidir se deve exibir a interface de pré-venda ou o produto direto
   const showPresell = presellEnabled === true && !unlocked;
+
+  /**
+   * ViewContent: disparado quando a oferta é realmente exibida (não na pré-venda)
+   * e o preço já foi carregado. Protegido contra duplicidade pelo event_id.
+   */
+  useEffect(() => {
+    if (showPresell) return;
+    if (!product?.id || !(price > 0)) return;
+    void trackViewContent({ contentId: product.id, contentName: product.title, value: price });
+  }, [showPresell, product?.id, product?.title, price]);
 
   // Trackers de análise de tráfego
   useSessionTracker(showPresell ? "/produto/presell" : "/produto");

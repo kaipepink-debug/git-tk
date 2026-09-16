@@ -117,47 +117,21 @@ serve(async (req) => {
     else if (FAILED.includes(rawStatus)) newStatus = 'failed';
 
     if (newStatus) {
+      // Estado ANTERIOR do pedido: usado para saber se esta é a primeira confirmação.
+      // Webhooks reenviados pelo gateway não disparam uma segunda conversão.
+      const { data: existing } = await supabaseAdmin
+        .from('orders')
+        .select('id, amount, quantity, ttclid, ttp, utm, status, tt_purchase_sent_at, customer_email, customer_phone')
+        .eq('transaction_id', String(transactionId))
+        .maybeSingle();
+
+      const alreadyCounted = existing?.status === 'paid' || Boolean(existing?.tt_purchase_sent_at);
+
       const { data, error } = await supabaseAdmin
         .from('orders')
         .update({ status: newStatus })
         .eq('transaction_id', String(transactionId))
-        .select('id, amount, ttclid, ttp, customer_email, customer_phone');
-
-      // Pagamento aprovado: envia CompletePayment ao TikTok pela API de Eventos.
-      // O event_id é o ID da transação, o mesmo usado no navegador, para não contar duas vezes.
-      if (!error && newStatus === 'paid') {
-        try {
-          const order: any = data?.[0] ?? {};
-          // 'amount' é gravado em centavos pelo create-pix — o TikTok espera o valor em reais.
-          const cents = Number(order.amount ?? 0);
-          const value = Number.isFinite(cents) && cents > 0 ? cents / 100 : undefined;
-          await fetch(`${Deno.env.get('SUPABASE_URL')}/functions/v1/tiktok-event`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              Authorization: `Bearer ${Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')}`,
-            },
-            body: JSON.stringify({
-              event: 'CompletePayment',
-              event_id: String(transactionId),
-              value,
-              currency: 'BRL',
-              content_id: 'escada-telescopica',
-              content_name: 'Escada Telescópica',
-              order_id: order.id ? String(order.id) : undefined,
-              // Identificadores do clique no anúncio, salvos na geração do PIX.
-              ttclid: order.ttclid || undefined,
-              ttp: order.ttp || undefined,
-              email: order.customer_email || undefined,
-              phone: order.customer_phone || undefined,
-            }),
-          });
-        } catch (trackErr) {
-          // Falha de rastreamento nunca deve impedir a liberação do pedido.
-          console.warn('Falha ao enviar CompletePayment ao TikTok:', trackErr);
-        }
-      }
-
+        .select('id');
 
       if (error) {
         console.error('Erro ao atualizar pedido:', error);
@@ -166,6 +140,65 @@ serve(async (req) => {
           status: 500,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
+      }
+
+      // Pagamento REALMENTE confirmado: envia CompletePayment pela Events API.
+      // O event_id é determinístico (purchase-<transação>) e igual ao usado no
+      // navegador, permitindo a deduplicação pelo TikTok.
+      if (newStatus === 'paid' && !alreadyCounted) {
+        try {
+          const order: any = existing ?? {};
+          // 'amount' é gravado em centavos pelo create-pix — o TikTok espera reais.
+          const cents = Number(order.amount ?? 0);
+          const value = Number.isFinite(cents) && cents > 0 ? cents / 100 : undefined;
+
+          // Produto real da loja (evita identificadores desatualizados no evento).
+          const { data: prod } = await supabaseAdmin
+            .from('products')
+            .select('id, title')
+            .limit(1)
+            .maybeSingle();
+
+          const res = await fetch(`${Deno.env.get('SUPABASE_URL')}/functions/v1/tiktok-event`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')}`,
+            },
+            body: JSON.stringify({
+              event: 'CompletePayment',
+              event_id: `purchase-${transactionId}`,
+              value,
+              currency: 'BRL',
+              content_id: prod?.id ? String(prod.id) : undefined,
+              content_name: prod?.title ? String(prod.title) : undefined,
+              quantity: Number(order.quantity) > 0 ? Number(order.quantity) : 1,
+              order_id: order.id ? String(order.id) : undefined,
+              external_id: String(transactionId),
+              // Identificadores do clique no anúncio, salvos na geração do PIX.
+              ttclid: order.ttclid || undefined,
+              ttp: order.ttp || undefined,
+              utm: order.utm || undefined,
+              email: order.customer_email || undefined,
+              phone: order.customer_phone || undefined,
+            }),
+          });
+
+          if (!res.ok) {
+            const details = await res.text();
+            console.error(`Envio de CompletePayment falhou [${res.status}]: ${details.slice(0, 500)}`);
+          } else {
+            await supabaseAdmin
+              .from('orders')
+              .update({ tt_purchase_sent_at: new Date().toISOString() })
+              .eq('transaction_id', String(transactionId));
+          }
+        } catch (trackErr) {
+          // Falha de rastreamento nunca deve impedir a liberação do pedido.
+          console.warn('Falha ao enviar CompletePayment ao TikTok:', trackErr);
+        }
+      } else if (newStatus === 'paid') {
+        console.log(`Transação ${transactionId} já confirmada antes — conversão não duplicada.`);
       }
 
       console.log(

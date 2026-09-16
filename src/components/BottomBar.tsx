@@ -2,6 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { useProduct } from "@/contexts/ProductContext";
 import { useState } from "react";
 import ProductChat from "./ProductChat";
+import { trackAddToCart } from "@/lib/tracking/tiktok";
 
 /**
  * Componente de barra inferior fixa para navegação rápida e compra.
@@ -67,6 +68,15 @@ const BottomBar = () => {
         {/* Botão de CTA principal: Comprar Agora */}
         <button
           onClick={() => {
+            // Ação real de adicionar ao carrinho: o cliente clicou em "Comprar agora".
+            if (product?.id) {
+              void trackAddToCart({
+                contentId: product.id,
+                contentName: product.title,
+                value: price,
+                quantity: 1,
+              });
+            }
             navigate("/carrinho");
           }}
           className="flex-1 flex flex-col items-center justify-center"

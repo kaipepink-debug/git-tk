@@ -62,6 +62,10 @@ serve(async (req) => {
     const ttp = typeof body?.ttp === 'string' && body.ttp.trim()
       ? body.ttp.slice(0, 512)
       : null;
+    // Parâmetros de campanha (UTMs e IDs de anúncio) preservados junto do pedido.
+    const utm = body?.utm && typeof body.utm === 'object' && Object.keys(body.utm).length
+      ? body.utm
+      : null;
 
     // Validação de valor
     if (typeof amount !== 'number' || !Number.isFinite(amount) || amount < 100) {
@@ -393,6 +397,7 @@ serve(async (req) => {
         customer_cep: cleanCep || null,
         ttclid,
         ttp,
+        utm,
       });
     } catch (dbError) {
       console.error('Error saving order:', dbError);

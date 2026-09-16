@@ -139,9 +139,11 @@ export type Database = {
           quantity: number
           status: string
           transaction_id: string | null
+          tt_purchase_sent_at: string | null
           ttclid: string | null
           ttp: string | null
           updated_at: string
+          utm: Json | null
         }
         Insert: {
           amount: number
@@ -159,9 +161,11 @@ export type Database = {
           quantity?: number
           status?: string
           transaction_id?: string | null
+          tt_purchase_sent_at?: string | null
           ttclid?: string | null
           ttp?: string | null
           updated_at?: string
+          utm?: Json | null
         }
         Update: {
           amount?: number
@@ -179,9 +183,11 @@ export type Database = {
           quantity?: number
           status?: string
           transaction_id?: string | null
+          tt_purchase_sent_at?: string | null
           ttclid?: string | null
           ttp?: string | null
           updated_at?: string
+          utm?: Json | null
         }
         Relationships: []
       }
@@ -315,36 +321,66 @@ export type Database = {
       }
       tiktok_events: {
         Row: {
+          content_id: string | null
           created_at: string
           currency: string
+          dedup_blocked: boolean
+          error_message: string | null
           event_id: string | null
           event_name: string
+          external_id: string | null
+          http_status: number | null
           id: string
           page: string | null
+          retry_count: number
           source: string
           status: string
+          ttclid: string | null
+          ttp: string | null
+          updated_at: string
+          utm: Json | null
           value: number | null
         }
         Insert: {
+          content_id?: string | null
           created_at?: string
           currency?: string
+          dedup_blocked?: boolean
+          error_message?: string | null
           event_id?: string | null
           event_name: string
+          external_id?: string | null
+          http_status?: number | null
           id?: string
           page?: string | null
+          retry_count?: number
           source?: string
           status?: string
+          ttclid?: string | null
+          ttp?: string | null
+          updated_at?: string
+          utm?: Json | null
           value?: number | null
         }
         Update: {
+          content_id?: string | null
           created_at?: string
           currency?: string
+          dedup_blocked?: boolean
+          error_message?: string | null
           event_id?: string | null
           event_name?: string
+          external_id?: string | null
+          http_status?: number | null
           id?: string
           page?: string | null
+          retry_count?: number
           source?: string
           status?: string
+          ttclid?: string | null
+          ttp?: string | null
+          updated_at?: string
+          utm?: Json | null
           value?: number | null
         }
         Relationships: []
