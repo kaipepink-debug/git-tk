@@ -37,14 +37,14 @@ export const ORDER_BUMPS: OrderBump[] = [
   {
     id: "dualsense-black",
     title: "Controle Sem Fio Sony PlayStation 5 DualSense Midnight Black",
-    price: 89.9,
+    price: 88.9,
     oldPrice: 419.9,
     image: dualsenseBlack.url,
   },
   {
     id: "dualsense-red",
     title: "Controle Sony DualSense Sem Fio PS5 Cosmic Red",
-    price: 89.9,
+    price: 88.9,
     oldPrice: 419.9,
     image: dualsenseRed.url,
   },
