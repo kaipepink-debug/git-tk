@@ -70,23 +70,6 @@ const Produto = () => {
   useSessionTracker(showPresell ? "/produto/presell" : "/produto");
   useAnalyticsTracker(showPresell ? "/produto/presell" : "/produto");
 
-  // Evento ViewContent do TikTok: visualização da página de produto
-  useEffect(() => {
-    if (showPresell) return;
-    trackTikTokEvent("ViewContent", {
-      contents: [{
-        content_id: product?.id || "escada-telescopica",
-        content_type: "product",
-        content_name: product?.title || "Escada Telescópica",
-        price,
-        quantity: 1,
-      }],
-      content_type: "product",
-      value: price,
-      currency: "BRL",
-    });
-  }, [showPresell, product?.id, price]);
-
   return (
     <>
       {showPresell && <PreSell onUnlock={handleUnlock} />}

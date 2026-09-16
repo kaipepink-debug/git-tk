@@ -80,19 +80,6 @@ const PagamentoPix = () => {
         if (data?.status === "paid" && !stopped) {
           stopped = true;
           setPaymentStatus("paid");
-
-          // Pagamento confirmado — evento CompletePayment (event_id evita contagem dupla
-          // com o envio pelo servidor no webhook do gateway).
-          trackTikTokEvent(
-            "CompletePayment",
-            {
-              content_type: "product",
-              content_id: "escada-telescopica",
-              currency: "BRL",
-              value: pixData?.total,
-            },
-            String(pixData.transactionId),
-          );
           if (pollingRef.current) clearInterval(pollingRef.current);
 
           // Redireciona para página externa de confirmação/sucesso
