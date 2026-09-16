@@ -256,7 +256,7 @@ const FinalizarCompra = () => {
       {/* Rodapé fixo com o botão de criação de pedido/pix */}
       <div className="bg-background border-t border-border px-4 py-3">
         <div className="flex items-center justify-between mb-3">
-          <span className="text-sm font-medium text-foreground">Total ({qty} {qty === 1 ? "item" : "itens"})</span>
+          <span className="text-sm font-medium text-foreground">Total ({totalItens} {totalItens === 1 ? "item" : "itens"})</span>
           <span className="text-lg font-bold" style={{ color: "#FF2B56", fontFamily: "'Segoe UI',Roboto,sans-serif" }}>R$ {total.toFixed(2).replace(".", ",")}</span>
         </div>
         <button
