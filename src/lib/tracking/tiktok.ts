@@ -257,7 +257,12 @@ export async function trackTikTokEvent(event: TikTokEventName, params: TrackPara
   // Garante que os identificadores da URL já estejam guardados antes do envio.
   captureAttribution();
 
-  if (!(await isAdsTrackingAllowed())) return false;
+  // Sem consentimento ainda: o evento fica na fila e é enviado assim que o cliente
+  // aceitar o aviso — nada é perdido e nada é enviado sem permissão.
+  if (!(await isAdsTrackingAllowed())) {
+    enqueue({ kind: "event", event, params });
+    return false;
+  }
 
   // Proteção contra duplicidade (refresh, clique duplo, duas abas, re-render).
   if (wasFired(params.eventId)) {
@@ -319,7 +324,10 @@ export async function trackTikTokEvent(event: TikTokEventName, params: TrackPara
 export async function trackPageView(path: string) {
   if (typeof window === "undefined") return;
   captureAttribution();
-  if (!(await isAdsTrackingAllowed())) return;
+  if (!(await isAdsTrackingAllowed())) {
+    enqueue({ kind: "page", path });
+    return;
+  }
   await loadTikTokPixel();
 
   const eventId = `pv-${getTrackingSessionId()}-${path}`;
