@@ -31,6 +31,10 @@ interface EventRow {
   retry_count: number;
   dedup_blocked: boolean;
   ttclid: string | null;
+  ttp: string | null;
+  external_id: string | null;
+  content_id: string | null;
+  utm: Record<string, unknown> | null;
   created_at: string;
 }
 
