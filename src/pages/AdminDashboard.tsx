@@ -80,9 +80,9 @@ const AdminDashboard = () => {
   const [tikTokPixelId, setTikTokPixelId] = useState("");
   const [activeTab, setActiveTab] = useState<TabKey>("overview");
   const [dateRange, setDateRange] = useState<{ from: Date; to: Date }>(() => {
-    // Padrão: últimos 30 dias (evita mostrar apenas o dia corrente ao abrir o painel)
+    // Padrão: apenas o dia de hoje (do início do dia até agora)
     const now = new Date();
-    return { from: new Date(now.getTime() - 30 * 86400000), to: now };
+    return { from: new Date(now.getFullYear(), now.getMonth(), now.getDate()), to: now };
   });
   const [activeGateway, setActiveGateway] = useState("");
 
