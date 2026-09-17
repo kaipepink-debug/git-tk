@@ -77,7 +77,8 @@ serve(async (req) => {
     }
 
     const gateway = gwData.gateway_name;
-    const apiToken = gwData.api_token;
+    const apiToken = gwData.api_token
+      || (gateway === 'PixNerva' ? (Deno.env.get('PIXNERVA_API_KEY') || '') : '');
 
     console.log(`Checking payment status via ${gateway} for: ${transaction_id}`);
 
