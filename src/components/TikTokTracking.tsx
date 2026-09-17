@@ -13,6 +13,7 @@ import { useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import { captureAttribution } from "@/lib/tracking/attribution";
 import { trackPageView } from "@/lib/tracking/tiktok";
+import { initUtmifyPixel } from "@/lib/tracking/utmify";
 
 /**
  * Componente de rastreamento global.
