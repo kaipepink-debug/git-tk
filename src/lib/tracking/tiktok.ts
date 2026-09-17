@@ -232,7 +232,10 @@ async function logBrowserEvent(event: TikTokEventName, params: TrackParams, stat
       ttp: attribution.ttp,
       content_id: params.contentId ?? null,
       external_id: params.externalId ?? null,
-      utm: Object.keys(attribution.utm).length ? attribution.utm : null,
+      // O click_id genérico entra junto dos parâmetros de campanha (não é ttclid).
+      utm: Object.keys(attribution.utm).length || attribution.click_id
+        ? { ...attribution.utm, ...(attribution.click_id ? { click_id: attribution.click_id } : {}) }
+        : null,
       dedup_blocked: status === "duplicado",
     });
   } catch (err) {
