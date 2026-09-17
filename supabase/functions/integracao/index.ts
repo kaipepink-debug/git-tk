@@ -25,10 +25,17 @@ const corsHeaders = {
 };
 
 /** Status que representam pagamento aprovado (libera o produto). */
-const APPROVED = ['AUTHORIZED', 'PAID', 'APPROVED', 'CONFIRMED', 'COMPLETED'];
+const APPROVED = [
+  'AUTHORIZED', 'PAID', 'APPROVED', 'CONFIRMED', 'COMPLETED',
+  // Variações usadas pela PixNerva e por outros gateways PIX.
+  'PAYED', 'PAYMENT_CONFIRMED', 'PIX_PAID', 'SUCCESS', 'SETTLED',
+];
 
 /** Status finais de recusa/cancelamento. */
-const FAILED = ['REJECTED', 'FAILED', 'CANCELLED', 'CANCELED', 'REFUNDED', 'CHARGED_BACK'];
+const FAILED = [
+  'REJECTED', 'FAILED', 'CANCELLED', 'CANCELED', 'REFUNDED', 'CHARGED_BACK',
+  'EXPIRED', 'CHARGEBACK', 'ERROR',
+];
 
 /**
  * Procura recursivamente, em um objeto de payload, a primeira chave presente na lista.
