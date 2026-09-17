@@ -226,7 +226,7 @@ serve(async (req) => {
         event_time: Math.floor(Date.now() / 1000),
         event_id: eventId,
         user,
-        page: pageUrl ? { url: pageUrl, referrer: body?.referrer ? String(body.referrer) : undefined } : undefined,
+        page: pageUrlWithUtm ? { url: pageUrlWithUtm, referrer: body?.referrer ? String(body.referrer) : undefined } : undefined,
         properties,
       }],
     };
