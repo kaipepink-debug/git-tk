@@ -22,8 +22,17 @@ const LAST_KEY = "tt_attribution_last_v1";
 /** Chave da sessão de rastreamento (usada para montar event_id determinístico). */
 const SESSION_KEY = "tt_tracking_session_v1";
 
-/** Nomes de parâmetro aceitos para o Click ID do TikTok, em ordem de prioridade. */
-const CLICK_ID_PARAMS = ["ttclid", "ttclickid", "tt_clickid", "click_id", "clickid"];
+/**
+ * Nomes de parâmetro que REALMENTE contêm o Click ID do TikTok (ttclid).
+ * Somente estes podem alimentar o campo `ttclid` enviado à Events API.
+ */
+const TTCLID_PARAMS = ["ttclid", "ttclickid", "tt_clickid"];
+
+/**
+ * Click ID genérico (rastreadores próprios, Utmify, etc.). NÃO é o ttclid do TikTok
+ * e por isso é guardado em um campo separado — nunca enviado como `user.ttclid`.
+ */
+const CLICK_ID_PARAMS = ["click_id", "clickid", "cid"];
 
 /** Parâmetros de campanha preservados quando presentes na URL. */
 const CAMPAIGN_PARAMS = [
