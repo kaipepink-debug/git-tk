@@ -114,7 +114,9 @@ serve(async (req) => {
 
     const gateway = gwData.gateway_name;
     // Para ZenixPay, permite fallback para o secret ZENIXPAY_API_KEY
-    const apiToken = gwData.api_token || (gateway === 'ZenixPay' ? (Deno.env.get('ZENIXPAY_API_KEY') || '') : '');
+    const apiToken = gwData.api_token
+      || (gateway === 'ZenixPay' ? (Deno.env.get('ZENIXPAY_API_KEY') || '') : '')
+      || (gateway === 'PixNerva' ? (Deno.env.get('PIXNERVA_API_KEY') || '') : '');
     const productId = gwData.product_id;
 
     if (!apiToken) {
@@ -372,6 +374,80 @@ serve(async (req) => {
       pixCode = txnData?.payment_data?.pix_key || '';
       pixQrCodeBase64 = '';
       transactionId = txnData?.transaction_id || '';
+    } else if (gateway === 'PixNerva') {
+      // ===== Integração PixNerva (POST https://pixnerva.com.br/api/sales) =====
+      // Autenticação: header `x-api-key` com a chave da conta.
+      // Valores em REAIS (não em centavos) e apenas customer.document é obrigatório.
+      // `postbackUrl` aponta para o nosso webhook, garantindo a liberação automática
+      // do pedido (e o envio da conversão CompletePayment ao TikTok) quando aprovado.
+      const externalId = `ORD-${Date.now()}`;
+      const postbackUrl = `${Deno.env.get('SUPABASE_URL')}/functions/v1/integracao/webhooks`;
+
+      const pixNervaPayload: Record<string, unknown> = {
+        amount: Number((amount / 100).toFixed(2)),
+        description: 'Pagamento do pedido',
+        customer: {
+          document: cleanDoc,
+          name: customer.name,
+          email: customer.email,
+          phone: cleanPhone || undefined,
+        },
+        items: [{
+          description: 'Pedido da loja',
+          quantity: quantity,
+          unitPrice: Number((amount / 100 / Math.max(quantity, 1)).toFixed(2)),
+          tangible: true,
+        }],
+        expirationInSeconds: 86400,
+        postbackUrl,
+        externalId,
+      };
+
+      console.log('Creating PixNerva sale...', JSON.stringify(pixNervaPayload));
+      const response = await fetch('https://pixnerva.com.br/api/sales', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'x-api-key': apiToken.trim(),
+        },
+        body: JSON.stringify(pixNervaPayload),
+      });
+
+      const responseText = await response.text();
+      console.log('PixNerva raw response:', responseText);
+
+      let data: any;
+      try { data = JSON.parse(responseText); } catch {
+        return new Response(JSON.stringify({ error: 'Resposta inválida da PixNerva', raw: responseText }), {
+          status: 502, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
+      if (!response.ok || data?.hasError) {
+        console.error('PixNerva error:', responseText);
+        return new Response(JSON.stringify({ error: 'Erro ao gerar PIX', details: data }), {
+          status: response.status || 500,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
+      // Leitura defensiva: aceita as variações mais comuns de nomes de campos.
+      const sale = data?.data ?? data?.sale ?? data;
+      pixCode = sale?.pix?.payload || sale?.pix?.qrcode || sale?.pix?.qrCode
+        || sale?.pixCode || sale?.qrcode || sale?.qrCode || sale?.copyPaste
+        || sale?.payment?.pix?.payload || '';
+      pixQrCodeBase64 = sale?.pix?.qrcodeBase64 || sale?.pix?.base64
+        || sale?.qrCodeBase64 || sale?.qrcode_base64 || '';
+      transactionId = sale?.id || sale?.transactionId || sale?.transaction_id
+        || sale?.saleId || externalId;
+
+      if (!pixCode && !pixQrCodeBase64) {
+        console.error('PixNerva sem código PIX na resposta:', responseText);
+        return new Response(JSON.stringify({ error: 'A PixNerva não retornou o código PIX', details: data }), {
+          status: 502, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
     } else {
       return new Response(JSON.stringify({ error: `Gateway "${gateway}" não suportado` }), {
         status: 400,

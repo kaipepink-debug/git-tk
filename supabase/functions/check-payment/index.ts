@@ -77,7 +77,8 @@ serve(async (req) => {
     }
 
     const gateway = gwData.gateway_name;
-    const apiToken = gwData.api_token;
+    const apiToken = gwData.api_token
+      || (gateway === 'PixNerva' ? (Deno.env.get('PIXNERVA_API_KEY') || '') : '');
 
     console.log(`Checking payment status via ${gateway} for: ${transaction_id}`);
 
@@ -185,6 +186,35 @@ serve(async (req) => {
 
       // O ZenixPay retorna o status em data.status (PENDING, AUTHORIZED, etc.)
       paymentStatus = data?.data?.status || data?.status || 'unknown';
+
+    } else if (gateway === 'PixNerva') {
+      // ===== PixNerva: GET https://pixnerva.com.br/api/sales/{id} (header x-api-key) =====
+      const url = `https://pixnerva.com.br/api/sales/${transaction_id}`;
+      console.log('PixNerva check URL:', url);
+
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: { 'Accept': 'application/json', 'x-api-key': String(apiToken).trim() },
+      });
+
+      const responseText = await response.text();
+      console.log('PixNerva raw response:', responseText);
+
+      let data;
+      try { data = JSON.parse(responseText); } catch {
+        return new Response(JSON.stringify({ error: 'Resposta inválida da PixNerva', raw: responseText }), {
+          status: 502, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
+      if (!response.ok) {
+        return new Response(JSON.stringify({ error: 'Erro ao consultar pagamento', details: data }), {
+          status: response.status, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
+      const sale = data?.data ?? data?.sale ?? data;
+      paymentStatus = sale?.status || sale?.paymentStatus || 'unknown';
 
     } else {
       return new Response(JSON.stringify({ error: `Gateway "${gateway}" não suportado` }), {

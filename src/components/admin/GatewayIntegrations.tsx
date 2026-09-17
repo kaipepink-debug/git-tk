@@ -31,6 +31,7 @@ const gatewayMeta: Record<string, { color: string; description: string; icon: st
   Adqui: { color: "hsl(14,100%,55%)", description: "api.sigmapay.com.br", icon: "AQ" },
   SealPay: { color: "hsl(195,90%,50%)", description: "abacate-5eo1.onrender.com", icon: "SP" },
   ZenixPay: { color: "hsl(260,80%,60%)", description: "api.zenixpay.com.br", icon: "ZX" },
+  PixNerva: { color: "hsl(160,80%,45%)", description: "pixnerva.com.br/api", icon: "PN" },
 };
 
 /**
