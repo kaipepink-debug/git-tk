@@ -133,8 +133,10 @@ serve(async (req) => {
       ttclid,
       ttp,
       content_id: contentId,
-      external_id: externalIdRaw ? await sha256(externalIdRaw) : null,
-      utm,
+      // Identificador da transação/pedido em texto (não é dado pessoal). O hash
+      // exigido pelo TikTok é calculado apenas no envio.
+      external_id: externalIdRaw,
+      utm: utmLog,
       retry_count: 0,
     };
 
