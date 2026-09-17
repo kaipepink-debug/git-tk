@@ -8,7 +8,9 @@
  * Aqui a mesma ação é feita de forma explícita e auditável.
  */
 
+import { supabase } from "@/integrations/supabase/client";
 import { isAdsTrackingAllowed, onConsentChange } from "@/lib/consent";
+import { getAttribution } from "@/lib/tracking/attribution";
 
 /** URL oficial do pixel da Utmify. */
 const UTMIFY_PIXEL_SRC = "https://cdn.utmify.com.br/scripts/pixel/pixel-tiktok.js";
@@ -50,7 +52,91 @@ export async function loadUtmifyPixel(): Promise<boolean> {
   };
   (document.head || document.documentElement).appendChild(script);
 
+  observeUtmifyEvents();
+
   return true;
+}
+
+/** Garante que o observador de eventos da Utmify seja instalado apenas uma vez. */
+let observerReady = false;
+
+/**
+ * @function observeUtmifyEvents
+ * @description Observa os eventos que o pixel da Utmify dispara no TikTok e registra
+ * cada um no log técnico (tabela `tiktok_events`, origem "utmify"), com ttclid,
+ * event_id, valor e parâmetros de campanha — para acompanhar o fluxo completo no /admin.
+ *
+ * Disparos feitos pela nossa própria camada são ignorados (já são registrados como
+ * "Navegador"), evitando duplicidade no painel.
+ */
+function observeUtmifyEvents() {
+  if (observerReady || typeof window === "undefined") return;
+  observerReady = true;
+
+  const install = () => {
+    const ttq = (window as unknown as { ttq?: any }).ttq;
+    if (!ttq || typeof ttq.track !== "function" || (ttq as any).__utmifyWrapped) return false;
+
+    const originalTrack = ttq.track.bind(ttq);
+    (ttq as any).__utmifyWrapped = true;
+    ttq.track = (...args: any[]) => {
+      const isInternal = Boolean((window as unknown as Record<string, unknown>).__ttInternalTrack);
+      const result = originalTrack(...args);
+      if (!isInternal) void logUtmifyEvent(args[0], args[1], args[2]);
+      return result;
+    };
+    return true;
+  };
+
+  if (install()) return;
+
+  // O script da Utmify é assíncrono: tenta instalar por alguns segundos.
+  let attempts = 0;
+  const timer = window.setInterval(() => {
+    attempts += 1;
+    if (install() || attempts > 40) window.clearInterval(timer);
+  }, 250);
+}
+
+/**
+ * @function logUtmifyEvent
+ * @description Grava no log técnico um evento disparado pelo pixel da Utmify.
+ *
+ * @param {string} event - Nome do evento enviado ao TikTok.
+ * @param {Record<string, unknown>} properties - Propriedades enviadas com o evento.
+ * @param {Record<string, unknown>} options - Opções (pode conter o event_id).
+ */
+async function logUtmifyEvent(
+  event: unknown,
+  properties?: Record<string, unknown>,
+  options?: Record<string, unknown>,
+) {
+  try {
+    const attribution = getAttribution();
+    const rawValue = properties?.value;
+    const value = typeof rawValue === "number" ? rawValue : Number(rawValue);
+    const eventId =
+      (options?.event_id as string | undefined) ??
+      (properties?.event_id as string | undefined) ??
+      `utmify-${Date.now()}`;
+
+    await supabase.from("tiktok_events").insert({
+      event_name: String(event ?? "Desconhecido"),
+      event_id: eventId,
+      source: "utmify",
+      value: Number.isFinite(value) && value > 0 ? value : null,
+      currency: (properties?.currency as string | undefined) || "BRL",
+      page: window.location.pathname,
+      status: "sent",
+      ttclid: attribution.ttclid,
+      ttp: attribution.ttp,
+      content_id: (properties?.content_id as string | undefined) ?? null,
+      utm: Object.keys(attribution.utm).length ? attribution.utm : null,
+      dedup_blocked: false,
+    });
+  } catch (err) {
+    console.warn("Não foi possível registrar o evento da Utmify:", err);
+  }
 }
 
 /**

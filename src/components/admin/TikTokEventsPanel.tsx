@@ -242,7 +242,7 @@ const TikTokEventsPanel = () => {
                   {eventLabels[e.event_name] ?? e.event_name}
                 </td>
                 <td className="px-4 py-3 text-muted-foreground">
-                  {e.source === "server" ? "Servidor" : "Navegador"}
+                  {e.source === "server" ? "Servidor" : e.source === "utmify" ? "Utmify" : "Navegador"}
                 </td>
                 <td className="px-4 py-3 text-foreground">{formatBRL(e.value)}</td>
                 <td className="px-4 py-3 text-muted-foreground">{e.page ?? "—"}</td>
