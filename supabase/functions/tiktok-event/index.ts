@@ -114,6 +114,9 @@ serve(async (req) => {
     const rawValue = Number(body?.value);
     const value = Number.isFinite(rawValue) && rawValue > 0 ? rawValue : null;
     const externalIdRaw = body?.external_id ? String(body.external_id) : null;
+    const clickId = typeof body?.click_id === 'string' && body.click_id.trim() ? body.click_id.trim() : null;
+    // Log técnico: guarda o click_id junto dos parâmetros de campanha, para o painel.
+    const utmLog = clickId ? { ...(utm || {}), click_id: clickId } : utm;
 
     // ---------------------------------------------------------------------
     // Deduplicação: a linha de log funciona como "reserva" do envio. O índice
