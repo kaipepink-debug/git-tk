@@ -381,7 +381,7 @@ serve(async (req) => {
       // `postbackUrl` aponta para o nosso webhook, garantindo a liberação automática
       // do pedido (e o envio da conversão CompletePayment ao TikTok) quando aprovado.
       const externalId = `ORD-${Date.now()}`;
-      const postbackUrl = `${Deno.env.get('SUPABASE_URL')}/functions/v1/integracao/webhooks`;
+      const postbackUrl = `${Deno.env.get('SUPABASE_URL')}/functions/v1/integracao/webhooks/pixnerva`;
 
       const pixNervaPayload: Record<string, unknown> = {
         amount: Number((amount / 100).toFixed(2)),

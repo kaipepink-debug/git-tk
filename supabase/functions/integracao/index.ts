@@ -110,7 +110,7 @@ serve(async (req) => {
       });
     }
 
-    console.log('Webhook recebido:', JSON.stringify(payload));
+    console.log(`Webhook recebido [${gateway}]:`, JSON.stringify(payload));
 
     // A ordem importa: chaves específicas primeiro, 'id' genérico por último.
     const transactionId = findValue(payload, [
@@ -237,6 +237,7 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({
         received: true,
+        gateway,
         transaction_id: transactionId,
         raw_status: rawStatus || null,
         order_status: newStatus,
