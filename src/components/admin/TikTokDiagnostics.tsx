@@ -142,10 +142,18 @@ const TikTokDiagnostics = () => {
     { label: "Pixel no navegador", value: pixelReady ? "Ativo" : "Não carregado", ok: pixelReady },
     { label: "ID do Pixel", value: TIKTOK_PIXEL_ID, ok: true },
     { label: "Envio pelo servidor", value: serverOk ? "Funcionando" : "Sem envios ainda", ok: serverOk },
-    { label: "Token da Events API", value: "••••••••••••ABCD (protegido)", ok: true },
+    { label: "Token da Events API", value: "Guardado no servidor (oculto)", ok: true },
     { label: "Eventos enviados (24 h)", value: String(sent), ok: sent > 0 },
     { label: "Falhas (24 h)", value: String(failed), ok: failed === 0 },
     { label: "Duplicados bloqueados", value: String(duplicated), ok: true },
+    { label: "Pixel da Utmify", value: utmifyAtivo ? "Carregado" : "Não carregado", ok: utmifyAtivo },
+    { label: "Eventos da Utmify (24 h)", value: String(porUtmify), ok: true },
+    { label: "Aviso de pagamento (webhook)", value: webhookOk ? "Conversão confirmada" : "Sem conversão nas 24 h", ok: webhookOk },
+    { label: "Pelo Pixel / Events API", value: `${porPixel} / ${porEventsApi}`, ok: porPixel > 0 && porEventsApi > 0 },
+    { label: "Sem ttclid", value: String(semTtclid), ok: semTtclid === 0 },
+    { label: "Sem click_id", value: String(semClickId), ok: true },
+    { label: "Sem parâmetros de campanha", value: String(semUtm), ok: semUtm === 0 },
+    { label: "Sem event_id", value: String(semEventId), ok: semEventId === 0 },
   ];
 
   return (
