@@ -209,6 +209,8 @@ serve(async (req) => {
               ttclid: order.ttclid || undefined,
               ttp: order.ttp || undefined,
               utm: order.utm || undefined,
+              // Click ID de outro rastreador, guardado junto dos parâmetros de campanha.
+              click_id: (order.utm && (order.utm as any).click_id) || undefined,
               email: order.customer_email || undefined,
               phone: order.customer_phone || undefined,
             }),
