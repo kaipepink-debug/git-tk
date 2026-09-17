@@ -123,6 +123,17 @@ const TikTokDiagnostics = () => {
   const duplicated = rows.filter((r) => r.dedup_blocked || r.status === "duplicado").length;
   const serverOk = rows.some((r) => r.source === "server" && r.status === "sent");
 
+  /** Contagens de qualidade dos dados enviados (últimas 24 h). */
+  const semTtclid = rows.filter((r) => !r.ttclid).length;
+  const semClickId = rows.filter((r) => !(r.utm && (r.utm as any).click_id)).length;
+  const semUtm = rows.filter((r) => !r.utm || Object.keys(r.utm).length === 0).length;
+  const semEventId = rows.filter((r) => !r.event_id).length;
+  const porPixel = rows.filter((r) => r.source === "browser").length;
+  const porEventsApi = rows.filter((r) => r.source === "server").length;
+  const porUtmify = rows.filter((r) => r.source === "utmify").length;
+  const utmifyAtivo = typeof window !== "undefined" && Boolean(document.querySelector("script[data-utmify-pixel]"));
+  const webhookOk = rows.some((r) => r.event_name === "CompletePayment" && r.source === "server" && r.status === "sent");
+
   /** Último evento registrado para cada etapa do funil e origem. */
   const lastByEvent = (name: string, source?: string) =>
     rows.find((r) => r.event_name === name && (!source || r.source === source) && !r.dedup_blocked);
