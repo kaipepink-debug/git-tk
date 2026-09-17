@@ -23,6 +23,9 @@ import { initUtmifyPixel } from "@/lib/tracking/utmify";
 const TikTokTracking = () => {
   const location = useLocation();
 
+  // Pixel da Utmify: carregado uma única vez, respeitando o consentimento.
+  useEffect(() => initUtmifyPixel(), []);
+
   useEffect(() => {
     // Captura imediata: garante que o ttclid não seja perdido em redirects.
     captureAttribution();
