@@ -25,10 +25,17 @@ const corsHeaders = {
 };
 
 /** Status que representam pagamento aprovado (libera o produto). */
-const APPROVED = ['AUTHORIZED', 'PAID', 'APPROVED', 'CONFIRMED', 'COMPLETED'];
+const APPROVED = [
+  'AUTHORIZED', 'PAID', 'APPROVED', 'CONFIRMED', 'COMPLETED',
+  // Variações usadas pela PixNerva e por outros gateways PIX.
+  'PAYED', 'PAYMENT_CONFIRMED', 'PIX_PAID', 'SUCCESS', 'SETTLED',
+];
 
 /** Status finais de recusa/cancelamento. */
-const FAILED = ['REJECTED', 'FAILED', 'CANCELLED', 'CANCELED', 'REFUNDED', 'CHARGED_BACK'];
+const FAILED = [
+  'REJECTED', 'FAILED', 'CANCELLED', 'CANCELED', 'REFUNDED', 'CHARGED_BACK',
+  'EXPIRED', 'CHARGEBACK', 'ERROR',
+];
 
 /**
  * Procura recursivamente, em um objeto de payload, a primeira chave presente na lista.
@@ -94,8 +101,10 @@ serve(async (req) => {
 
     console.log('Webhook recebido:', JSON.stringify(payload));
 
+    // A ordem importa: chaves específicas primeiro, 'id' genérico por último.
     const transactionId = findValue(payload, [
-      'transactionId', 'transaction_id', 'paymentId', 'payment_id', 'id', 'hash',
+      'transactionId', 'transaction_id', 'saleId', 'sale_id',
+      'paymentId', 'payment_id', 'id', 'hash',
     ]);
     const rawStatus = (findValue(payload, ['status', 'paymentStatus', 'payment_status']) || '').toUpperCase();
 
