@@ -193,6 +193,31 @@ serve(async (req) => {
       }];
     }
 
+    // Parâmetros de campanha (Utmify/UTMs): enviados como propriedades do evento
+    // para que o TikTok relacione o evento ao anúncio de origem.
+    if (utm) {
+      for (const [key, raw] of Object.entries(utm as Record<string, unknown>)) {
+        if (raw === null || raw === undefined || raw === '') continue;
+        properties[key] = String(raw).slice(0, 255);
+      }
+    }
+
+    // URL da página com os parâmetros de campanha preservados (quando ausentes).
+    let pageUrlWithUtm = pageUrl;
+    if (pageUrl && utm) {
+      try {
+        const parsed = new URL(pageUrl);
+        for (const [key, raw] of Object.entries(utm as Record<string, unknown>)) {
+          if (raw === null || raw === undefined || raw === '') continue;
+          if (!parsed.searchParams.has(key)) parsed.searchParams.set(key, String(raw));
+        }
+        if (ttclid && !parsed.searchParams.has('ttclid')) parsed.searchParams.set('ttclid', ttclid);
+        pageUrlWithUtm = parsed.toString();
+      } catch {
+        // URL inválida — mantém o valor original.
+      }
+    }
+
     const payload = {
       event_source: 'web',
       event_source_id: pixelId,
@@ -201,7 +226,7 @@ serve(async (req) => {
         event_time: Math.floor(Date.now() / 1000),
         event_id: eventId,
         user,
-        page: pageUrl ? { url: pageUrl, referrer: body?.referrer ? String(body.referrer) : undefined } : undefined,
+        page: pageUrlWithUtm ? { url: pageUrlWithUtm, referrer: body?.referrer ? String(body.referrer) : undefined } : undefined,
         properties,
       }],
     };
