@@ -73,8 +73,19 @@ serve(async (req) => {
 
   const path = new URL(req.url).pathname;
 
-  // Aceita apenas o caminho /integracao/webhooks (e a raiz da função, por segurança).
-  if (!path.endsWith('/webhooks') && !path.endsWith('/integracao') && path !== '/') {
+  /**
+   * Cada gateway tem a sua própria URL de webhook:
+   *   /functions/v1/integracao/webhooks/zenixpay
+   *   /functions/v1/integracao/webhooks/pixnerva
+   * O caminho genérico /webhooks continua aceito (compatibilidade).
+   * O gateway serve apenas para identificação nos logs — o processamento é o mesmo,
+   * pois o pedido é localizado pelo identificador da transação.
+   */
+  let gateway = 'desconhecido';
+  if (path.endsWith('/webhooks/zenixpay')) gateway = 'ZenixPay';
+  else if (path.endsWith('/webhooks/pixnerva')) gateway = 'PixNerva';
+  else if (path.endsWith('/webhooks') || path.endsWith('/integracao') || path === '/') gateway = 'generico';
+  else {
     return new Response(JSON.stringify({ error: 'Endpoint não encontrado' }), {
       status: 404,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -99,7 +110,7 @@ serve(async (req) => {
       });
     }
 
-    console.log('Webhook recebido:', JSON.stringify(payload));
+    console.log(`Webhook recebido [${gateway}]:`, JSON.stringify(payload));
 
     // A ordem importa: chaves específicas primeiro, 'id' genérico por último.
     const transactionId = findValue(payload, [
@@ -226,6 +237,7 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({
         received: true,
+        gateway,
         transaction_id: transactionId,
         raw_status: rawStatus || null,
         order_status: newStatus,
