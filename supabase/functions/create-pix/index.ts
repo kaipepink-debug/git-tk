@@ -114,7 +114,9 @@ serve(async (req) => {
 
     const gateway = gwData.gateway_name;
     // Para ZenixPay, permite fallback para o secret ZENIXPAY_API_KEY
-    const apiToken = gwData.api_token || (gateway === 'ZenixPay' ? (Deno.env.get('ZENIXPAY_API_KEY') || '') : '');
+    const apiToken = gwData.api_token
+      || (gateway === 'ZenixPay' ? (Deno.env.get('ZENIXPAY_API_KEY') || '') : '')
+      || (gateway === 'PixNerva' ? (Deno.env.get('PIXNERVA_API_KEY') || '') : '');
     const productId = gwData.product_id;
 
     if (!apiToken) {
