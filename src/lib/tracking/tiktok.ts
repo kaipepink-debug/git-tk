@@ -347,7 +347,14 @@ export async function trackTikTokEvent(event: TikTokEventName, params: TrackPara
         external_id: params.externalId || undefined,
       });
     }
-    window.ttq?.track(event, properties, { event_id: params.eventId });
+    // Marca a chamada como interna: o observador da Utmify ignora esses disparos
+    // para não registrar o mesmo evento duas vezes no log técnico.
+    (window as unknown as Record<string, unknown>).__ttInternalTrack = true;
+    try {
+      window.ttq?.track(event, properties, { event_id: params.eventId });
+    } finally {
+      (window as unknown as Record<string, unknown>).__ttInternalTrack = false;
+    }
   } catch (err) {
     console.warn(`Falha ao disparar ${event} no pixel:`, err);
   }
