@@ -267,6 +267,7 @@ async function mirrorToServer(event: TikTokEventName, params: TrackParams) {
         phone: params.phone,
         external_id: params.externalId,
         ttclid: attribution.ttclid,
+        click_id: attribution.click_id,
         ttp: attribution.ttp,
         utm: attribution.utm,
         url: window.location.href,
@@ -325,6 +326,8 @@ export async function trackTikTokEvent(event: TikTokEventName, params: TrackPara
     if (value) properties[key] = String(value).slice(0, 255);
   }
   if (attributionNow.ttclid) properties.ttclid = attributionNow.ttclid;
+  // Click ID de outro rastreador: enviado como propriedade informativa, NUNCA como ttclid.
+  if (attributionNow.click_id) properties.click_id = attributionNow.click_id;
   if (params.contentId) {
     properties.content_type = "product";
     properties.content_id = params.contentId;
