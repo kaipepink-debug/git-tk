@@ -314,6 +314,14 @@ export async function trackTikTokEvent(event: TikTokEventName, params: TrackPara
   };
   if (typeof params.value === "number" && params.value > 0) properties.value = params.value;
   if (params.description) properties.description = params.description;
+
+  // Parâmetros de campanha (Utmify/UTMs) + identificador de clique: enviados junto
+  // ao evento para o TikTok reconhecer o anúncio de origem de ponta a ponta.
+  const attributionNow = getAttribution();
+  for (const [key, value] of Object.entries(attributionNow.utm)) {
+    if (value) properties[key] = String(value).slice(0, 255);
+  }
+  if (attributionNow.ttclid) properties.ttclid = attributionNow.ttclid;
   if (params.contentId) {
     properties.content_type = "product";
     properties.content_id = params.contentId;
