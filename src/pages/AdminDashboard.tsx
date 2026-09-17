@@ -80,8 +80,9 @@ const AdminDashboard = () => {
   const [tikTokPixelId, setTikTokPixelId] = useState("");
   const [activeTab, setActiveTab] = useState<TabKey>("overview");
   const [dateRange, setDateRange] = useState<{ from: Date; to: Date }>(() => {
+    // Padrão: últimos 30 dias (evita mostrar apenas o dia corrente ao abrir o painel)
     const now = new Date();
-    return { from: new Date(now.getFullYear(), now.getMonth(), now.getDate()), to: now };
+    return { from: new Date(now.getTime() - 30 * 86400000), to: now };
   });
   const [activeGateway, setActiveGateway] = useState("");
 
@@ -162,7 +163,7 @@ const AdminDashboard = () => {
     const fetchAll = async () => {
       const [sessRes, ordRes, pixRes, gwRes] = await Promise.all([
         supabase.from("active_sessions").select("*").order("last_seen_at", { ascending: false }),
-        supabase.from("orders").select("*").order("created_at", { ascending: false }).limit(1000),
+        supabase.from("orders").select("*").order("created_at", { ascending: false }).limit(5000),
         supabase.from("site_settings").select("value").eq("key", "tiktok_pixel_id").single(),
         supabase.from("gateway_settings").select("gateway_name").eq("is_active", true).single(),
       ]);
