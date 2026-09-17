@@ -57,8 +57,10 @@ const CAMPAIGN_PARAMS = [
  * @description Conjunto de identificadores de atribuição guardados no navegador.
  */
 export interface Attribution {
-  /** Click ID do TikTok, exatamente como veio na URL. */
+  /** Click ID do TikTok (ttclid), exatamente como veio na URL. */
   ttclid: string | null;
+  /** Click ID genérico de outro rastreador (NÃO é o ttclid do TikTok). */
+  click_id: string | null;
   /** Identificador de visitante do pixel do TikTok (cookie `_ttp`). */
   ttp: string | null;
   /** Parâmetros de campanha (UTMs, IDs de campanha/anúncio etc.). */
@@ -70,7 +72,7 @@ export interface Attribution {
 }
 
 /** Estrutura vazia usada como padrão. */
-const EMPTY: Attribution = { ttclid: null, ttp: null, utm: {}, landing_url: null, captured_at: null };
+const EMPTY: Attribution = { ttclid: null, click_id: null, ttp: null, utm: {}, landing_url: null, captured_at: null };
 
 /**
  * Lê um objeto JSON guardado, tentando os dois armazenamentos.
