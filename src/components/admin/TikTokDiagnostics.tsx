@@ -130,8 +130,6 @@ const TikTokDiagnostics = () => {
   const semEventId = rows.filter((r) => !r.event_id).length;
   const porPixel = rows.filter((r) => r.source === "browser").length;
   const porEventsApi = rows.filter((r) => r.source === "server").length;
-  const porUtmify = rows.filter((r) => r.source === "utmify").length;
-  const utmifyAtivo = typeof window !== "undefined" && Boolean(document.querySelector("script[data-utmify-pixel]"));
   const webhookOk = rows.some((r) => r.event_name === "CompletePayment" && r.source === "server" && r.status === "sent");
 
   /** Último evento registrado para cada etapa do funil e origem. */
@@ -146,8 +144,6 @@ const TikTokDiagnostics = () => {
     { label: "Eventos enviados (24 h)", value: String(sent), ok: sent > 0 },
     { label: "Falhas (24 h)", value: String(failed), ok: failed === 0 },
     { label: "Duplicados bloqueados", value: String(duplicated), ok: true },
-    { label: "Pixel da Utmify", value: utmifyAtivo ? "Carregado" : "Não carregado", ok: utmifyAtivo },
-    { label: "Eventos da Utmify (24 h)", value: String(porUtmify), ok: true },
     { label: "Aviso de pagamento (webhook)", value: webhookOk ? "Conversão confirmada" : "Sem conversão nas 24 h", ok: webhookOk },
     { label: "Pelo Pixel / Events API", value: `${porPixel} / ${porEventsApi}`, ok: porPixel > 0 && porEventsApi > 0 },
     { label: "Sem ttclid", value: String(semTtclid), ok: semTtclid === 0 },

@@ -13,7 +13,6 @@ import { useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import { captureAttribution } from "@/lib/tracking/attribution";
 import { trackPageView } from "@/lib/tracking/tiktok";
-import { initUtmifyPixel } from "@/lib/tracking/utmify";
 
 /**
  * Componente de rastreamento global.
@@ -23,8 +22,6 @@ import { initUtmifyPixel } from "@/lib/tracking/utmify";
 const TikTokTracking = () => {
   const location = useLocation();
 
-  // Pixel da Utmify: carregado uma única vez, respeitando o consentimento.
-  useEffect(() => initUtmifyPixel(), []);
 
   useEffect(() => {
     // Captura imediata: garante que o ttclid não seja perdido em redirects.
