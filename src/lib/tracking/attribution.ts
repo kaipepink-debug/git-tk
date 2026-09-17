@@ -22,8 +22,17 @@ const LAST_KEY = "tt_attribution_last_v1";
 /** Chave da sessão de rastreamento (usada para montar event_id determinístico). */
 const SESSION_KEY = "tt_tracking_session_v1";
 
-/** Nomes de parâmetro aceitos para o Click ID do TikTok, em ordem de prioridade. */
-const CLICK_ID_PARAMS = ["ttclid", "ttclickid", "tt_clickid", "click_id", "clickid"];
+/**
+ * Nomes de parâmetro que REALMENTE contêm o Click ID do TikTok (ttclid).
+ * Somente estes podem alimentar o campo `ttclid` enviado à Events API.
+ */
+const TTCLID_PARAMS = ["ttclid", "ttclickid", "tt_clickid"];
+
+/**
+ * Click ID genérico (rastreadores próprios, Utmify, etc.). NÃO é o ttclid do TikTok
+ * e por isso é guardado em um campo separado — nunca enviado como `user.ttclid`.
+ */
+const CLICK_ID_PARAMS = ["click_id", "clickid", "cid"];
 
 /** Parâmetros de campanha preservados quando presentes na URL. */
 const CAMPAIGN_PARAMS = [
@@ -48,8 +57,10 @@ const CAMPAIGN_PARAMS = [
  * @description Conjunto de identificadores de atribuição guardados no navegador.
  */
 export interface Attribution {
-  /** Click ID do TikTok, exatamente como veio na URL. */
+  /** Click ID do TikTok (ttclid), exatamente como veio na URL. */
   ttclid: string | null;
+  /** Click ID genérico de outro rastreador (NÃO é o ttclid do TikTok). */
+  click_id: string | null;
   /** Identificador de visitante do pixel do TikTok (cookie `_ttp`). */
   ttp: string | null;
   /** Parâmetros de campanha (UTMs, IDs de campanha/anúncio etc.). */
@@ -61,7 +72,7 @@ export interface Attribution {
 }
 
 /** Estrutura vazia usada como padrão. */
-const EMPTY: Attribution = { ttclid: null, ttp: null, utm: {}, landing_url: null, captured_at: null };
+const EMPTY: Attribution = { ttclid: null, click_id: null, ttp: null, utm: {}, landing_url: null, captured_at: null };
 
 /**
  * Lê um objeto JSON guardado, tentando os dois armazenamentos.
@@ -140,15 +151,28 @@ export function captureAttribution(): Attribution {
 
   const previousLast = read(LAST_KEY) ?? EMPTY;
   let ttclid: string | null = null;
+  let clickId: string | null = null;
+  let ttpFromUrl: string | null = null;
   const utm: Record<string, string> = {};
 
   try {
     const params = new URLSearchParams(window.location.search);
 
-    for (const name of CLICK_ID_PARAMS) {
+    // ttclid do TikTok: somente parâmetros oficiais.
+    for (const name of TTCLID_PARAMS) {
       const value = params.get(name);
       if (value && value.trim()) { ttclid = value; break; }
     }
+
+    // Click ID genérico de outros rastreadores (guardado separadamente).
+    for (const name of CLICK_ID_PARAMS) {
+      const value = params.get(name);
+      if (value && value.trim()) { clickId = value; break; }
+    }
+
+    // Alguns fluxos repassam o `ttp` pela URL (redirect entre páginas/domínios).
+    const ttpParam = params.get("ttp") || params.get("_ttp");
+    if (ttpParam && ttpParam.trim()) ttpFromUrl = ttpParam;
 
     for (const name of CAMPAIGN_PARAMS) {
       const value = params.get(name);
@@ -158,22 +182,24 @@ export function captureAttribution(): Attribution {
     console.warn("Não foi possível ler os parâmetros de rastreamento da URL.", err);
   }
 
-  const ttp = readTtpCookie();
+  const ttp = readTtpCookie() || ttpFromUrl;
 
   // Mescla: valores novos válidos ganham; ausentes preservam o que já existia.
   const merged: Attribution = {
     ttclid: ttclid || previousLast.ttclid || null,
+    click_id: clickId || previousLast.click_id || null,
     ttp: ttp || previousLast.ttp || null,
     utm: Object.keys(utm).length ? { ...previousLast.utm, ...utm } : previousLast.utm,
     landing_url: previousLast.landing_url || window.location.href,
-    captured_at: ttclid || Object.keys(utm).length ? new Date().toISOString() : previousLast.captured_at,
+    captured_at:
+      ttclid || clickId || Object.keys(utm).length ? new Date().toISOString() : previousLast.captured_at,
   };
 
   write(LAST_KEY, merged);
 
   // Primeiro toque: gravado apenas uma vez, quando há algum identificador real.
   const first = read(FIRST_KEY);
-  if (!first?.ttclid && (merged.ttclid || Object.keys(merged.utm).length)) {
+  if (!first?.ttclid && !first?.click_id && (merged.ttclid || merged.click_id || Object.keys(merged.utm).length)) {
     write(FIRST_KEY, { ...merged, landing_url: window.location.href, captured_at: new Date().toISOString() });
   }
 

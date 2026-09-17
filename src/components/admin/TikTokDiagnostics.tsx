@@ -31,6 +31,10 @@ interface EventRow {
   retry_count: number;
   dedup_blocked: boolean;
   ttclid: string | null;
+  ttp: string | null;
+  external_id: string | null;
+  content_id: string | null;
+  utm: Record<string, unknown> | null;
   created_at: string;
 }
 
@@ -119,6 +123,17 @@ const TikTokDiagnostics = () => {
   const duplicated = rows.filter((r) => r.dedup_blocked || r.status === "duplicado").length;
   const serverOk = rows.some((r) => r.source === "server" && r.status === "sent");
 
+  /** Contagens de qualidade dos dados enviados (últimas 24 h). */
+  const semTtclid = rows.filter((r) => !r.ttclid).length;
+  const semClickId = rows.filter((r) => !(r.utm && (r.utm as any).click_id)).length;
+  const semUtm = rows.filter((r) => !r.utm || Object.keys(r.utm).length === 0).length;
+  const semEventId = rows.filter((r) => !r.event_id).length;
+  const porPixel = rows.filter((r) => r.source === "browser").length;
+  const porEventsApi = rows.filter((r) => r.source === "server").length;
+  const porUtmify = rows.filter((r) => r.source === "utmify").length;
+  const utmifyAtivo = typeof window !== "undefined" && Boolean(document.querySelector("script[data-utmify-pixel]"));
+  const webhookOk = rows.some((r) => r.event_name === "CompletePayment" && r.source === "server" && r.status === "sent");
+
   /** Último evento registrado para cada etapa do funil e origem. */
   const lastByEvent = (name: string, source?: string) =>
     rows.find((r) => r.event_name === name && (!source || r.source === source) && !r.dedup_blocked);
@@ -127,10 +142,18 @@ const TikTokDiagnostics = () => {
     { label: "Pixel no navegador", value: pixelReady ? "Ativo" : "Não carregado", ok: pixelReady },
     { label: "ID do Pixel", value: TIKTOK_PIXEL_ID, ok: true },
     { label: "Envio pelo servidor", value: serverOk ? "Funcionando" : "Sem envios ainda", ok: serverOk },
-    { label: "Token da Events API", value: "••••••••••••ABCD (protegido)", ok: true },
+    { label: "Token da Events API", value: "Guardado no servidor (oculto)", ok: true },
     { label: "Eventos enviados (24 h)", value: String(sent), ok: sent > 0 },
     { label: "Falhas (24 h)", value: String(failed), ok: failed === 0 },
     { label: "Duplicados bloqueados", value: String(duplicated), ok: true },
+    { label: "Pixel da Utmify", value: utmifyAtivo ? "Carregado" : "Não carregado", ok: utmifyAtivo },
+    { label: "Eventos da Utmify (24 h)", value: String(porUtmify), ok: true },
+    { label: "Aviso de pagamento (webhook)", value: webhookOk ? "Conversão confirmada" : "Sem conversão nas 24 h", ok: webhookOk },
+    { label: "Pelo Pixel / Events API", value: `${porPixel} / ${porEventsApi}`, ok: porPixel > 0 && porEventsApi > 0 },
+    { label: "Sem ttclid", value: String(semTtclid), ok: semTtclid === 0 },
+    { label: "Sem click_id", value: String(semClickId), ok: true },
+    { label: "Sem parâmetros de campanha", value: String(semUtm), ok: semUtm === 0 },
+    { label: "Sem event_id", value: String(semEventId), ok: semEventId === 0 },
   ];
 
   return (
@@ -225,6 +248,56 @@ const TikTokDiagnostics = () => {
           </ul>
         </div>
       )}
+
+      {/* Detalhamento dos últimos eventos registrados */}
+      <div className="rounded-lg border border-border bg-card p-4 overflow-x-auto">
+        <h3 className="text-sm font-semibold text-foreground mb-3">Últimos eventos (detalhado)</h3>
+        <table className="w-full text-xs">
+          <thead>
+            <tr className="text-left text-muted-foreground border-b border-border">
+              <th className="py-2 pr-3">Quando</th>
+              <th className="py-2 pr-3">Evento</th>
+              <th className="py-2 pr-3">Origem</th>
+              <th className="py-2 pr-3">Status</th>
+              <th className="py-2 pr-3">HTTP</th>
+              <th className="py-2 pr-3">Valor</th>
+              <th className="py-2 pr-3">event_id</th>
+              <th className="py-2 pr-3">ttclid</th>
+              <th className="py-2 pr-3">click_id</th>
+              <th className="py-2 pr-3">Campanha</th>
+              <th className="py-2 pr-3">Pedido</th>
+              <th className="py-2">Resposta / erro</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.slice(0, 40).map((r) => {
+              const utm = (r.utm || {}) as Record<string, unknown>;
+              const clickId = utm.click_id ? String(utm.click_id) : null;
+              const campanha = [utm.utm_source, utm.utm_medium, utm.utm_campaign]
+                .filter(Boolean)
+                .join(" · ");
+              return (
+                <tr key={r.id} className="border-b border-border/50">
+                  <td className="py-2 pr-3 whitespace-nowrap">{fmtDate(r.created_at)}</td>
+                  <td className="py-2 pr-3 font-medium text-foreground">{r.event_name}</td>
+                  <td className="py-2 pr-3">
+                    {r.source === "browser" ? "Navegador" : r.source === "server" ? "Events API" : "Utmify"}
+                  </td>
+                  <td className={`py-2 pr-3 ${r.status === "sent" ? "" : "text-destructive"}`}>{r.status}</td>
+                  <td className="py-2 pr-3">{r.http_status ?? "—"}</td>
+                  <td className="py-2 pr-3">{r.value ? `R$ ${Number(r.value).toFixed(2)}` : "—"}</td>
+                  <td className="py-2 pr-3 font-mono">{short(r.event_id)}</td>
+                  <td className="py-2 pr-3 font-mono">{short(r.ttclid)}</td>
+                  <td className="py-2 pr-3 font-mono">{short(clickId)}</td>
+                  <td className="py-2 pr-3">{campanha || "—"}</td>
+                  <td className="py-2 pr-3 font-mono">{short(r.external_id)}</td>
+                  <td className="py-2">{r.error_message ? r.error_message.slice(0, 80) : r.status === "sent" ? "OK (code 0)" : "—"}</td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 };

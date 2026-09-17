@@ -114,6 +114,9 @@ serve(async (req) => {
     const rawValue = Number(body?.value);
     const value = Number.isFinite(rawValue) && rawValue > 0 ? rawValue : null;
     const externalIdRaw = body?.external_id ? String(body.external_id) : null;
+    const clickId = typeof body?.click_id === 'string' && body.click_id.trim() ? body.click_id.trim() : null;
+    // Log técnico: guarda o click_id junto dos parâmetros de campanha, para o painel.
+    const utmLog = clickId ? { ...(utm || {}), click_id: clickId } : utm;
 
     // ---------------------------------------------------------------------
     // Deduplicação: a linha de log funciona como "reserva" do envio. O índice
@@ -130,8 +133,10 @@ serve(async (req) => {
       ttclid,
       ttp,
       content_id: contentId,
-      external_id: externalIdRaw ? await sha256(externalIdRaw) : null,
-      utm,
+      // Identificador da transação/pedido em texto (não é dado pessoal). O hash
+      // exigido pelo TikTok é calculado apenas no envio.
+      external_id: externalIdRaw,
+      utm: utmLog,
       retry_count: 0,
     };
 
@@ -170,7 +175,10 @@ serve(async (req) => {
       if (digits.length >= 10) user.phone = await sha256(`+55${digits.slice(-11)}`);
     }
     if (externalIdRaw) user.external_id = await sha256(externalIdRaw);
-    if (typeof body?.ip === 'string' && body.ip) user.ip = body.ip;
+    // IP: usa o informado ou, na falta, o IP real da requisição (melhora a correspondência).
+    const forwardedIp = (req.headers.get('x-forwarded-for') || '').split(',')[0].trim();
+    const ip = (typeof body?.ip === 'string' && body.ip) ? body.ip : forwardedIp;
+    if (ip) user.ip = ip;
     if (typeof body?.user_agent === 'string' && body.user_agent) user.user_agent = body.user_agent;
     if (ttclid) user.ttclid = ttclid;
     if (ttp) user.ttp = ttp;
@@ -180,6 +188,10 @@ serve(async (req) => {
     if (value !== null) properties.value = value;
     if (body?.order_id) properties.order_id = String(body.order_id);
     if (body?.description) properties.description = String(body.description);
+    // Click ID de outro rastreador: informativo. NUNCA vai para user.ttclid.
+    if (typeof body?.click_id === 'string' && body.click_id.trim()) {
+      properties.click_id = body.click_id.trim().slice(0, 255);
+    }
     if (contentId) {
       const quantity = Number(body?.quantity) > 0 ? Number(body.quantity) : 1;
       properties.content_type = 'product';

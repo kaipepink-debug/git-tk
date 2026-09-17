@@ -179,9 +179,13 @@ serve(async (req) => {
           const value = Number.isFinite(cents) && cents > 0 ? cents / 100 : undefined;
 
           // Produto real da loja (evita identificadores desatualizados no evento).
+          // Produto ATIVO mais recente da loja (antes bastava "o primeiro da lista",
+          // o que podia enviar um produto antigo/desativado no evento de compra).
           const { data: prod } = await supabaseAdmin
             .from('products')
             .select('id, title')
+            .eq('is_active', true)
+            .order('updated_at', { ascending: false })
             .limit(1)
             .maybeSingle();
 
@@ -205,6 +209,8 @@ serve(async (req) => {
               ttclid: order.ttclid || undefined,
               ttp: order.ttp || undefined,
               utm: order.utm || undefined,
+              // Click ID de outro rastreador, guardado junto dos parâmetros de campanha.
+              click_id: (order.utm && (order.utm as any).click_id) || undefined,
               email: order.customer_email || undefined,
               phone: order.customer_phone || undefined,
             }),

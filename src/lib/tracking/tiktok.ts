@@ -76,6 +76,13 @@ declare global {
 /** Evita carregar o pixel mais de uma vez por página. */
 let pixelLoading = false;
 
+/**
+ * O script oficial do TikTok já registra automaticamente a primeira visualização de
+ * página ao carregar. Esta marca indica que essa visualização automática já foi
+ * "consumida", evitando Pageview duplicado na rota inicial.
+ */
+let autoPageviewConsumed = false;
+
 /** Item aguardando o consentimento do cliente para ser enviado. */
 type PendingItem =
   | { kind: "event"; event: TikTokEventName; params: TrackParams }
@@ -232,7 +239,10 @@ async function logBrowserEvent(event: TikTokEventName, params: TrackParams, stat
       ttp: attribution.ttp,
       content_id: params.contentId ?? null,
       external_id: params.externalId ?? null,
-      utm: Object.keys(attribution.utm).length ? attribution.utm : null,
+      // O click_id genérico entra junto dos parâmetros de campanha (não é ttclid).
+      utm: Object.keys(attribution.utm).length || attribution.click_id
+        ? { ...attribution.utm, ...(attribution.click_id ? { click_id: attribution.click_id } : {}) }
+        : null,
       dedup_blocked: status === "duplicado",
     });
   } catch (err) {
@@ -264,6 +274,7 @@ async function mirrorToServer(event: TikTokEventName, params: TrackParams) {
         phone: params.phone,
         external_id: params.externalId,
         ttclid: attribution.ttclid,
+        click_id: attribution.click_id,
         ttp: attribution.ttp,
         utm: attribution.utm,
         url: window.location.href,
@@ -322,6 +333,8 @@ export async function trackTikTokEvent(event: TikTokEventName, params: TrackPara
     if (value) properties[key] = String(value).slice(0, 255);
   }
   if (attributionNow.ttclid) properties.ttclid = attributionNow.ttclid;
+  // Click ID de outro rastreador: enviado como propriedade informativa, NUNCA como ttclid.
+  if (attributionNow.click_id) properties.click_id = attributionNow.click_id;
   if (params.contentId) {
     properties.content_type = "product";
     properties.content_id = params.contentId;
@@ -385,11 +398,17 @@ export async function trackPageView(path: string) {
   markFired(eventId);
 
   try {
-    window.ttq?.page();
+    // O script do TikTok já dispara automaticamente UMA visualização ao carregar.
+    // Chamar `page()` também nesse primeiro momento geraria Pageview duplicado;
+    // por isso o disparo manual vale apenas para as trocas de rota seguintes (SPA).
+    if (autoPageviewConsumed) window.ttq?.page();
+    else autoPageviewConsumed = true;
   } catch (err) {
     console.warn("Falha ao registrar a visualização de página:", err);
   }
   void logBrowserEvent("Pageview", { eventId, currency: "BRL" }, "sent");
+  // Espelho no servidor com o MESMO event_id (o TikTok deduplica navegador + servidor).
+  void mirrorToServer("Pageview", { eventId, currency: "BRL" });
 }
 
 /**

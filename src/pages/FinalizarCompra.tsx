@@ -325,7 +325,12 @@ const FinalizarCompra = () => {
                   // Identificadores do clique no anúncio do TikTok (atribuição da venda)
                   ttclid: attribution.ttclid,
                   ttp: attribution.ttp,
-                  utm: attribution.utm,
+                  // O click_id de outro rastreador viaja junto dos parâmetros de campanha,
+                  // preservado no pedido para a conversão enviada pelo servidor.
+                  utm: {
+                    ...attribution.utm,
+                    ...(attribution.click_id ? { click_id: attribution.click_id } : {}),
+                  },
                   customer: {
                     name: enderecoData.nome,
                     email: enderecoData.email,
