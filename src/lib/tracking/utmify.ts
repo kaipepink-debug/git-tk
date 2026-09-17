@@ -8,7 +8,9 @@
  * Aqui a mesma ação é feita de forma explícita e auditável.
  */
 
+import { supabase } from "@/integrations/supabase/client";
 import { isAdsTrackingAllowed, onConsentChange } from "@/lib/consent";
+import { getAttribution } from "@/lib/tracking/attribution";
 
 /** URL oficial do pixel da Utmify. */
 const UTMIFY_PIXEL_SRC = "https://cdn.utmify.com.br/scripts/pixel/pixel-tiktok.js";
