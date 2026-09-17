@@ -76,6 +76,13 @@ declare global {
 /** Evita carregar o pixel mais de uma vez por página. */
 let pixelLoading = false;
 
+/**
+ * O script oficial do TikTok já registra automaticamente a primeira visualização de
+ * página ao carregar. Esta marca indica que essa visualização automática já foi
+ * "consumida", evitando Pageview duplicado na rota inicial.
+ */
+let autoPageviewConsumed = false;
+
 /** Item aguardando o consentimento do cliente para ser enviado. */
 type PendingItem =
   | { kind: "event"; event: TikTokEventName; params: TrackParams }
@@ -391,11 +398,17 @@ export async function trackPageView(path: string) {
   markFired(eventId);
 
   try {
-    window.ttq?.page();
+    // O script do TikTok já dispara automaticamente UMA visualização ao carregar.
+    // Chamar `page()` também nesse primeiro momento geraria Pageview duplicado;
+    // por isso o disparo manual vale apenas para as trocas de rota seguintes (SPA).
+    if (autoPageviewConsumed) window.ttq?.page();
+    else autoPageviewConsumed = true;
   } catch (err) {
     console.warn("Falha ao registrar a visualização de página:", err);
   }
   void logBrowserEvent("Pageview", { eventId, currency: "BRL" }, "sent");
+  // Espelho no servidor com o MESMO event_id (o TikTok deduplica navegador + servidor).
+  void mirrorToServer("Pageview", { eventId, currency: "BRL" });
 }
 
 /**
