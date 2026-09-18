@@ -30,6 +30,8 @@ function getSessionId() {
 
 /** URL pública da função de rastreamento (usada pelo sendBeacon). */
 const FN_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/track-session`;
+/** Chave pública (publicável) usada no aviso de saída enviado durante o unload */
+const ANON_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string;
 
 const SessionTracker = () => {
   const location = useLocation();
@@ -59,19 +61,27 @@ const SessionTracker = () => {
       });
     };
 
-    /** Marca a saída imediatamente (sem depender do timeout do servidor) */
+    /**
+     * Marca a saída imediatamente, sem esperar o timeout do servidor.
+     * Usamos fetch com keepalive (sobrevive ao fechamento da aba) porque o
+     * sendBeacon não envia os cabeçalhos de autenticação exigidos pela função.
+     */
     const leave = () => {
       if (leftRef.current) return;
       leftRef.current = true;
       try {
-        navigator.sendBeacon(
-          FN_URL,
-          new Blob([JSON.stringify({ session_id: sessionId, action: "leave" })], {
-            type: "application/json",
-          }),
-        );
+        fetch(FN_URL, {
+          method: "POST",
+          keepalive: true,
+          headers: {
+            "Content-Type": "application/json",
+            apikey: ANON_KEY,
+            Authorization: `Bearer ${ANON_KEY}`,
+          },
+          body: JSON.stringify({ session_id: sessionId, action: "leave" }),
+        }).catch(() => { /* o servidor expira a sessão em 15s de qualquer forma */ });
       } catch {
-        /* navegadores sem sendBeacon: o servidor expira a sessão sozinho */
+        /* silencioso: fallback é a expiração automática no servidor */
       }
     };
 
