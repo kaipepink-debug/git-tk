@@ -5,6 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ScrollToTop } from "./components/ScrollToTop";
+import SessionTracker from "./components/SessionTracker";
 import TikTokTracking from "./components/TikTokTracking";
 import ConsentBanner from "./components/ConsentBanner";
 import Index from "./pages/Index";
@@ -39,6 +40,8 @@ const App = () => (
       <ProductProvider>
         <BrowserRouter>
           <ScrollToTop />
+          {/* Presença em tempo real (LiveView do painel) */}
+          <SessionTracker />
           {/* Rastreamento do TikTok (respeita o consentimento) e aviso de cookies */}
           <TikTokTracking />
           <ConsentBanner />

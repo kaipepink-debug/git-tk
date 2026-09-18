@@ -34,7 +34,12 @@ interface ActiveSession {
   session_id: string;
   page: string;
   last_seen_at: string;
+  user_agent?: string | null;
+  created_at?: string;
 }
+
+/** Tempo (ms) sem heartbeat para considerar o visitante como saído do site */
+const SESSION_TTL_MS = 15000;
 
 /**
  * Interface representando um pedido realizado.
@@ -160,14 +165,27 @@ const AdminDashboard = () => {
   useEffect(() => {
     if (!isAdmin) return;
 
+    /**
+     * Busca as sessões ativas descartando, já no cliente, quem passou do TTL
+     * sem heartbeat — assim a saída aparece na hora, sem esperar a limpeza do banco.
+     */
+    const fetchSessions = async () => {
+      const cutoff = Date.now() - SESSION_TTL_MS;
+      const { data } = await supabase
+        .from("active_sessions")
+        .select("*")
+        .gte("last_seen_at", new Date(cutoff).toISOString())
+        .order("last_seen_at", { ascending: false });
+      if (data) setSessions(data as ActiveSession[]);
+    };
+
     const fetchAll = async () => {
-      const [sessRes, ordRes, pixRes, gwRes] = await Promise.all([
-        supabase.from("active_sessions").select("*").order("last_seen_at", { ascending: false }),
+      const [ordRes, pixRes, gwRes] = await Promise.all([
         supabase.from("orders").select("*").order("created_at", { ascending: false }).limit(5000),
         supabase.from("site_settings").select("value").eq("key", "tiktok_pixel_id").single(),
         supabase.from("gateway_settings").select("gateway_name").eq("is_active", true).single(),
       ]);
-      if (sessRes.data) setSessions(sessRes.data as ActiveSession[]);
+      await fetchSessions();
       if (ordRes.data) setOrders(ordRes.data as Order[]);
       if (pixRes.data) setTikTokPixelId(pixRes.data.value);
       if (gwRes.data) setActiveGateway(gwRes.data.gateway_name);
@@ -187,20 +205,16 @@ const AdminDashboard = () => {
       })
       .subscribe();
 
-    // Inscrição para sessões ativas
+    // Inscrição em tempo real: entrada, troca de página e saída de visitantes
     const sessChannel = supabase
       .channel("sess-rt")
-      .on("postgres_changes", { event: "*", schema: "public", table: "active_sessions" }, async () => {
-        const { data } = await supabase.from("active_sessions").select("*").order("last_seen_at", { ascending: false });
-        if (data) setSessions(data as ActiveSession[]);
+      .on("postgres_changes", { event: "*", schema: "public", table: "active_sessions" }, () => {
+        fetchSessions();
       })
       .subscribe();
 
-    // Intervalo para atualizar sessões a cada 10s
-    const interval = setInterval(async () => {
-      const { data } = await supabase.from("active_sessions").select("*").order("last_seen_at", { ascending: false });
-      if (data) setSessions(data as ActiveSession[]);
-    }, 10000);
+    // Rede de segurança: revalida (e expira) as sessões a cada 3s
+    const interval = setInterval(fetchSessions, 3000);
 
     // Verificação de pagamentos Pix pendentes via Edge Function
     const paymentInterval = setInterval(async () => {

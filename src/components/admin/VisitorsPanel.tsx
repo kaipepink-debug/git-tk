@@ -17,6 +17,7 @@ interface ActiveSession {
   page: string;
   last_seen_at: string;
   user_agent?: string | null;
+  created_at?: string;
 }
 
 /**
@@ -48,6 +49,12 @@ const pageLabels: Record<string, string> = {
  */
 const VisitorsPanel = ({ sessions }: VisitorsPanelProps) => {
   const [presellUnlocks, setPresellUnlocks] = useState(0);
+  // Força re-render a cada segundo para os contadores de tempo andarem ao vivo
+  const [, setTick] = useState(0);
+  useEffect(() => {
+    const t = setInterval(() => setTick((v) => v + 1), 1000);
+    return () => clearInterval(t);
+  }, []);
 
   // Busca o contador de desbloqueios de pre-sell do dia
   useEffect(() => {
@@ -81,6 +88,15 @@ const VisitorsPanel = ({ sessions }: VisitorsPanelProps) => {
   /**
    * Calcula há quanto tempo a sessão foi vista pela última vez.
    */
+  /** Tempo total que o visitante está navegando no site */
+  const getDuration = (startStr: string) => {
+    const secs = Math.max(0, Math.floor((Date.now() - new Date(startStr).getTime()) / 1000));
+    if (secs < 60) return `${secs}s`;
+    const mins = Math.floor(secs / 60);
+    if (mins < 60) return `${mins}m ${secs % 60}s`;
+    return `${Math.floor(mins / 60)}h ${mins % 60}m`;
+  };
+
   const getTimeSince = (dateStr: string) => {
     const diff = Math.floor((Date.now() - new Date(dateStr).getTime()) / 1000);
     if (diff < 10) return "agora";
@@ -190,9 +206,16 @@ const VisitorsPanel = ({ sessions }: VisitorsPanelProps) => {
                     <p className="text-[9px] text-[hsl(220,10%,30%)] font-mono">{s.session_id.slice(0, 8)}</p>
                   </div>
                 </div>
-                <div className="flex items-center gap-1 text-[hsl(220,10%,35%)]">
-                  <Clock className="w-3 h-3" />
-                  <span className="text-[9px]">{getTimeSince(s.last_seen_at)}</span>
+                <div className="flex flex-col items-end gap-0.5 text-[hsl(220,10%,35%)]">
+                  <div className="flex items-center gap-1">
+                    <Clock className="w-3 h-3" />
+                    <span className="text-[9px]">{getTimeSince(s.last_seen_at)}</span>
+                  </div>
+                  {s.created_at && (
+                    <span className="text-[9px] text-[hsl(220,10%,30%)]">
+                      no site: {getDuration(s.created_at)}
+                    </span>
+                  )}
                 </div>
               </div>
             ))}
