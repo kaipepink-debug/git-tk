@@ -1,3 +1,0 @@
-UPDATE product_reviews SET photos = '["https://obtjwxuspfvhnijncwud.supabase.co/storage/v1/object/public/product-images/reviews/review10-1.webp","https://obtjwxuspfvhnijncwud.supabase.co/storage/v1/object/public/product-images/reviews/review10-2.webp"]'::jsonb WHERE id = 'cb879243-f7d6-4c01-94fe-949a9712a9b3';
-
-UPDATE product_reviews SET photos = '["https://obtjwxuspfvhnijncwud.supabase.co/storage/v1/object/public/product-images/reviews/review11-video.mp4","https://obtjwxuspfvhnijncwud.supabase.co/storage/v1/object/public/product-images/reviews/review11-1.webp","https://obtjwxuspfvhnijncwud.supabase.co/storage/v1/object/public/product-images/reviews/review11-2.webp"]'::jsonb WHERE id = '52061c58-fe1a-4068-b2c1-dec6bc890db0';

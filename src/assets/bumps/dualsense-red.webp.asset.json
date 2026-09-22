@@ -1,11 +1,11 @@
 {
-  "version": 1,
   "asset_id": "57bbe2f3-e8fd-4d51-b269-dd915c02cad1",
-  "project_id": "918dbc0f-73a5-4fb5-b229-99170d063e03",
-  "url": "/__l5e/assets-v1/57bbe2f3-e8fd-4d51-b269-dd915c02cad1/dualsense-red.webp",
-  "r2_key": "a/v1/918dbc0f-73a5-4fb5-b229-99170d063e03/57bbe2f3-e8fd-4d51-b269-dd915c02cad1/dualsense-red.webp",
-  "original_filename": "dualsense-red.webp",
-  "size": 21340,
   "content_type": "image/webp",
-  "created_at": "2026-09-16T12:16:20Z"
+  "created_at": "2026-09-16T12:16:20Z",
+  "original_filename": "dualsense-red.webp",
+  "project_id": "fe1e47b1-59d8-4851-a32d-f3b7f3e1a5b3",
+  "r2_key": "a/v1/fe1e47b1-59d8-4851-a32d-f3b7f3e1a5b3/57bbe2f3-e8fd-4d51-b269-dd915c02cad1/dualsense-red.webp",
+  "size": 21340,
+  "url": "/__l5e/assets-v1/57bbe2f3-e8fd-4d51-b269-dd915c02cad1/dualsense-red.webp",
+  "version": 1
 }

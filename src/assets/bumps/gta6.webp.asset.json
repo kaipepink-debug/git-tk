@@ -1,11 +1,11 @@
 {
-  "version": 1,
   "asset_id": "597e1947-eb90-44e3-8cf5-80378d3f049a",
-  "project_id": "918dbc0f-73a5-4fb5-b229-99170d063e03",
-  "url": "/__l5e/assets-v1/597e1947-eb90-44e3-8cf5-80378d3f049a/gta6.webp",
-  "r2_key": "a/v1/918dbc0f-73a5-4fb5-b229-99170d063e03/597e1947-eb90-44e3-8cf5-80378d3f049a/gta6.webp",
-  "original_filename": "gta6.webp",
-  "size": 94410,
   "content_type": "image/webp",
-  "created_at": "2026-09-16T12:16:15Z"
+  "created_at": "2026-09-16T12:16:15Z",
+  "original_filename": "gta6.webp",
+  "project_id": "fe1e47b1-59d8-4851-a32d-f3b7f3e1a5b3",
+  "r2_key": "a/v1/fe1e47b1-59d8-4851-a32d-f3b7f3e1a5b3/597e1947-eb90-44e3-8cf5-80378d3f049a/gta6.webp",
+  "size": 94410,
+  "url": "/__l5e/assets-v1/597e1947-eb90-44e3-8cf5-80378d3f049a/gta6.webp",
+  "version": 1
 }

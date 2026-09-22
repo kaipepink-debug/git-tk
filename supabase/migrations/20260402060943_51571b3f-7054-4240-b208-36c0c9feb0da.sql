@@ -1,1 +1,0 @@
-UPDATE products SET sold_count = 9547, rating_count = 456 WHERE id = '8dc841c3-9966-4da1-b428-11a7dc6dd783';
