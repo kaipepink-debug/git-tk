@@ -65,3 +65,11 @@
 #lovable-badge {
   display: none !important;
 }
+
+/* Aparecimento suave das imagens secundárias (placeholder = fundo do contêiner) */
+img[data-fade] {
+  transition: opacity 250ms ease;
+}
+img[data-fade]:not([data-loaded]) {
+  opacity: 0;
+}

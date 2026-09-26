@@ -116,6 +116,7 @@ const ImageCarousel = () => {
                 width={500}
                 height={500}
                 onLoad={i === 0 ? () => setFirstLoaded(true) : undefined}
+                {...(i === 0 ? {} : { "data-fade": "" })}
               />
             )}
           </div>

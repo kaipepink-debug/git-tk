@@ -111,6 +111,7 @@ const MediaCarousel = ({
           key={current}
           src={current}
           alt=""
+          decoding="async"
           className="max-h-full max-w-full object-contain rounded-lg"
         />
 
@@ -128,10 +129,10 @@ const MediaCarousel = ({
             <button
               key={i}
               onClick={() => setIdx(i)}
-              className="w-12 h-12 rounded flex-shrink-0 overflow-hidden border-2 transition-all"
+              className="w-12 h-12 rounded flex-shrink-0 overflow-hidden border-2 transition-all bg-muted"
               style={{ borderColor: i === idx ? "hsl(var(--primary))" : "transparent", opacity: i === idx ? 1 : 0.5 }}
             >
-              <img src={item} alt="" className="w-full h-full object-cover" />
+              <img src={item} alt="" className="w-full h-full object-cover" loading="lazy" decoding="async" width={48} height={48} data-fade="" />
             </button>
           ))}
         </div>
@@ -177,7 +178,7 @@ const ReviewsSection = () => {
               {/* Autor da avaliação */}
               <div className="flex items-center gap-2 mb-2">
                 {review.avatar_url ? (
-                  <img src={review.avatar_url} alt="" className="w-8 h-8 rounded-full object-cover" loading="lazy" decoding="async" width={32} height={32} />
+                  <img src={review.avatar_url} alt="" className="w-8 h-8 rounded-full object-cover" loading="lazy" decoding="async" width={32} height={32} data-fade="" />
                 ) : (
                   <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground text-sm font-bold">
                     {review.reviewer_initial}
@@ -212,9 +213,9 @@ const ReviewsSection = () => {
                     <button
                       key={j}
                       onClick={() => setCarousel({ items: review.photos, index: j })}
-                      className="relative w-20 h-20 rounded overflow-hidden flex-shrink-0"
+                      className="relative w-20 h-20 rounded overflow-hidden flex-shrink-0 bg-muted"
                     >
-                      <img src={media} alt="Foto da avaliação" className="w-full h-full object-cover" loading="lazy" decoding="async" width={80} height={80} />
+                      <img src={media} alt="Foto da avaliação" className="w-full h-full object-cover" loading="lazy" decoding="async" width={80} height={80} data-fade="" />
                     </button>
                   ))}
                 </div>
