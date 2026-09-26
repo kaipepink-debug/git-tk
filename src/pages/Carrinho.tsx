@@ -18,6 +18,7 @@ import { trackAddToCart } from "@/lib/tracking/tiktok";
  * Gerencia a visualização do produto escolhido e cálculos de total.
  */
 const Carrinho = () => {
+  useEffect(() => { prefetchPage("checkout"); prefetchPage("pix"); }, []);
   // Rastreia a navegação do usuário
   const navigate = useNavigate();
   

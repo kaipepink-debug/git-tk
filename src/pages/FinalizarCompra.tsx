@@ -37,6 +37,7 @@ interface EnderecoData {
  * Centraliza a lógica de cálculo de totais, seleção de frete e integração com o gateway de pagamento.
  */
 const FinalizarCompra = () => {
+  useEffect(() => { prefetchPage("pix"); }, []);
   // Rastreia a navegação
 
   const navigate = useNavigate();
