@@ -190,10 +190,11 @@ const AdicionarEndereco = () => {
               <span className="text-sm text-muted-foreground pr-3 py-2">BR +55</span>
               <input
                 type="tel"
+                inputMode="tel"
                 placeholder="Número de telefone"
                 value={telefone}
                 onChange={(e) => { setTelefone(formatarTelefone(e.target.value)); setErrors(p => ({ ...p, telefone: "" })); }}
-                className="flex-1 py-2 text-sm text-foreground placeholder:text-muted-foreground outline-none bg-transparent"
+                className="flex-1 py-2 text-base text-foreground placeholder:text-muted-foreground outline-none bg-transparent"
               />
             </div>
             {errors.telefone && <p className="text-xs py-0.5" style={{ color: "#FF2B56" }}>{errors.telefone}</p>}
@@ -213,10 +214,11 @@ const AdicionarEndereco = () => {
             <label className="text-xs text-muted-foreground mt-2 block">CPF<span className="text-[#FF2B56]"> *</span></label>
             <input
               type="text"
+              inputMode="numeric"
               placeholder="000.000.000-00"
               value={cpf}
               onChange={(e) => { setCpf(formatarCpf(e.target.value)); setErrors(p => ({ ...p, cpf: "" })); }}
-              className={`w-full py-2 text-sm text-foreground placeholder:text-muted-foreground outline-none bg-transparent ${errors.cpf ? "border-b border-[#FF2B56]" : ""}`}
+              className={`w-full py-2 text-base text-foreground placeholder:text-muted-foreground outline-none bg-transparent ${errors.cpf ? "border-b border-[#FF2B56]" : ""}`}
             />
             {errors.cpf && <p className="text-xs py-0.5" style={{ color: "#FF2B56" }}>{errors.cpf}</p>}
           </div>
@@ -231,10 +233,11 @@ const AdicionarEndereco = () => {
             <label className="text-xs text-muted-foreground">CEP/Código postal<span className="text-[#FF2B56]"> *</span></label>
             <input
               type="text"
+              inputMode="numeric"
               placeholder="00000-000"
               value={cep}
               onChange={(e) => { handleCepChange(e.target.value); setErrors(p => ({ ...p, cep: "" })); }}
-              className={`w-full py-2 border-b text-sm text-foreground placeholder:text-muted-foreground outline-none bg-transparent ${errors.cep ? "border-[#FF2B56]" : "border-border"}`}
+              className={`w-full py-2 border-b text-base text-foreground placeholder:text-muted-foreground outline-none bg-transparent ${errors.cep ? "border-[#FF2B56]" : "border-border"}`}
             />
           </div>
           {errors.cep && <p className="text-xs py-0.5" style={{ color: "#FF2B56" }}>{errors.cep}</p>}
