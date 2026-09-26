@@ -23,7 +23,7 @@ const PoliticaEnvio = () => {
       </div>
 
       <div className="px-4 py-6 space-y-4 text-sm text-muted-foreground leading-relaxed max-w-2xl mx-auto">
-        <p>A JP Variedades LTDA se compromete a enviar seus pedidos com agilidade e segurança.</p>
+        <p>A MONSTER MOBILIDADE LTDA se compromete a enviar seus pedidos com agilidade e segurança.</p>
 
         <h2 className="text-base font-semibold text-foreground">1. Prazo de Envio</h2>
         <p>Após a confirmação do pagamento, o pedido será enviado em até 3 dias úteis. O prazo de entrega varia conforme a região e a transportadora utilizada.</p>

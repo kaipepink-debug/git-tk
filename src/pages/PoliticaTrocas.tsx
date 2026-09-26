@@ -25,7 +25,7 @@ const PoliticaTrocas = () => {
       </div>
 
       <div className="px-4 py-6 space-y-4 text-sm text-muted-foreground leading-relaxed max-w-2xl mx-auto">
-        <p>A JP Variedades LTDA segue o Código de Defesa do Consumidor (CDC) em relação a trocas e devoluções.</p>
+        <p>A MONSTER MOBILIDADE LTDA segue o Código de Defesa do Consumidor (CDC) em relação a trocas e devoluções.</p>
 
         <h2 className="text-base font-semibold text-foreground">1. Direito de Arrependimento</h2>
         <p>Você pode desistir da compra em até 7 dias corridos após o recebimento do produto, conforme o artigo 49 do CDC. O produto deve estar em sua embalagem original, sem sinais de uso.</p>

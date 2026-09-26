@@ -23,7 +23,7 @@ const PoliticaPrivacidade = () => {
       </div>
 
       <div className="px-4 py-6 space-y-4 text-sm text-muted-foreground leading-relaxed max-w-2xl mx-auto">
-        <p>A JP Variedades LTDA valoriza a sua privacidade. Esta política descreve como coletamos, usamos e protegemos suas informações pessoais.</p>
+        <p>A MONSTER MOBILIDADE LTDA valoriza a sua privacidade. Esta política descreve como coletamos, usamos e protegemos suas informações pessoais.</p>
 
         <h2 className="text-base font-semibold text-foreground">1. Informações Coletadas</h2>
         <p>Coletamos informações fornecidas diretamente por você, como nome, e-mail, CPF, telefone e endereço de entrega ao realizar uma compra. Também coletamos dados de navegação automaticamente, como endereço IP, tipo de navegador e páginas visitadas.</p>

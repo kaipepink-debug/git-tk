@@ -1,6 +1,6 @@
 /**
  * @file QuemSomos.tsx
- * @description Página institucional apresentando a história e valores da JP Variedades LTDA.
+ * @description Página institucional apresentando a história e valores da MONSTER MOBILIDADE LTDA.
  */
 
 import { ArrowLeft } from "lucide-react";
@@ -26,7 +26,7 @@ const QuemSomos = () => {
 
       <div className="px-4 py-6 space-y-4 text-sm text-muted-foreground leading-relaxed max-w-2xl mx-auto">
         <p>
-          Somos a <strong className="text-foreground">JP Variedades LTDA</strong>, uma empresa 100% brasileira focada em oferecer variedade, qualidade e preço justo aos nossos clientes.
+          Somos a <strong className="text-foreground">MONSTER MOBILIDADE LTDA</strong>, uma empresa 100% brasileira focada em oferecer variedade, qualidade e preço justo aos nossos clientes.
         </p>
         <p>
           Nossa equipe é formada por profissionais apaixonados pelo que fazem, sempre buscando as melhores oportunidades e produtos para você. Acreditamos que comprar online deve ser simples, seguro e prazeroso.
