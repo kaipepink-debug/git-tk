@@ -97,7 +97,7 @@ const FinalizarCompra = () => {
   }, [product?.id, product?.title, price, qty]);
 
   return (
-    <div className="min-h-screen bg-secondary max-w-lg mx-auto flex flex-col pb-4" style={{ fontFamily: "-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Oxygen,Ubuntu,Cantarell,sans-serif" }}>
+    <div className="min-h-screen w-full bg-secondary max-w-lg mx-auto flex flex-col pb-4 overflow-x-hidden" style={{ fontFamily: "-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Oxygen,Ubuntu,Cantarell,sans-serif" }}>
       {/* Header */}
       <div className="sticky top-0 z-50 bg-background flex items-center px-4 py-3 border-b border-border">
         <button onClick={() => navigate(-1)} className="mr-3">
