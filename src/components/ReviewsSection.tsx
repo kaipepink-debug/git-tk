@@ -1,5 +1,5 @@
 import { Star, X, ChevronLeft, ChevronRight, Play } from "lucide-react";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useProduct } from "@/contexts/ProductContext";
 import { REVIEWS } from "@/data/storeContent";
 
@@ -239,7 +239,7 @@ const ReviewsSection = () => {
                     >
                       {isVideo(media) ? (
                         <>
-                          <video src={media} className="w-full h-full object-cover" muted playsInline preload="metadata" width={80} height={80} />
+                          <LazyVideoThumb src={media} />
                           <div className="absolute inset-0 flex items-center justify-center bg-black/30">
                             <Play className="w-6 h-6 text-white fill-white" />
                           </div>
@@ -279,3 +279,17 @@ const ReviewsSection = () => {
 };
 
 export default ReviewsSection;
+
+/** Miniatura de vídeo: só baixa os metadados quando chega perto da tela. */
+function LazyVideoThumb({ src }: { src: string }) {
+  const ref = useRef<HTMLVideoElement>(null);
+  const [near, setNear] = useState(false);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el || near) return;
+    const io = new IntersectionObserver((e) => { if (e[0].isIntersecting) { setNear(true); io.disconnect(); } }, { rootMargin: "200px" });
+    io.observe(el);
+    return () => io.disconnect();
+  }, [near]);
+  return <video ref={ref} src={near ? src : undefined} className="w-full h-full object-cover" muted playsInline preload={near ? "metadata" : "none"} width={80} height={80} />;
+}

@@ -4,6 +4,7 @@
  */
 
 import { useState, useEffect } from "react";
+import { prefetchPage } from "@/lib/prefetch";
 import TopBar from "@/components/TopBar";
 import ImageCarousel from "@/components/ImageCarousel";
 import FlashSaleTimer from "@/components/FlashSaleTimer";
@@ -27,6 +28,7 @@ import { trackViewContent } from "@/lib/tracking/tiktok";
  * @description Gerencia o estado de pré-venda (PreSell), rastreamento de sessão e pixels de marketing.
  */
 const Produto = () => {
+  useEffect(() => { prefetchPage("carrinho"); prefetchPage("checkout"); }, []);
   // Estado para controlar se a pré-venda foi desbloqueada pelo usuário através do sessionStorage
   const [unlocked, setUnlocked] = useState(() => {
     return sessionStorage.getItem("presell_unlocked") === "true";

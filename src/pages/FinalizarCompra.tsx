@@ -9,6 +9,7 @@ import { ChevronLeft, Minus, Plus, Loader2 } from "lucide-react";
 import { useProduct } from "@/contexts/ProductContext";
 import { useOptimizedImage } from "@/hooks/useOptimizedImage";
 import { useState, useEffect, useRef } from "react";
+import { prefetchPage } from "@/lib/prefetch";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { getAttribution } from "@/lib/tracking/attribution";
@@ -37,6 +38,7 @@ interface EnderecoData {
  * Centraliza a lógica de cálculo de totais, seleção de frete e integração com o gateway de pagamento.
  */
 const FinalizarCompra = () => {
+  useEffect(() => { prefetchPage("pix"); }, []);
   // Rastreia a navegação
 
   const navigate = useNavigate();

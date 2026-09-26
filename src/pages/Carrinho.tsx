@@ -6,7 +6,8 @@
 
 import { useNavigate } from "react-router-dom";
 import { ChevronLeft, Minus, Plus } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { prefetchPage } from "@/lib/prefetch";
 import { useProduct } from "@/contexts/ProductContext";
 import { useOptimizedImage } from "@/hooks/useOptimizedImage";
 import { ORDER_BUMPS, saveSelectedBumps, getSelectedBumps, formatBRL } from "@/lib/orderBumps";
@@ -17,6 +18,7 @@ import { trackAddToCart } from "@/lib/tracking/tiktok";
  * Gerencia a visualização do produto escolhido e cálculos de total.
  */
 const Carrinho = () => {
+  useEffect(() => { prefetchPage("checkout"); prefetchPage("pix"); }, []);
   // Rastreia a navegação do usuário
   const navigate = useNavigate();
   
