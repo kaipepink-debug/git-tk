@@ -1,0 +1,1 @@
+Serve uploaded product images through Lovable Assets pointers and the local Vite asset fallback; this keeps media out of the repository while making the editor preview display the same images as the hosted app.
