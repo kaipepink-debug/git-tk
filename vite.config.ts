@@ -8,11 +8,21 @@ import { componentTagger } from "lovable-tagger";
 const localAssetFallback = () => ({
   name: "local-asset-fallback",
   configureServer(server: import("vite").ViteDevServer) {
-    server.middlewares.use("/__l5e/assets-v1", (req, res, next) => {
+    server.middlewares.use("/__l5e/assets-v1", async (req, res, next) => {
       const pathname = decodeURIComponent((req.url || "").split("?")[0]);
       if (!/^\/[0-9a-f-]{36}\/[a-zA-Z0-9._-]+$/.test(pathname)) return next();
       const file = path.join(__dirname, "public/__l5e/assets-v1", pathname);
-      if (!existsSync(file) || !statSync(file).isFile()) return next();
+      if (!existsSync(file) || !statSync(file).isFile()) {
+        try {
+          const response = await fetch(`https://id-preview--3e0c6276-0083-4743-b6a1-57e83afdec6f.lovable.app/__l5e/assets-v1${pathname}`);
+          if (!response.ok || !response.headers.get("content-type")?.startsWith("image/")) return next();
+          res.setHeader("Content-Type", response.headers.get("content-type") || "application/octet-stream");
+          res.end(Buffer.from(await response.arrayBuffer()));
+        } catch {
+          next();
+        }
+        return;
+      }
       const extension = path.extname(file).toLowerCase();
       const types: Record<string, string> = { ".webp": "image/webp", ".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".png": "image/png" };
       res.setHeader("Content-Type", types[extension] || "application/octet-stream");
