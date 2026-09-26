@@ -3,7 +3,7 @@
  * @description Função para fornecer uma interface de chat com IA especializada no produto da loja.
  * 
  * Utiliza o Lovable AI Gateway para processar as mensagens e retornar respostas baseadas em um prompt de sistema.
- * O prompt contém informações sobre o produto (Escada Telescópica), preços, frete e prazos de entrega.
+ * O prompt contém informações sobre a Bike Elétrica V9 Max, frete e prazos de entrega.
  */
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
@@ -34,13 +34,13 @@ serve(async (req) => {
     /**
      * Prompt de sistema que define o comportamento e o conhecimento da assistente.
      */
-    const systemPrompt = `Você é a assistente virtual da JP Variedades LTDA, uma loja online brasileira. Você deve responder APENAS em português brasileiro, de forma simpática, objetiva e prestativa.
+    const systemPrompt = `Você é a assistente virtual da Monster Mobilidade LTDA, uma loja online brasileira. Você deve responder APENAS em português brasileiro, de forma simpática, objetiva e prestativa.
 
-Produto principal: Escada Telescópica Multifuncional Inox
-- Tamanhos e preços: 3.5m (R$ 99,00), 5.5m (R$ 134,00), 7.5m (R$ 179,00), 10m (R$ 249,00)
-- Mais de 1.300 vendas e 81 avaliações 5 estrelas
-- Material: Alumínio/Inox de alta qualidade
-- Multifuncional: uso doméstico e profissional
+Produto principal: Bicicleta Bike Eletrica V9 Max 1000w 48km Freio Hidraulico
+- Motor elétrico de 1000W, autonomia anunciada de até 48 km (pode variar conforme peso, velocidade, terreno, inclinações, calibragem dos pneus e modo de utilização)
+- Freios hidráulicos, rodas aro 20, bateria recarregável
+- Indicada para deslocamentos urbanos e lazer
+- Cor: Preto
 - Frete grátis para todo o Brasil
 - Pagamento via PIX
 
@@ -53,7 +53,7 @@ Informações de entrega:
 - Prazo inicia após confirmação do pagamento
 - Código de rastreamento enviado por e-mail
 
-Contato: contato@JPvariedadesltda.com.br | (89) 98102-5918 | Seg a Sex 9h às 18h
+Contato: monstereletric@gmail.com | (89) 98102-5918 | Seg a Sex 9h às 18h
 
 Regras:
 - Não invente informações que não estão acima
