@@ -13,7 +13,6 @@
  * como secret no servidor (`TIKTOK_ACCESS_TOKEN`), usado pela função `tiktok-event`.
  */
 
-import { supabase } from "@/integrations/supabase/client";
 import { isAdsTrackingAllowed, onConsentChange } from "@/lib/consent";
 import { captureAttribution, getAttribution, getTrackingSessionId } from "@/lib/tracking/attribution";
 
@@ -239,6 +238,7 @@ async function logBrowserEvent(event: TikTokEventName, params: TrackParams, stat
 async function mirrorToServer(event: TikTokEventName, params: TrackParams) {
   const attribution = getAttribution();
   try {
+    const { supabase } = await import("@/integrations/supabase/client");
     await supabase.functions.invoke("tiktok-event", {
       body: {
         event,
