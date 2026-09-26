@@ -4,9 +4,6 @@
  * e utilidades para persistir a seleção do cliente entre o carrinho e o checkout.
  */
 
-import bombaAr from "@/assets/bumps/bomba-ar.png.asset.json";
-import cadeado from "@/assets/bumps/cadeado.png.asset.json";
-import capacete from "@/assets/bumps/capacete.png.asset.json";
 
 /** Item de oferta adicional oferecido junto ao produto principal. */
 export interface OrderBump {
@@ -29,21 +26,21 @@ export const ORDER_BUMPS: OrderBump[] = [
     title: "Mini Bomba de Ar Portátil",
     price: 19.9,
     oldPrice: 109.9,
-    image: bombaAr.url,
+    image: "/images/order-bumps/bomba-ar.webp",
   },
   {
     id: "cadeado-antifurto",
     title: "Cadeado Antifurto com Alarme",
     price: 12.9,
     oldPrice: 59.9,
-    image: cadeado.url,
+    image: "/images/order-bumps/cadeado.webp",
   },
   {
     id: "capacete-coquinho",
     title: "Capacete Coquinho Viseira Cristal",
     price: 29.9,
     oldPrice: 159.9,
-    image: capacete.url,
+    image: "/images/order-bumps/capacete.webp",
   },
 ];
 

@@ -16,7 +16,6 @@ import { getAttribution } from "@/lib/tracking/attribution";
 import { trackInitiateCheckout, trackAddPaymentInfo, trackPlaceAnOrder } from "@/lib/tracking/tiktok";
 import pixIcon from "@/assets/pix.svg";
 import { getSelectedBumps, formatBRL } from "@/lib/orderBumps";
-import bikeHero from "@/assets/bike/v9-max-hero.webp.asset.json";
 
 /**
  * Estrutura dos dados de endereço e contato do usuário.
@@ -67,7 +66,7 @@ const FinalizarCompra = () => {
   const priceDisplay = exitOfferPrice ? price.toFixed(2).replace(".", ",") : originalPriceDisplay;
 
   // Preparação de imagem e cálculos de valores
-  const productImageRaw = product.cart_image || bikeHero.url;
+  const productImageRaw = product.cart_image || "/images/product/v9-max-hero.webp";
   const productImage = useOptimizedImage(productImageRaw, 160, 0.6);
   const productName = product.title ? product.title.substring(0, 40) + "..." : "Produto";
   const descontoValor = oldPrice - price;
