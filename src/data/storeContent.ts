@@ -33,7 +33,7 @@ export const PRODUCT = {
       "stock": 12
     }
   ]
-} as const satisfies Record<string, unknown>;
+};
 
 /** Preço da oferta de saída (popup de abandono). */
 export const EXIT_OFFER_PRICE = 52.84;
