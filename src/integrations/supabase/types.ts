@@ -128,16 +128,23 @@ export type Database = {
           created_at: string
           customer_cep: string | null
           customer_city: string | null
+          customer_complement: string | null
           customer_document: string
           customer_email: string
           customer_name: string
+          customer_neighborhood: string | null
+          customer_number: string | null
           customer_phone: string | null
           customer_state: string | null
+          customer_street: string | null
           id: string
           kirvus_webhook_token: string | null
           pix_code: string | null
           pix_qr_code: string | null
           quantity: number
+          rastrocode_error: string | null
+          rastrocode_sent_at: string | null
+          rastrocode_tracking_code: string | null
           status: string
           transaction_id: string | null
           tt_purchase_sent_at: string | null
@@ -151,16 +158,23 @@ export type Database = {
           created_at?: string
           customer_cep?: string | null
           customer_city?: string | null
+          customer_complement?: string | null
           customer_document: string
           customer_email: string
           customer_name: string
+          customer_neighborhood?: string | null
+          customer_number?: string | null
           customer_phone?: string | null
           customer_state?: string | null
+          customer_street?: string | null
           id?: string
           kirvus_webhook_token?: string | null
           pix_code?: string | null
           pix_qr_code?: string | null
           quantity?: number
+          rastrocode_error?: string | null
+          rastrocode_sent_at?: string | null
+          rastrocode_tracking_code?: string | null
           status?: string
           transaction_id?: string | null
           tt_purchase_sent_at?: string | null
@@ -174,16 +188,23 @@ export type Database = {
           created_at?: string
           customer_cep?: string | null
           customer_city?: string | null
+          customer_complement?: string | null
           customer_document?: string
           customer_email?: string
           customer_name?: string
+          customer_neighborhood?: string | null
+          customer_number?: string | null
           customer_phone?: string | null
           customer_state?: string | null
+          customer_street?: string | null
           id?: string
           kirvus_webhook_token?: string | null
           pix_code?: string | null
           pix_qr_code?: string | null
           quantity?: number
+          rastrocode_error?: string | null
+          rastrocode_sent_at?: string | null
+          rastrocode_tracking_code?: string | null
           status?: string
           transaction_id?: string | null
           tt_purchase_sent_at?: string | null

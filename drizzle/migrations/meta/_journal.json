@@ -15,6 +15,13 @@
       "when": 1790442094326,
       "tag": "0001_kirvuspay_gateway",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1790442494099,
+      "tag": "0002_rastrocode_fields",
+      "breakpoints": true
     }
   ]
 }

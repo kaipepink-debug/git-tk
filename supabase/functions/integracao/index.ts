@@ -267,6 +267,18 @@ serve(async (req) => {
         console.log(`Transação ${transactionId} já confirmada antes — conversão não duplicada.`);
       }
 
+      // Pedido pago: envia para a RastroCode (idempotente; tenta de novo em reenvios se falhou antes).
+      if (newStatus === 'paid') {
+        try {
+          const { sendToRastroCode } = await import('../_shared/rastrocode.ts');
+          const r = await sendToRastroCode(supabaseAdmin, String(transactionId));
+          console.log('RastroCode:', r.info);
+        } catch (e) {
+          console.warn('Falha RastroCode:', e);
+        }
+      }
+
+
       console.log(
         `Transação ${transactionId} (${rawStatus}) -> status "${newStatus}" em ${data?.length ?? 0} pedido(s).`,
       );
