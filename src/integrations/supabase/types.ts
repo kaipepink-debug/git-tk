@@ -134,6 +134,7 @@ export type Database = {
           customer_phone: string | null
           customer_state: string | null
           id: string
+          kirvus_webhook_token: string | null
           pix_code: string | null
           pix_qr_code: string | null
           quantity: number
@@ -156,6 +157,7 @@ export type Database = {
           customer_phone?: string | null
           customer_state?: string | null
           id?: string
+          kirvus_webhook_token?: string | null
           pix_code?: string | null
           pix_qr_code?: string | null
           quantity?: number
@@ -178,6 +180,7 @@ export type Database = {
           customer_phone?: string | null
           customer_state?: string | null
           id?: string
+          kirvus_webhook_token?: string | null
           pix_code?: string | null
           pix_qr_code?: string | null
           quantity?: number
