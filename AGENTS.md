@@ -1,3 +1,4 @@
 Store all site images as real WebP files under public/images/{product,order-bumps,reviews,brand} and reference them as /images/...; the owner is migrating to Namecheap and needs no dependency on Lovable storage.Public store content (product, prices, exit offer, reviews, company info, pre-sell) lives in src/data/storeContent.ts, not the database; the store must render without the backend ahead of the PHP/MySQL migration.
 
 - Pix gateway ativo: KirvusPay (x-public-key/x-secret-key em secrets; webhook /integracao/webhooks/kirvuspay valida webhookToken + confirma status COMPLETED na API) — pagamento só é liberado com confirmação servidor-a-servidor.
+- Pedido pago é enviado à RastroCode (_shared/rastrocode.ts, chave RASTROCODE_API_KEY) a partir do webhook de pagamento; idempotente via rastrocode_sent_at.
