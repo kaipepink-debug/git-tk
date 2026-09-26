@@ -180,7 +180,7 @@ const AdicionarEndereco = () => {
               placeholder="Nome e sobrenome"
               value={nome}
               onChange={(e) => { setNome(e.target.value); setErrors(p => ({ ...p, nome: "" })); }}
-              className={`w-full py-2 border-b text-sm text-foreground placeholder:text-muted-foreground outline-none bg-transparent ${errors.nome ? "border-[#FF2B56]" : "border-border"}`}
+              className={`w-full py-2 border-b text-base text-foreground placeholder:text-muted-foreground outline-none bg-transparent ${errors.nome ? "border-[#FF2B56]" : "border-border"}`}
             />
             {errors.nome && <p className="text-xs py-0.5" style={{ color: "#FF2B56" }}>{errors.nome}</p>}
           </div>
@@ -190,10 +190,11 @@ const AdicionarEndereco = () => {
               <span className="text-sm text-muted-foreground pr-3 py-2">BR +55</span>
               <input
                 type="tel"
+                inputMode="tel"
                 placeholder="Número de telefone"
                 value={telefone}
                 onChange={(e) => { setTelefone(formatarTelefone(e.target.value)); setErrors(p => ({ ...p, telefone: "" })); }}
-                className="flex-1 py-2 text-sm text-foreground placeholder:text-muted-foreground outline-none bg-transparent"
+                className="flex-1 py-2 text-base text-foreground placeholder:text-muted-foreground outline-none bg-transparent"
               />
             </div>
             {errors.telefone && <p className="text-xs py-0.5" style={{ color: "#FF2B56" }}>{errors.telefone}</p>}
@@ -205,7 +206,7 @@ const AdicionarEndereco = () => {
               placeholder="E-mail"
               value={email}
               onChange={(e) => { setEmail(e.target.value); setErrors(p => ({ ...p, email: "" })); }}
-              className={`w-full py-2 border-b text-sm text-foreground placeholder:text-muted-foreground outline-none bg-transparent ${errors.email ? "border-[#FF2B56]" : "border-border"}`}
+              className={`w-full py-2 border-b text-base text-foreground placeholder:text-muted-foreground outline-none bg-transparent ${errors.email ? "border-[#FF2B56]" : "border-border"}`}
             />
             {errors.email && <p className="text-xs py-0.5" style={{ color: "#FF2B56" }}>{errors.email}</p>}
           </div>
@@ -213,10 +214,11 @@ const AdicionarEndereco = () => {
             <label className="text-xs text-muted-foreground mt-2 block">CPF<span className="text-[#FF2B56]"> *</span></label>
             <input
               type="text"
+              inputMode="numeric"
               placeholder="000.000.000-00"
               value={cpf}
               onChange={(e) => { setCpf(formatarCpf(e.target.value)); setErrors(p => ({ ...p, cpf: "" })); }}
-              className={`w-full py-2 text-sm text-foreground placeholder:text-muted-foreground outline-none bg-transparent ${errors.cpf ? "border-b border-[#FF2B56]" : ""}`}
+              className={`w-full py-2 text-base text-foreground placeholder:text-muted-foreground outline-none bg-transparent ${errors.cpf ? "border-b border-[#FF2B56]" : ""}`}
             />
             {errors.cpf && <p className="text-xs py-0.5" style={{ color: "#FF2B56" }}>{errors.cpf}</p>}
           </div>
@@ -231,10 +233,11 @@ const AdicionarEndereco = () => {
             <label className="text-xs text-muted-foreground">CEP/Código postal<span className="text-[#FF2B56]"> *</span></label>
             <input
               type="text"
+              inputMode="numeric"
               placeholder="00000-000"
               value={cep}
               onChange={(e) => { handleCepChange(e.target.value); setErrors(p => ({ ...p, cep: "" })); }}
-              className={`w-full py-2 border-b text-sm text-foreground placeholder:text-muted-foreground outline-none bg-transparent ${errors.cep ? "border-[#FF2B56]" : "border-border"}`}
+              className={`w-full py-2 border-b text-base text-foreground placeholder:text-muted-foreground outline-none bg-transparent ${errors.cep ? "border-[#FF2B56]" : "border-border"}`}
             />
           </div>
           {errors.cep && <p className="text-xs py-0.5" style={{ color: "#FF2B56" }}>{errors.cep}</p>}
@@ -259,14 +262,14 @@ const AdicionarEndereco = () => {
                   value={estado}
                   onChange={(e) => { setEstado(e.target.value.toUpperCase().slice(0, 2)); setErrors(p => ({ ...p, estado: "" })); }}
                   maxLength={2}
-                  className="flex-1 py-2 text-sm text-foreground placeholder:text-muted-foreground outline-none bg-transparent border-r border-border pr-3"
+                  className="flex-1 py-2 text-base text-foreground placeholder:text-muted-foreground outline-none bg-transparent border-r border-border pr-3"
                 />
                 <input
                   type="text"
                   placeholder="Cidade"
                   value={cidade}
                   onChange={(e) => { setCidade(e.target.value); setErrors(p => ({ ...p, cidade: "" })); }}
-                  className="flex-1 py-2 pl-3 text-sm text-foreground placeholder:text-muted-foreground outline-none bg-transparent"
+                  className="flex-1 py-2 pl-3 text-base text-foreground placeholder:text-muted-foreground outline-none bg-transparent"
                 />
               </div>
               {(errors.estado || errors.cidade) && <p className="text-xs py-0.5" style={{ color: "#FF2B56" }}>{errors.estado || errors.cidade}</p>}
@@ -278,7 +281,7 @@ const AdicionarEndereco = () => {
                 placeholder="Bairro/Distrito"
                 value={bairro}
                 onChange={(e) => { setBairro(e.target.value); setErrors(p => ({ ...p, bairro: "" })); }}
-                className={`w-full py-2 border-b text-sm text-foreground placeholder:text-muted-foreground outline-none bg-transparent ${errors.bairro ? "border-[#FF2B56]" : "border-border"}`}
+                className={`w-full py-2 border-b text-base text-foreground placeholder:text-muted-foreground outline-none bg-transparent ${errors.bairro ? "border-[#FF2B56]" : "border-border"}`}
               />
               {errors.bairro && <p className="text-xs py-0.5" style={{ color: "#FF2B56" }}>{errors.bairro}</p>}
             </div>
@@ -289,7 +292,7 @@ const AdicionarEndereco = () => {
                 placeholder="Endereço"
                 value={endereco}
                 onChange={(e) => { setEndereco(e.target.value); setErrors(p => ({ ...p, endereco: "" })); }}
-                className={`w-full py-2 border-b text-sm text-foreground placeholder:text-muted-foreground outline-none bg-transparent ${errors.endereco ? "border-[#FF2B56]" : "border-border"}`}
+                className={`w-full py-2 border-b text-base text-foreground placeholder:text-muted-foreground outline-none bg-transparent ${errors.endereco ? "border-[#FF2B56]" : "border-border"}`}
               />
               {errors.endereco && <p className="text-xs py-0.5" style={{ color: "#FF2B56" }}>{errors.endereco}</p>}
             </div>
@@ -300,7 +303,7 @@ const AdicionarEndereco = () => {
                 placeholder='Use "s/n" se nenhum'
                 value={numero}
                 onChange={(e) => { setNumero(e.target.value); setErrors(p => ({ ...p, numero: "" })); }}
-                className={`w-full py-2 border-b text-sm text-foreground placeholder:text-muted-foreground outline-none bg-transparent ${errors.numero ? "border-[#FF2B56]" : "border-border"}`}
+                className={`w-full py-2 border-b text-base text-foreground placeholder:text-muted-foreground outline-none bg-transparent ${errors.numero ? "border-[#FF2B56]" : "border-border"}`}
               />
               {errors.numero && <p className="text-xs py-0.5" style={{ color: "#FF2B56" }}>{errors.numero}</p>}
             </div>
@@ -309,7 +312,7 @@ const AdicionarEndereco = () => {
               <input
                 type="text"
                 placeholder="Apartamento, bloco, unidade etc."
-                className="w-full py-2 text-sm text-foreground placeholder:text-muted-foreground outline-none bg-transparent"
+                className="w-full py-2 text-base text-foreground placeholder:text-muted-foreground outline-none bg-transparent"
               />
             </div>
           </div>
