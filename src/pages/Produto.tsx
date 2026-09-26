@@ -4,6 +4,7 @@
  */
 
 import { useState, useEffect } from "react";
+import { prefetchPage } from "@/lib/prefetch";
 import TopBar from "@/components/TopBar";
 import ImageCarousel from "@/components/ImageCarousel";
 import FlashSaleTimer from "@/components/FlashSaleTimer";

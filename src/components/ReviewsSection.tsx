@@ -1,5 +1,5 @@
 import { Star, X, ChevronLeft, ChevronRight, Play } from "lucide-react";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useProduct } from "@/contexts/ProductContext";
 import { REVIEWS } from "@/data/storeContent";
 
