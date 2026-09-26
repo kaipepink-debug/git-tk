@@ -43,7 +43,7 @@ const Produto = () => {
       if ("requestIdleCallback" in window) {
         idleId = window.requestIdleCallback(prefetch, { timeout: 5000 });
       } else {
-        timerId = window.setTimeout(prefetch, 1500);
+        timerId = setTimeout(prefetch, 1500);
       }
     };
     if (hero.complete && hero.naturalWidth > 0) schedule();
