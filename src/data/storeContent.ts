@@ -48,7 +48,7 @@ export const REVIEWS: StoreReview[] = [
     "id": "2c25daae-7067-40f2-b167-794691a25710",
     "reviewer_name": "Lucas Ferreira",
     "reviewer_initial": "L",
-    "avatar_url": null,
+    "avatar_url": "/images/reviews/avatar-lucas.webp",
     "rating": 5,
     "review_text": "Umas das melhores compras que já fiz!. Excelente qualidade. Fácil achar peças para manutenção e upgrade. Vem pré montada, gastei umas 4 horas para montar com ajuda da minha namorada para segurar.",
     "photos": [
@@ -62,7 +62,7 @@ export const REVIEWS: StoreReview[] = [
     "id": "8736f97b-ae44-4d5c-ab33-fbacad63f052",
     "reviewer_name": "Mariana Souza",
     "reviewer_initial": "M",
-    "avatar_url": null,
+    "avatar_url": "/images/reviews/avatar-mariana.webp",
     "rating": 5,
     "review_text": "Gostei muito. Satisfeita com minha comprar. Nota 1. 000😁.",
     "photos": [
@@ -74,7 +74,7 @@ export const REVIEWS: StoreReview[] = [
     "id": "496c769f-3be8-42de-ab93-2731cdfe1713",
     "reviewer_name": "Rafael Oliveira",
     "reviewer_initial": "R",
-    "avatar_url": null,
+    "avatar_url": "/images/reviews/avatar-rafael.webp",
     "rating": 5,
     "review_text": "Produto original, lacrado. Recomendo a loja.",
     "photos": [
@@ -86,7 +86,7 @@ export const REVIEWS: StoreReview[] = [
     "id": "73e497f8-be0f-4595-882a-39b004f5e67f",
     "reviewer_name": "Camila Santos",
     "reviewer_initial": "C",
-    "avatar_url": null,
+    "avatar_url": "/images/reviews/avatar-camila.webp",
     "rating": 5,
     "review_text": "Entrega antes do prazo, tudo perfeito.",
     "photos": [
@@ -98,7 +98,7 @@ export const REVIEWS: StoreReview[] = [
     "id": "d39cc9b0-6e20-42a3-8b3a-c2ce8f294ae2",
     "reviewer_name": "Bruno Almeida",
     "reviewer_initial": "B",
-    "avatar_url": null,
+    "avatar_url": "/images/reviews/avatar-bruno.webp",
     "rating": 5,
     "review_text": "Amei, se a bateria fosse de 20 ah seria a top, mas e confortável, e ta ajudando nas entregas.",
     "photos": [],
