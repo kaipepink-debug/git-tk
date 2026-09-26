@@ -138,14 +138,18 @@ export type Database = {
           customer_state: string | null
           customer_street: string | null
           id: string
+          items: Json | null
           kirvus_webhook_token: string | null
+          paid_at: string | null
           pix_code: string | null
           pix_qr_code: string | null
           quantity: number
           rastrocode_error: string | null
+          rastrocode_lock_at: string | null
           rastrocode_sent_at: string | null
           rastrocode_tracking_code: string | null
           status: string
+          tiktok_event_id: string | null
           transaction_id: string | null
           tt_purchase_sent_at: string | null
           ttclid: string | null
@@ -168,14 +172,18 @@ export type Database = {
           customer_state?: string | null
           customer_street?: string | null
           id?: string
+          items?: Json | null
           kirvus_webhook_token?: string | null
+          paid_at?: string | null
           pix_code?: string | null
           pix_qr_code?: string | null
           quantity?: number
           rastrocode_error?: string | null
+          rastrocode_lock_at?: string | null
           rastrocode_sent_at?: string | null
           rastrocode_tracking_code?: string | null
           status?: string
+          tiktok_event_id?: string | null
           transaction_id?: string | null
           tt_purchase_sent_at?: string | null
           ttclid?: string | null
@@ -198,14 +206,18 @@ export type Database = {
           customer_state?: string | null
           customer_street?: string | null
           id?: string
+          items?: Json | null
           kirvus_webhook_token?: string | null
+          paid_at?: string | null
           pix_code?: string | null
           pix_qr_code?: string | null
           quantity?: number
           rastrocode_error?: string | null
+          rastrocode_lock_at?: string | null
           rastrocode_sent_at?: string | null
           rastrocode_tracking_code?: string | null
           status?: string
+          tiktok_event_id?: string | null
           transaction_id?: string | null
           tt_purchase_sent_at?: string | null
           ttclid?: string | null
