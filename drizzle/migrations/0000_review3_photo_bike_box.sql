@@ -1,0 +1,1 @@
+UPDATE public.product_reviews SET photos = '["/__l5e/assets-v1/07eb3d3a-815f-4e12-acbb-9a2a889874a8/review-bike-caixa.png"]'::jsonb WHERE id = '496c769f-3be8-42de-ab93-2731cdfe1713';
