@@ -1,4 +1,5 @@
 import { Star } from "lucide-react";
+import storeLogo from "@/assets/monster-e-bikes-logo.png.asset.json";
 
 /**
  * Componente que exibe informações básicas sobre a loja/vendedor.
@@ -11,8 +12,8 @@ const StoreInfo = () => {
         {/* Avatar da Loja */}
         <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-border flex-shrink-0">
           <img
-            src="/images/loja-logo.png"
-            alt="GAMES ELETRONICOS"
+            src={storeLogo.url}
+            alt="Monster Mobilidade"
             className="w-full h-full object-cover"
           />
         </div>
