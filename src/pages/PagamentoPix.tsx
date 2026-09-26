@@ -82,9 +82,9 @@ const PagamentoPix = () => {
           setPaymentStatus("paid");
           if (pollingRef.current) clearInterval(pollingRef.current);
 
-          // Redireciona para página externa de confirmação/sucesso
+          // Redireciona para a página de obrigado
           setTimeout(() => {
-            window.location.href = "https://correios-ttk-taxa.lovable.app";
+            window.location.href = "/obrigado";
           }, 1500);
         }
       } catch (err) {
