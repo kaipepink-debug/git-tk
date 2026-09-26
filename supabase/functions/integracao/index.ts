@@ -84,6 +84,7 @@ serve(async (req) => {
   let gateway = 'desconhecido';
   if (path.endsWith('/webhooks/zenixpay')) gateway = 'ZenixPay';
   else if (path.endsWith('/webhooks/pixnerva')) gateway = 'PixNerva';
+  else if (path.endsWith('/webhooks/kirvuspay')) gateway = 'KirvusPay';
   else if (path.endsWith('/webhooks') || path.endsWith('/integracao') || path === '/') gateway = 'generico';
   else {
     return new Response(JSON.stringify({ error: 'Endpoint não encontrado' }), {
@@ -112,29 +113,62 @@ serve(async (req) => {
 
     console.log(`Webhook recebido [${gateway}]:`, JSON.stringify(payload));
 
-    // A ordem importa: chaves específicas primeiro, 'id' genérico por último.
-    const transactionId = findValue(payload, [
-      'transactionId', 'transaction_id', 'saleId', 'sale_id',
-      'paymentId', 'payment_id', 'id', 'hash',
-    ]);
-    const rawStatus = (findValue(payload, ['status', 'paymentStatus', 'payment_status']) || '').toUpperCase();
-
-    if (!transactionId) {
-      // Responde 2xx para não gerar reenvios infinitos de um payload que não sabemos tratar.
-      console.warn('Webhook sem identificador de transação — ignorado.');
-      return new Response(JSON.stringify({ received: true, ignored: 'sem transaction id' }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
-
     const supabaseAdmin = createClient(
       Deno.env.get('SUPABASE_URL')!,
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
     );
+    const json = (o: unknown, status = 200) => new Response(JSON.stringify(o), {
+      status, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
+
+    let transactionId: string | null;
+    let rawStatus: string;
+
+    if (gateway === 'KirvusPay') {
+      // Formato Kirvus: { event, token, client:{id}, transaction:{id,status,...} }.
+      // Só transaction.id identifica o pedido (client.id é ignorado).
+      transactionId = typeof payload?.transaction?.id === 'string' ? payload.transaction.id.trim() : null;
+      if (!transactionId) return json({ error: 'transaction.id ausente' }, 400);
+      const { data: ord } = await supabaseAdmin.from('orders').select('kirvus_webhook_token')
+        .eq('transaction_id', transactionId).maybeSingle();
+      if (!ord) return json({ received: true, order_found: false });
+      // Autenticidade: token do aviso = webhookToken devolvido na criação desta transação.
+      if (!ord.kirvus_webhook_token || payload?.token !== ord.kirvus_webhook_token) {
+        console.warn('Kirvus: token do webhook inválido', transactionId);
+        return json({ error: 'webhook não autenticado' }, 401);
+      }
+      const ev = String(payload?.event || '');
+      if (ev === 'TRANSACTION_PAID') {
+        // Confirmação servidor-a-servidor: o payload sozinho não libera o pedido.
+        const { fetchKirvusStatus } = await import('../_shared/kirvus.ts');
+        const chk = await fetchKirvusStatus(transactionId);
+        if (!chk.ok) { console.error('Consulta Kirvus falhou:', chk.error); return json({ error: 'verificação pendente' }, 500); }
+        rawStatus = (chk.status || '').toUpperCase();
+      } else if (['TRANSACTION_CANCELED', 'TRANSACTION_REFUNDED', 'TRANSACTION_CHARGED_BACK'].includes(ev)) {
+        rawStatus = 'CANCELED';
+      } else {
+        rawStatus = '';
+      }
+    } else {
+      // A ordem importa: chaves específicas primeiro, 'id' genérico por último.
+      transactionId = findValue(payload, [
+        'transactionId', 'transaction_id', 'saleId', 'sale_id',
+        'paymentId', 'payment_id', 'id', 'hash',
+      ]);
+      rawStatus = (findValue(payload, ['status', 'paymentStatus', 'payment_status']) || '').toUpperCase();
+    }
+
+    if (!transactionId) {
+      // Responde 2xx para não gerar reenvios infinitos de um payload que não sabemos tratar.
+      console.warn('Webhook sem identificador de transação — ignorado.');
+      return json({ received: true, ignored: 'sem transaction id' });
+    }
 
     let newStatus: string | null = null;
     if (APPROVED.includes(rawStatus)) newStatus = 'paid';
     else if (FAILED.includes(rawStatus)) newStatus = 'failed';
+    // Kirvus: apenas COMPLETED é pagamento definitivo.
+    if (gateway === 'KirvusPay' && newStatus === 'paid' && rawStatus !== 'COMPLETED') newStatus = null;
 
     if (newStatus) {
       // Primeira confirmação: a própria atualização é a trava. Só pedidos que AINDA

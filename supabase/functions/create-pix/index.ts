@@ -119,7 +119,7 @@ serve(async (req) => {
       || (gateway === 'PixNerva' ? (Deno.env.get('PIXNERVA_API_KEY') || '') : '');
     const productId = gwData.product_id;
 
-    if (!apiToken) {
+    if (!apiToken && gateway !== 'KirvusPay') {
       console.error('Gateway ativo sem api_token configurado:', gateway);
       return new Response(JSON.stringify({ error: 'Pagamento indisponível no momento. Tente novamente mais tarde.' }), {
         status: 503,
@@ -146,6 +146,7 @@ serve(async (req) => {
     let pixCode = '';
     let pixQrCodeBase64 = '';
     let transactionId = '';
+    let kirvusWebhookToken: string | null = null;
 
     // Integração com gateways específicos
     if (gateway === 'SigmaPay' || gateway === 'Adqui') {
@@ -448,6 +449,47 @@ serve(async (req) => {
           status: 502, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
       }
+    } else if (gateway === 'KirvusPay') {
+      // ===== Kirvus Pay: POST /gateway/pix/receive (x-public-key / x-secret-key) =====
+      const { kirvusHeaders, KIRVUS_BASE } = await import('../_shared/kirvus.ts');
+      const headers = kirvusHeaders();
+      if (!headers) {
+        console.error('Credenciais Kirvus ausentes');
+        return new Response(JSON.stringify({ error: 'Pagamento indisponível no momento. Tente novamente mais tarde.' }), {
+          status: 503, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+      const identifier = `ord-${crypto.randomUUID()}`;
+      const total = Number((amount / 100).toFixed(2));
+      const response = await fetch(`${KIRVUS_BASE}/gateway/pix/receive`, {
+        method: 'POST', headers,
+        body: JSON.stringify({
+          identifier,
+          amount: total,
+          client: { name: customer.name, email: customer.email, phone: cleanPhone || undefined, document: cleanDoc },
+          products: [{ id: 'pedido', name: 'Pedido da loja', quantity: 1, price: total }],
+          metadata: { provider: 'loja', identifier },
+          callbackUrl: `${Deno.env.get('SUPABASE_URL')}/functions/v1/integracao/webhooks/kirvuspay`,
+        }),
+      });
+      const responseText = await response.text();
+      let data: any = null;
+      try { data = JSON.parse(responseText); } catch { /* texto */ }
+      if (!response.ok || !data?.transactionId || data?.status === 'FAILED') {
+        console.error(`Kirvus erro [${response.status}]:`, responseText.slice(0, 500));
+        return new Response(JSON.stringify({ error: 'Erro ao gerar PIX', details: data?.message || data?.errorDescription }), {
+          status: 502, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+      transactionId = String(data.transactionId);
+      kirvusWebhookToken = data.webhookToken ? String(data.webhookToken) : null;
+      pixCode = data?.pix?.code || '';
+      pixQrCodeBase64 = data?.pix?.base64 || '';
+      if (!pixCode) {
+        return new Response(JSON.stringify({ error: 'A Kirvus não retornou o código PIX' }), {
+          status: 502, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
     } else {
       return new Response(JSON.stringify({ error: `Gateway "${gateway}" não suportado` }), {
         status: 400,
@@ -474,6 +516,7 @@ serve(async (req) => {
         ttclid,
         ttp,
         utm,
+        kirvus_webhook_token: kirvusWebhookToken,
       });
     } catch (dbError) {
       console.error('Error saving order:', dbError);

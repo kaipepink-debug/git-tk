@@ -77,6 +77,16 @@ serve(async (req) => {
     }
 
     const gateway = gwData.gateway_name;
+
+    // Kirvus: consulta SOMENTE o nosso banco (atualizado pelo webhook) — evita bloqueio 429.
+    if (gateway === 'KirvusPay') {
+      const { data: ord } = await supabaseAdmin.from('orders').select('status')
+        .eq('transaction_id', transaction_id).maybeSingle();
+      const st = ord?.status ?? 'not_found';
+      return new Response(JSON.stringify({ status: st === 'paid' ? 'paid' : st === 'pix_generated' ? 'pending' : st }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
     const apiToken = gwData.api_token
       || (gateway === 'PixNerva' ? (Deno.env.get('PIXNERVA_API_KEY') || '') : '');
 
