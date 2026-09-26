@@ -180,7 +180,7 @@ export const REVIEWS: StoreReview[] = [
     "reviewer_initial": "D",
     "avatar_url": null,
     "rating": 5,
-    "review_text": "Gran Turismo 7 com os gatilhos adaptáveis é outra experiência.",
+    "review_text": "Uso todos os dias para ir ao trabalho. Confortável e com ótima autonomia.",
     "photos": [],
     "days_ago": 7
   },
@@ -240,7 +240,7 @@ export const REVIEWS: StoreReview[] = [
     "reviewer_initial": "F",
     "avatar_url": null,
     "rating": 5,
-    "review_text": "Gráficos incríveis, carregamento super rápido.",
+    "review_text": "Bike muito boa, andou super bem. Entrega rápida e veio bem embalada.",
     "photos": [],
     "days_ago": 13
   },

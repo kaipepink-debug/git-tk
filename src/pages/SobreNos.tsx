@@ -1,6 +1,6 @@
 /**
  * @file SobreNos.tsx
- * @description Página informativa sobre a trajetória e o compromisso da JP Variedades LTDA com seus clientes.
+ * @description Página informativa sobre a trajetória e o compromisso da MONSTER MOBILIDADE LTDA com seus clientes.
  */
 
 import { ArrowLeft } from "lucide-react";
@@ -26,7 +26,7 @@ const SobreNos = () => {
 
       <div className="px-4 py-6 space-y-4 text-sm text-muted-foreground leading-relaxed max-w-2xl mx-auto">
         <p>
-          A <strong className="text-foreground">JP Variedades LTDA</strong> é uma empresa brasileira dedicada a oferecer produtos de alta qualidade com os melhores preços do mercado.
+          A <strong className="text-foreground">MONSTER MOBILIDADE LTDA</strong> é uma empresa brasileira dedicada a oferecer produtos de alta qualidade com os melhores preços do mercado.
         </p>
         <p>
           Nascemos com o propósito de facilitar o dia a dia das pessoas, trazendo soluções práticas e acessíveis para o lar e o trabalho. Nossa missão é garantir que cada cliente tenha uma experiência de compra segura, rápida e satisfatória.

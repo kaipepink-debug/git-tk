@@ -1,6 +1,6 @@
 /**
  * @file TermosCondicoes.tsx
- * @description Página que apresenta as regras e condições de uso do site e serviços da JP Variedades LTDA.
+ * @description Página que apresenta as regras e condições de uso do site e serviços da MONSTER MOBILIDADE LTDA.
  */
 
 import { ArrowLeft } from "lucide-react";
@@ -25,7 +25,7 @@ const TermosCondicoes = () => {
       </div>
 
       <div className="px-4 py-6 space-y-4 text-sm text-muted-foreground leading-relaxed max-w-2xl mx-auto">
-        <p>Ao acessar e utilizar o site da JP Variedades LTDA, você concorda com os termos e condições descritos abaixo.</p>
+        <p>Ao acessar e utilizar o site da MONSTER MOBILIDADE LTDA, você concorda com os termos e condições descritos abaixo.</p>
 
         <h2 className="text-base font-semibold text-foreground">1. Aceitação dos Termos</h2>
         <p>O uso deste site implica na aceitação integral destes termos. Caso não concorde, por favor, não utilize nossos serviços.</p>
@@ -37,13 +37,13 @@ const TermosCondicoes = () => {
         <p>Aceitamos pagamento via PIX. O pedido será confirmado após a verificação do pagamento.</p>
 
         <h2 className="text-base font-semibold text-foreground">4. Entrega</h2>
-        <p>Os prazos de entrega são estimativas e podem variar conforme a região. A JP Variedades não se responsabiliza por atrasos causados por terceiros (transportadoras, Correios).</p>
+        <p>Os prazos de entrega são estimativas e podem variar conforme a região. A MONSTER MOBILIDADE não se responsabiliza por atrasos causados por terceiros (transportadoras, Correios).</p>
 
         <h2 className="text-base font-semibold text-foreground">5. Responsabilidades do Usuário</h2>
         <p>O usuário é responsável por fornecer informações corretas e atualizadas no momento da compra. Informações incorretas podem resultar em atraso ou cancelamento do pedido.</p>
 
         <h2 className="text-base font-semibold text-foreground">6. Propriedade Intelectual</h2>
-        <p>Todo o conteúdo deste site (textos, imagens, logotipos) é de propriedade da JP Variedades LTDA e está protegido por leis de direitos autorais.</p>
+        <p>Todo o conteúdo deste site (textos, imagens, logotipos) é de propriedade da MONSTER MOBILIDADE LTDA e está protegido por leis de direitos autorais.</p>
 
         <h2 className="text-base font-semibold text-foreground">7. Alterações nos Termos</h2>
         <p>Reservamo-nos o direito de alterar estes termos a qualquer momento. As mudanças entram em vigor imediatamente após a publicação.</p>

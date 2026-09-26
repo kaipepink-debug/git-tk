@@ -1,6 +1,6 @@
 /**
  * @file PoliticaReembolso.tsx
- * @description Página que exibe a política de reembolso da JP Variedades LTDA.
+ * @description Página que exibe a política de reembolso da MONSTER MOBILIDADE LTDA.
  */
 
 import { ArrowLeft } from "lucide-react";
@@ -25,7 +25,7 @@ const PoliticaReembolso = () => {
       </div>
 
       <div className="px-4 py-6 space-y-4 text-sm text-muted-foreground leading-relaxed max-w-2xl mx-auto">
-        <p>A JP Variedades LTDA garante o reembolso conforme as condições abaixo.</p>
+        <p>A MONSTER MOBILIDADE LTDA garante o reembolso conforme as condições abaixo.</p>
 
         <h2 className="text-base font-semibold text-foreground">1. Condições para Reembolso</h2>
         <p>O reembolso será realizado nos seguintes casos: desistência dentro do prazo de 7 dias (direito de arrependimento), produto com defeito confirmado ou produto não entregue.</p>
