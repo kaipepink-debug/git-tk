@@ -70,6 +70,6 @@ export async function sendToRastroCode(admin: any, transactionId: string): Promi
   }
   const info = `[${res.status}] ${text.slice(0, 800)}`;
   console.error('RastroCode erro:', info);
-  await admin.from('orders').update({ rastrocode_error: info }).eq('id', o.id);
+  await admin.from('orders').update({ rastrocode_error: info, rastrocode_lock_at: null }).eq('id', o.id);
   return { ok: false, info };
 }
