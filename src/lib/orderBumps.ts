@@ -4,12 +4,9 @@
  * e utilidades para persistir a seleção do cliente entre o carrinho e o checkout.
  */
 
-import gta6 from "@/assets/bumps/gta6.webp.asset.json";
-import dualsenseBlack from "@/assets/bumps/dualsense-black.webp.asset.json";
-import dualsenseRed from "@/assets/bumps/dualsense-red.webp.asset.json";
-import dualsenseCamo from "@/assets/bumps/dualsense-camo.webp.asset.json";
-import dualsenseWhite from "@/assets/bumps/dualsense-white.webp.asset.json";
-import baseCarregador from "@/assets/bumps/base-carregador.webp.asset.json";
+import bombaAr from "@/assets/bumps/bomba-ar.png.asset.json";
+import cadeado from "@/assets/bumps/cadeado.png.asset.json";
+import capacete from "@/assets/bumps/capacete.png.asset.json";
 
 /** Item de oferta adicional oferecido junto ao produto principal. */
 export interface OrderBump {
