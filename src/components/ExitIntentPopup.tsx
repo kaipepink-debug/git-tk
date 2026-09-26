@@ -1,5 +1,5 @@
 import { EXIT_OFFER_PRICE } from "@/data/storeContent";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { X } from "lucide-react";
 import { useProduct } from "@/contexts/ProductContext";
@@ -15,68 +15,71 @@ const ExitIntentPopup = () => {
   const { product } = useProduct();
   const productImage = product.cart_image || (product.images?.[0] as string) || "";
 
-  // Caso 1: Usuário gerou um PIX e voltou para a página do produto
+  // Entrada extra no histórico para interceptar o "Voltar" do navegador.
+  const armedRef = useRef(false);
+  // Como a oferta foi aberta: pelo "Voltar" do navegador, pela seta do topo ou pelo mouse.
+  const viaRef = useRef<"popstate" | "arrow" | "mouse">("mouse");
+
+  const alreadyShown = () => sessionStorage.getItem("exit_popup_shown") === "true";
+  const open = (via: "popstate" | "arrow" | "mouse") => {
+    sessionStorage.setItem("exit_popup_shown", "true");
+    viaRef.current = via;
+    setShow(true);
+  };
+
+  /** Sai da página normalmente, pulando a entrada extra se ela ainda existir. */
+  const leave = useCallback(() => {
+    if (armedRef.current) {
+      armedRef.current = false;
+      window.history.go(-2);
+    } else {
+      window.history.back();
+    }
+  }, []);
+
+  // Botão Voltar do navegador (e gesto de voltar no celular)
   useEffect(() => {
-    const cameFromPix = sessionStorage.getItem("pix_generated") === "true";
-    if (cameFromPix) {
-      sessionStorage.removeItem("pix_generated");
-      setShow(true);
-    }
-  }, []);
-
-  /**
-   * Detecta quando o mouse sai da área superior do navegador (intenção de fechar aba)
-   */
-  const handleExitIntent = useCallback((e: MouseEvent) => {
-    if (e.clientY <= 5 && !sessionStorage.getItem("exit_popup_shown")) {
-      sessionStorage.setItem("exit_popup_shown", "true");
-      setShow(true);
-    }
-  }, []);
-
-  /**
-   * Detecta quando a visibilidade da aba muda (usuário trocou de aba)
-   */
-  const handleVisibility = useCallback(() => {
-    if (document.visibilityState === "hidden" && !sessionStorage.getItem("exit_popup_shown")) {
-      sessionStorage.setItem("exit_popup_shown", "true");
-      setShow(true);
-    }
-  }, []);
-
-  // Interceptação do botão de voltar do navegador
-  useEffect(() => {
-    const alreadyShown = sessionStorage.getItem("exit_popup_shown") === "true";
-    if (alreadyShown) return;
-
+    if (alreadyShown()) return;
     window.history.pushState({ exitPopup: true }, "");
+    armedRef.current = true;
 
     const handlePopState = () => {
-      if (!sessionStorage.getItem("exit_popup_shown")) {
-        sessionStorage.setItem("exit_popup_shown", "true");
-        setShow(true);
-        // BUGFIX: antes chamávamos pushState novamente aqui, o que prendia o botão
-        // "Voltar" do navegador em loop. Deixamos o histórico seguir normalmente.
-      }
+      if (!armedRef.current) return;
+      armedRef.current = false;
+      if (!alreadyShown()) open("popstate");
     };
-
     window.addEventListener("popstate", handlePopState);
     return () => window.removeEventListener("popstate", handlePopState);
   }, []);
 
-  // Configuração dos listeners de saída após um pequeno atraso
+  // Seta de voltar do topo do site
   useEffect(() => {
-    const timer = setTimeout(() => {
-      document.addEventListener("mouseout", handleExitIntent);
-      document.addEventListener("visibilitychange", handleVisibility);
-    }, 3000);
+    const handleArrow = () => {
+      if (alreadyShown()) leave();
+      else open("arrow");
+    };
+    window.addEventListener("exit-intent-back", handleArrow);
+    return () => window.removeEventListener("exit-intent-back", handleArrow);
+  }, [leave]);
 
+  // Desktop: mouse saindo pela parte superior da janela
+  useEffect(() => {
+    if (!window.matchMedia("(hover: hover) and (pointer: fine)").matches) return;
+    const handleMouseOut = (e: MouseEvent) => {
+      if (e.relatedTarget === null && e.clientY <= 0 && !alreadyShown()) open("mouse");
+    };
+    const timer = setTimeout(() => document.addEventListener("mouseout", handleMouseOut), 3000);
     return () => {
       clearTimeout(timer);
-      document.removeEventListener("mouseout", handleExitIntent);
-      document.removeEventListener("visibilitychange", handleVisibility);
+      document.removeEventListener("mouseout", handleMouseOut);
     };
-  }, [handleExitIntent, handleVisibility]);
+  }, []);
+
+  /** "Não, obrigado": fecha e deixa o visitante sair se ele estava voltando. */
+  const handleDecline = () => {
+    setShow(false);
+    if (viaRef.current !== "mouse") leave();
+  };
 
   /**
    * Aplica o preço promocional de oferta de saída e redireciona para o checkout
@@ -157,7 +160,7 @@ const ExitIntentPopup = () => {
         </button>
 
         <button
-          onClick={() => setShow(false)}
+          onClick={handleDecline}
           className="mt-2 w-full py-2 text-xs text-gray-400 hover:text-gray-500 transition"
         >
           Não, obrigado
