@@ -4,8 +4,8 @@
  * incluindo variantes, preços, descontos e estado de carregamento.
  */
 
-import { createContext, useContext, useState, useEffect, ReactNode } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { createContext, useContext, useState, ReactNode } from "react";
+import { PRODUCT } from "@/data/storeContent";
 
 /**
  * @interface Variant
@@ -109,58 +109,12 @@ const ProductContext = createContext<ProductContextType | null>(null);
  * e gerencia o estado da variante selecionada pelo usuário.
  */
 export const ProductProvider = ({ children }: { children: ReactNode }) => {
-  const [product, setProduct] = useState<ProductData>(defaultProduct);
-  const [selectedSize, setSelectedSize] = useState(0);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    /**
-     * Carrega os dados do primeiro produto ativo encontrado no banco.
-     * Em caso de erro de rede ou banco, mantém o estado padrão para
-     * não quebrar a interface e loga o problema no console.
-     */
-    const load = async () => {
-      try {
-        const { data, error } = await supabase
-          .from("products")
-          .select("*")
-          .eq("is_active", true)
-          .limit(1)
-          .maybeSingle();
-
-        if (error) {
-          console.error("[ProductContext] Falha ao carregar produto:", error.message);
-          return;
-        }
-
-        if (data) {
-          const p: ProductData = {
-            id: data.id,
-            title: data.title,
-            description: data.description,
-            images: Array.isArray(data.images) ? (data.images as any) : [],
-            cart_image: data.cart_image,
-            variants: Array.isArray(data.variants) && (data.variants as any).length > 0
-              ? (data.variants as any)
-              : defaultProduct.variants,
-            variant_label: data.variant_label || "Tamanho",
-            rating: Number(data.rating) || 0,
-            rating_count: Number(data.rating_count) || 0,
-            sold_count: Number(data.sold_count) || 0,
-            default_variant: Number(data.default_variant) || 0,
-            badges: Array.isArray(data.badges) ? (data.badges as any) : [],
-          };
-          setProduct(p);
-          setSelectedSize(Math.max(0, Math.min(p.default_variant, p.variants.length - 1)));
-        }
-      } catch (err) {
-        console.error("[ProductContext] Erro inesperado ao carregar produto:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    load();
-  }, []);
+  // Conteúdo local — nenhuma consulta ao banco para exibir o produto.
+  const [product] = useState<ProductData>(() => ({ ...PRODUCT, variants: [...PRODUCT.variants] } as ProductData));
+  const [selectedSize, setSelectedSize] = useState(() =>
+    Math.max(0, Math.min(PRODUCT.default_variant, PRODUCT.variants.length - 1)),
+  );
+  const loading = false;
 
   const variants = product.variants;
   // Obtém a variante selecionada ou cai para a primeira disponível

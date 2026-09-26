@@ -19,7 +19,7 @@ import ExitIntentPopup from "@/components/ExitIntentPopup";
 import { useSessionTracker } from "@/hooks/useSessionTracker";
 import { useProduct } from "@/contexts/ProductContext";
 import { useAnalyticsTracker } from "@/hooks/useAnalyticsTracker";
-import { supabase } from "@/integrations/supabase/client";
+import { PRESELL } from "@/data/storeContent";
 import { trackViewContent } from "@/lib/tracking/tiktok";
 
 /**
@@ -34,27 +34,11 @@ const Produto = () => {
     return sessionStorage.getItem("presell_unlocked") === "true";
   });
   
-  // Estado que armazena se a funcionalidade de pré-venda está ativa nas configurações do banco de dados
-  const [presellEnabled, setPresellEnabled] = useState<boolean | null>(null);
+  // Pré-venda configurada localmente
+  const presellEnabled = PRESELL.enabled;
 
   // Dados do produto usados no evento de visualização de conteúdo
   const { product, price } = useProduct();
-
-  useEffect(() => {
-    /**
-     * Carrega as configurações do site assincronamente para verificar o status da pré-venda.
-     */
-    const load = async () => {
-      // BUGFIX: .single() lança erro quando a chave 'presell_enabled' não existe.
-      const { data } = await supabase
-        .from("site_settings")
-        .select("value")
-        .eq("key", "presell_enabled")
-        .maybeSingle();
-      setPresellEnabled(data?.value === "true");
-    };
-    load();
-  }, []);
 
   /**
    * Função chamada para liberar o acesso ao produto após interação com o componente PreSell.
