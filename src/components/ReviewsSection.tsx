@@ -1,5 +1,5 @@
-import { Star, X, ChevronLeft, ChevronRight, Play } from "lucide-react";
-import { useState, useEffect, useCallback, useRef } from "react";
+import { Star, X, ChevronLeft, ChevronRight } from "lucide-react";
+import { useState, useEffect, useCallback } from "react";
 import { useProduct } from "@/contexts/ProductContext";
 import { REVIEWS } from "@/data/storeContent";
 
@@ -17,11 +17,6 @@ const formatDate = (daysAgo: number) => {
   return `${String(d.getDate()).padStart(2, "0")} ${months[d.getMonth()]} ${d.getFullYear()}`;
 };
 
-/**
- * Verifica se uma URL aponta para um arquivo de vídeo.
- * @param url URL do arquivo
- */
-const isVideo = (url: string) => /\.(mp4|webm|mov)$/i.test(url);
 
 /** Interface para o objeto de avaliação do produto */
 interface Review {
@@ -112,24 +107,12 @@ const MediaCarousel = ({
           </button>
         )}
 
-        {isVideo(current) ? (
-          <video
-            key={current}
-            src={current}
-            className="max-h-full max-w-full rounded-lg"
-            controls
-            autoPlay
-            playsInline
-            muted
-          />
-        ) : (
-          <img
-            key={current}
-            src={current}
-            alt=""
-            className="max-h-full max-w-full object-contain rounded-lg"
-          />
-        )}
+        <img
+          key={current}
+          src={current}
+          alt=""
+          className="max-h-full max-w-full object-contain rounded-lg"
+        />
 
         {items.length > 1 && (
           <button onClick={next} className="absolute right-2 z-10 text-white/70 hover:text-white p-1">
@@ -148,13 +131,7 @@ const MediaCarousel = ({
               className="w-12 h-12 rounded flex-shrink-0 overflow-hidden border-2 transition-all"
               style={{ borderColor: i === idx ? "hsl(var(--primary))" : "transparent", opacity: i === idx ? 1 : 0.5 }}
             >
-              {isVideo(item) ? (
-                <div className="w-full h-full bg-muted flex items-center justify-center">
-                  <Play className="w-4 h-4 text-white" />
-                </div>
-              ) : (
-                <img src={item} alt="" className="w-full h-full object-cover" />
-              )}
+              <img src={item} alt="" className="w-full h-full object-cover" />
             </button>
           ))}
         </div>
@@ -237,16 +214,7 @@ const ReviewsSection = () => {
                       onClick={() => setCarousel({ items: review.photos, index: j })}
                       className="relative w-20 h-20 rounded overflow-hidden flex-shrink-0"
                     >
-                      {isVideo(media) ? (
-                        <>
-                          <LazyVideoThumb src={media} />
-                          <div className="absolute inset-0 flex items-center justify-center bg-black/30">
-                            <Play className="w-6 h-6 text-white fill-white" />
-                          </div>
-                        </>
-                      ) : (
-                        <img src={media} alt="Foto da avaliação" className="w-full h-full object-cover" loading="lazy" decoding="async" width={80} height={80} />
-                      )}
+                      <img src={media} alt="Foto da avaliação" className="w-full h-full object-cover" loading="lazy" decoding="async" width={80} height={80} />
                     </button>
                   ))}
                 </div>
@@ -279,17 +247,3 @@ const ReviewsSection = () => {
 };
 
 export default ReviewsSection;
-
-/** Miniatura de vídeo: só baixa os metadados quando chega perto da tela. */
-function LazyVideoThumb({ src }: { src: string }) {
-  const ref = useRef<HTMLVideoElement>(null);
-  const [near, setNear] = useState(false);
-  useEffect(() => {
-    const el = ref.current;
-    if (!el || near) return;
-    const io = new IntersectionObserver((e) => { if (e[0].isIntersecting) { setNear(true); io.disconnect(); } }, { rootMargin: "200px" });
-    io.observe(el);
-    return () => io.disconnect();
-  }, [near]);
-  return <video ref={ref} src={near ? src : undefined} className="w-full h-full object-cover" muted playsInline preload={near ? "metadata" : "none"} width={80} height={80} />;
-}
