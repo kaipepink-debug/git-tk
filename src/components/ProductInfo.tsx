@@ -37,7 +37,7 @@ const SizeSelector = () => {
                   {s.stock}
                 </span>
               ) : null}
-              <span className={`font-semibold ${outOfStock ? "line-through" : ""}`}>{s.label}</span>
+              <span className={`font-semibold ${outOfStock ? "line-through" : ""}`}>{s.label === "825 GB" ? "Preto" : s.label}</span>
             </button>
           );
         })}
@@ -113,7 +113,7 @@ const ProductInfo = () => {
 
       {/* Seletor de Variantes (Ex: Tamanhos, Cores) */}
       <div className="border-t border-border pt-3">
-        <span className="text-sm text-muted-foreground mb-2 block">{product.variant_label}:</span>
+        <span className="text-sm text-muted-foreground mb-2 block">{product.variant_label === "Capacidade" ? "Cor:" : `${product.variant_label}:`}</span>
         <SizeSelector />
       </div>
 
