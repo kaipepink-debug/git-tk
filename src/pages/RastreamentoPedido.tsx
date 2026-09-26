@@ -60,10 +60,10 @@ const RastreamentoPedido = () => {
         )}
 
         <h2 className="text-base font-semibold text-foreground pt-2">Precisa de ajuda?</h2>
-        <p>Se tiver dificuldades para rastrear seu pedido, entre em contato pelo e-mail <strong className="text-foreground">contato@JPvariedadesltda.com.br</strong> ou pelo telefone <strong className="text-foreground">(89) 98102-5918</strong>.</p>
+        <p>Se tiver dificuldades para rastrear seu pedido, entre em contato pelo e-mail <strong className="text-foreground">monstereletric@gmail.com</strong> ou pelo telefone <strong className="text-foreground">(89) 98102-5918</strong>.</p>
 
         <p className="text-xs text-muted-foreground pt-4 border-t border-border">
-          JP VARIEDADES LTDA — CNPJ: 64.482.958/0001-00
+          MONSTER MOBILIDADE LTDA — CNPJ: 64.482.958/0001-00
         </p>
       </div>
     </div>

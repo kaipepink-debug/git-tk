@@ -28,7 +28,7 @@ const CentralAtendimento = () => {
         <p>Estamos aqui para ajudar! Entre em contato conosco pelos canais abaixo:</p>
 
         <h2 className="text-base font-semibold text-foreground">E-mail</h2>
-        <p>contato@JPvariedadesltda.com.br</p>
+        <p>monstereletric@gmail.com</p>
 
         <h2 className="text-base font-semibold text-foreground">Telefone / WhatsApp</h2>
         <p>(89) 98102-5918</p>
@@ -46,7 +46,7 @@ const CentralAtendimento = () => {
 
         {/* Informações corporativas */}
         <p className="text-xs text-muted-foreground pt-4 border-t border-border">
-          JP VARIEDADES LTDA — CNPJ: 64.482.958/0001-00
+          MONSTER MOBILIDADE LTDA — CNPJ: 64.482.958/0001-00
         </p>
       </div>
     </div>

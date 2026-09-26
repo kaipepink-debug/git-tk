@@ -23,7 +23,7 @@ interface SettingsPanelProps {
  * Definição dos campos de informações da empresa para o rodapé.
  */
 const footerFields = [
-  { key: "company_name", label: "Nome da Empresa", placeholder: "Ex: JP VARIEDADES LTDA" },
+  { key: "company_name", label: "Nome da Empresa", placeholder: "Ex: MONSTER MOBILIDADE LTDA" },
   { key: "cnpj", label: "CNPJ", placeholder: "Ex: 64.482.958/0001-00" },
   { key: "contact_email", label: "E-mail de Contato", placeholder: "Ex: contato@empresa.com.br" },
   { key: "contact_phone", label: "Telefone", placeholder: "Ex: (89) 98102-5918" },
