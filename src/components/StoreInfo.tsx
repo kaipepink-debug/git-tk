@@ -1,4 +1,5 @@
 import { Star } from "lucide-react";
+import storeLogo from "@/assets/monster-e-bikes-logo.png.asset.json";
 
 /**
  * Componente que exibe informações básicas sobre a loja/vendedor.
