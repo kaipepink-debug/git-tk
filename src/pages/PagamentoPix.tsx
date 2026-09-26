@@ -173,17 +173,9 @@ const PagamentoPix = () => {
           <p className="text-2xl font-bold text-foreground">R$ {pixData.total?.toFixed(2).replace(".", ",")}</p>
         </div>
 
-        {/* Renderização do QR Code SVG */}
-        {pixData.pixCode && (
-          <div className="bg-background rounded-xl p-6 border border-border flex flex-col items-center">
-            <p className="text-sm font-semibold text-foreground mb-3">Escaneie o QR Code</p>
-            <QRCodeSVG value={pixData.pixCode} size={208} />
-          </div>
-        )}
-
         {/* Área para copiar o código "Copia e Cola" */}
         <div className="bg-background rounded-xl w-full p-4 border border-border">
-          <p className="text-sm font-semibold text-foreground mb-2 text-center">Ou copie o código PIX</p>
+          <p className="text-sm font-semibold text-foreground mb-2 text-center">Copie o código PIX</p>
           <div className="bg-secondary rounded-lg p-3 text-xs text-muted-foreground break-all mb-3 max-h-24 overflow-y-auto">
             {pixData.pixCode}
           </div>
@@ -196,6 +188,14 @@ const PagamentoPix = () => {
             {copied ? "Copiado!" : "Copiar código PIX"}
           </button>
         </div>
+
+        {/* Renderização do QR Code SVG — abaixo do botão de copiar */}
+        {pixData.pixCode && (
+          <div className="bg-background rounded-xl p-6 border border-border flex flex-col items-center">
+            <p className="text-sm font-semibold text-foreground mb-3">Ou escaneie o QR Code</p>
+            <QRCodeSVG value={pixData.pixCode} size={208} />
+          </div>
+        )}
 
         <div className="bg-background rounded-xl w-full p-4 border border-border">
           <p className="text-sm font-semibold text-foreground mb-2">Como pagar</p>
