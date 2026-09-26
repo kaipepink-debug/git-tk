@@ -81,7 +81,7 @@ const ExitIntentPopup = () => {
    * Aplica o preço promocional de oferta de saída e redireciona para o checkout
    */
   const handleAccept = () => {
-    sessionStorage.setItem("exit_offer_price", "88.90");
+    sessionStorage.setItem("exit_offer_price", "52.84");
     setShow(false);
     navigate("/finalizar-compra");
   };
@@ -131,8 +131,8 @@ const ExitIntentPopup = () => {
         </p>
 
         <div className="mt-4 flex items-center justify-center gap-3">
-          <span className="text-sm text-gray-400 line-through">R$ 170,00</span>
-          <span className="text-3xl font-extrabold text-red-500">R$ 88,90</span>
+          <span className="text-sm text-gray-400 line-through">R$ 899,90</span>
+          <span className="text-3xl font-extrabold text-red-500">R$ 52,84</span>
         </div>
 
         <p className="mt-1 text-center text-xs text-green-600 font-semibold">
