@@ -12,6 +12,7 @@ import { useProduct } from "@/contexts/ProductContext";
 import { useOptimizedImage } from "@/hooks/useOptimizedImage";
 import { ORDER_BUMPS, saveSelectedBumps, getSelectedBumps, formatBRL } from "@/lib/orderBumps";
 import { trackAddToCart } from "@/lib/tracking/tiktok";
+import bikeHero from "@/assets/bike/v9-max-hero.webp.asset.json";
 
 /**
  * Componente da página de Carrinho.
@@ -58,7 +59,7 @@ const Carrinho = () => {
 
 
   // Otimização de imagem para o carrinho
-  const productImageRaw = product.cart_image || "/images/escada-carrinho.webp";
+  const productImageRaw = product.cart_image || bikeHero.url;
   const productImage = useOptimizedImage(productImageRaw, 160, 0.6);
   const productName = product.title ? product.title.substring(0, 40) + "..." : "Produto";
 
