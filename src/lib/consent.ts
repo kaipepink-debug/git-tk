@@ -119,7 +119,16 @@ export async function detectRegion(): Promise<string | null> {
  */
 export async function regionRequiresConsent(): Promise<boolean> {
   const region = await detectRegion();
-  if (!region) return true; // desconhecido → trata como região regulada
+  if (!region) {
+    // País não identificado: só exige aviso se o fuso horário for da Europa.
+    try {
+      return /^(Europe|Atlantic\/(Reykjavik|Canary|Madeira|Azores|Faroe))/.test(
+        Intl.DateTimeFormat().resolvedOptions().timeZone || "",
+      );
+    } catch {
+      return false;
+    }
+  }
   return CONSENT_REGIONS.includes(region);
 }
 
