@@ -22,7 +22,7 @@ interface ProductChatProps {
  */
 const ProductChat = ({ open, onClose }: ProductChatProps) => {
   const [messages, setMessages] = useState<Msg[]>([
-    { role: "assistant", content: "Olá! 👋 Sou a assistente da JP Variedades. Como posso te ajudar sobre nossa Escada Telescópica ou sobre sua entrega?" },
+    { role: "assistant", content: "Olá! 👋 Sou a assistente da Monster Mobilidade. Como posso te ajudar com a Bike Elétrica V9 Max ou com sua entrega?" },
   ]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -131,7 +131,7 @@ const ProductChat = ({ open, onClose }: ProductChatProps) => {
       {/* Cabeçalho do Chat */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-background">
         <div>
-          <h2 className="text-sm font-bold text-foreground">Chat JP Variedades</h2>
+          <h2 className="text-sm font-bold text-foreground">Chat Monster Mobilidade</h2>
           <p className="text-[10px] text-muted-foreground">Tire dúvidas sobre o produto e entrega</p>
         </div>
         <button onClick={onClose} className="text-muted-foreground hover:text-foreground p-1">
