@@ -1,307 +1,155 @@
 /**
  * @file supabase/functions/integracao/index.ts
- * @description Receptor de webhooks de pagamento (ZenixPay e compatíveis).
+ * @description Webhook de pagamento da KirvusPay (único gateway).
  *
- * Endpoint público: POST /functions/v1/integracao/webhooks
+ * Endpoint: POST /functions/v1/integracao/webhooks/kirvuspay
  *
- * Fluxo:
- * 1. Recebe a notificação do gateway (JSON).
- * 2. Extrai o identificador da transação e o status, em vários formatos possíveis.
- * 3. Se o status for final e aprovado (AUTHORIZED / PAID / APPROVED), marca o pedido
- *    correspondente como 'paid' na tabela 'orders' — é isso que libera o acesso ao
- *    produto para o cliente (a tela de PIX detecta o pedido pago e avança).
- * 4. Sempre responde 2xx quando o corpo é válido, pois o gateway repete o envio
- *    (3 tentativas, 15s) até receber uma resposta 2xx.
+ * 1. Localiza o pedido pelo transaction.id e valida o token do aviso (webhookToken salvo).
+ * 2. Em TRANSACTION_PAID, consulta a transação direto na KirvusPay (status COMPLETED)
+ *    e confere o valor pago contra o valor esperado salvo.
+ * 3. A transição para "paid" é atômica: só a primeira confirmação envia o
+ *    CompletePayment ao TikTok. Depois envia à RastroCode (idempotente, não bloqueia).
  */
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { fetchKirvusStatus, pickAmount, amountMatches } from "../_shared/kirvus.ts";
+import { PRODUCT } from "../_shared/pricing.ts";
+import { sendToRastroCode } from "../_shared/rastrocode.ts";
 
-/** Cabeçalhos CORS padrão. */
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-api-key, x-webhook-signature',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
 };
 
-/** Status que representam pagamento aprovado (libera o produto). */
-const APPROVED = [
-  'AUTHORIZED', 'PAID', 'APPROVED', 'CONFIRMED', 'COMPLETED',
-  // Variações usadas pela PixNerva e por outros gateways PIX.
-  'PAYED', 'PAYMENT_CONFIRMED', 'PIX_PAID', 'SUCCESS', 'SETTLED',
-];
+const json = (o: unknown, status = 200) => new Response(JSON.stringify(o), {
+  status, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+});
 
-/** Status finais de recusa/cancelamento. */
-const FAILED = [
-  'REJECTED', 'FAILED', 'CANCELLED', 'CANCELED', 'REFUNDED', 'CHARGED_BACK',
-  'EXPIRED', 'CHARGEBACK', 'ERROR',
-];
-
-/**
- * Procura recursivamente, em um objeto de payload, a primeira chave presente na lista.
- *
- * @param {any} obj - Objeto (possivelmente aninhado) recebido do gateway.
- * @param {string[]} keys - Nomes de chave aceitos, em ordem de prioridade.
- * @returns {string | null} Valor encontrado como string, ou null.
- */
-function findValue(obj: any, keys: string[]): string | null {
-  if (!obj || typeof obj !== 'object') return null;
-  for (const key of keys) {
-    const v = obj[key];
-    if (typeof v === 'string' && v.trim()) return v.trim();
-    if (typeof v === 'number') return String(v);
-  }
-  for (const value of Object.values(obj)) {
-    if (value && typeof value === 'object') {
-      const found = findValue(value, keys);
-      if (found) return found;
-    }
-  }
-  return null;
-}
-
-/**
- * Manipulador HTTP do webhook.
- *
- * @param {Request} req - Requisição enviada pelo gateway de pagamento.
- * @returns {Promise<Response>} 200 quando processado, 400 para corpo inválido.
- */
 serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
-  }
-
-  const path = new URL(req.url).pathname;
-
-  /**
-   * Cada gateway tem a sua própria URL de webhook:
-   *   /functions/v1/integracao/webhooks/zenixpay
-   *   /functions/v1/integracao/webhooks/pixnerva
-   * O caminho genérico /webhooks continua aceito (compatibilidade).
-   * O gateway serve apenas para identificação nos logs — o processamento é o mesmo,
-   * pois o pedido é localizado pelo identificador da transação.
-   */
-  let gateway = 'desconhecido';
-  if (path.endsWith('/webhooks/zenixpay')) gateway = 'ZenixPay';
-  else if (path.endsWith('/webhooks/pixnerva')) gateway = 'PixNerva';
-  else if (path.endsWith('/webhooks/kirvuspay')) gateway = 'KirvusPay';
-  else if (path.endsWith('/webhooks') || path.endsWith('/integracao') || path === '/') gateway = 'generico';
-  else {
-    return new Response(JSON.stringify({ error: 'Endpoint não encontrado' }), {
-      status: 404,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
-  }
-
-  if (req.method !== 'POST') {
-    return new Response(JSON.stringify({ error: 'Método não permitido' }), {
-      status: 405,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
-  }
+  if (req.method === 'OPTIONS') return new Response(null, { headers: corsHeaders });
+  if (!new URL(req.url).pathname.endsWith('/webhooks/kirvuspay')) return json({ error: 'Endpoint não encontrado' }, 404);
+  if (req.method !== 'POST') return json({ error: 'Método não permitido' }, 405);
 
   try {
     let payload: any;
-    try {
-      payload = await req.json();
-    } catch {
-      return new Response(JSON.stringify({ error: 'Corpo da requisição inválido' }), {
-        status: 400,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
+    try { payload = await req.json(); } catch { return json({ error: 'Corpo da requisição inválido' }, 400); }
+
+    const transactionId = typeof payload?.transaction?.id === 'string' ? payload.transaction.id.trim() : '';
+    const ev = String(payload?.event || '');
+    // Log sem dados pessoais do cliente.
+    console.log(`Webhook Kirvus: ${ev} ${transactionId}`);
+    if (!transactionId) return json({ error: 'transaction.id ausente' }, 400);
+
+    const supabaseAdmin = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
+
+    const { data: ord } = await supabaseAdmin.from('orders')
+      .select('id, status, amount, kirvus_webhook_token')
+      .eq('transaction_id', transactionId).maybeSingle();
+    if (!ord) return json({ received: true, order_found: false });
+
+    // Autenticidade: token do aviso = webhookToken devolvido na criação desta transação.
+    if (!ord.kirvus_webhook_token || payload?.token !== ord.kirvus_webhook_token) {
+      console.warn('Kirvus: token do webhook inválido', transactionId);
+      return json({ error: 'webhook não autenticado' }, 401);
     }
 
-    console.log(`Webhook recebido [${gateway}]:`, JSON.stringify(payload));
+    if (['TRANSACTION_CANCELED', 'TRANSACTION_REFUNDED', 'TRANSACTION_CHARGED_BACK'].includes(ev)) {
+      await supabaseAdmin.from('orders').update({ status: 'failed' })
+        .eq('id', ord.id).neq('status', 'paid');
+      return json({ received: true, order_status: 'failed' });
+    }
+    if (ev !== 'TRANSACTION_PAID') return json({ received: true, order_status: null });
 
-    const supabaseAdmin = createClient(
-      Deno.env.get('SUPABASE_URL')!,
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
-    );
-    const json = (o: unknown, status = 200) => new Response(JSON.stringify(o), {
-      status, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
-
-    let transactionId: string | null;
-    let rawStatus: string;
-
-    if (gateway === 'KirvusPay') {
-      // Formato Kirvus: { event, token, client:{id}, transaction:{id,status,...} }.
-      // Só transaction.id identifica o pedido (client.id é ignorado).
-      transactionId = typeof payload?.transaction?.id === 'string' ? payload.transaction.id.trim() : null;
-      if (!transactionId) return json({ error: 'transaction.id ausente' }, 400);
-      const { data: ord } = await supabaseAdmin.from('orders').select('kirvus_webhook_token')
-        .eq('transaction_id', transactionId).maybeSingle();
-      if (!ord) return json({ received: true, order_found: false });
-      // Autenticidade: token do aviso = webhookToken devolvido na criação desta transação.
-      if (!ord.kirvus_webhook_token || payload?.token !== ord.kirvus_webhook_token) {
-        console.warn('Kirvus: token do webhook inválido', transactionId);
-        return json({ error: 'webhook não autenticado' }, 401);
-      }
-      const ev = String(payload?.event || '');
-      if (ev === 'TRANSACTION_PAID') {
-        // Confirmação servidor-a-servidor: o payload sozinho não libera o pedido.
-        const { fetchKirvusStatus } = await import('../_shared/kirvus.ts');
-        const chk = await fetchKirvusStatus(transactionId);
-        if (!chk.ok) { console.error('Consulta Kirvus falhou:', chk.error); return json({ error: 'verificação pendente' }, 500); }
-        rawStatus = (chk.status || '').toUpperCase();
-      } else if (['TRANSACTION_CANCELED', 'TRANSACTION_REFUNDED', 'TRANSACTION_CHARGED_BACK'].includes(ev)) {
-        rawStatus = 'CANCELED';
-      } else {
-        rawStatus = '';
-      }
-    } else {
-      // A ordem importa: chaves específicas primeiro, 'id' genérico por último.
-      transactionId = findValue(payload, [
-        'transactionId', 'transaction_id', 'saleId', 'sale_id',
-        'paymentId', 'payment_id', 'id', 'hash',
-      ]);
-      rawStatus = (findValue(payload, ['status', 'paymentStatus', 'payment_status']) || '').toUpperCase();
+    // ===== Confirmação servidor-a-servidor =====
+    const chk = await fetchKirvusStatus(transactionId);
+    if (!chk.ok) { console.error('Consulta Kirvus falhou:', chk.error); return json({ error: 'verificação pendente' }, 500); }
+    if ((chk.status || '').toUpperCase() !== 'COMPLETED') {
+      console.log(`Transação ${transactionId} ainda não concluída (${chk.status}).`);
+      return json({ received: true, order_status: null });
     }
 
-    if (!transactionId) {
-      // Responde 2xx para não gerar reenvios infinitos de um payload que não sabemos tratar.
-      console.warn('Webhook sem identificador de transação — ignorado.');
-      return json({ received: true, ignored: 'sem transaction id' });
+    // ===== Valor pago x valor esperado =====
+    const expected = Number(ord.amount);
+    const paid = chk.amount ?? pickAmount(payload?.transaction);
+    if (paid === null || paid === undefined) {
+      // A Kirvus não informou valor: o PIX foi criado pelo servidor com o valor recalculado.
+      console.warn(`Transação ${transactionId}: valor não informado pela Kirvus; usando o valor criado pelo servidor.`);
+    } else if (!amountMatches(paid, expected)) {
+      console.error(`Valor divergente em ${transactionId}: pago ${paid}, esperado ${expected} centavos.`);
+      await supabaseAdmin.from('orders').update({ status: 'amount_mismatch' }).eq('id', ord.id).neq('status', 'paid');
+      return json({ received: true, order_status: 'amount_mismatch' });
     }
 
-    let newStatus: string | null = null;
-    if (APPROVED.includes(rawStatus)) newStatus = 'paid';
-    else if (FAILED.includes(rawStatus)) newStatus = 'failed';
-    // Kirvus: apenas COMPLETED é pagamento definitivo.
-    if (gateway === 'KirvusPay' && newStatus === 'paid' && rawStatus !== 'COMPLETED') newStatus = null;
+    // ===== Transição atômica pending -> paid (trava de idempotência) =====
+    const nowIso = new Date().toISOString();
+    const { data: transitioned, error: transitionError } = await supabaseAdmin
+      .from('orders')
+      .update({ status: 'paid', paid_at: nowIso, tt_purchase_sent_at: nowIso })
+      .eq('id', ord.id)
+      .neq('status', 'paid')
+      .is('tt_purchase_sent_at', null)
+      .select('id, amount, quantity, ttclid, ttp, utm, customer_email, customer_phone');
+    if (transitionError) {
+      console.error('Erro ao confirmar pedido:', transitionError.message);
+      return json({ error: 'Erro ao atualizar pedido' }, 500);
+    }
+    const first = transitioned?.[0] ?? null;
 
-    if (newStatus) {
-      // Primeira confirmação: a própria atualização é a trava. Só pedidos que AINDA
-      // não estavam pagos (e sem conversão registrada) são retornados aqui — assim um
-      // webhook reenviado pelo gateway nunca gera uma segunda conversão.
-      let firstConfirmation: any = null;
-      if (newStatus === 'paid') {
-        const { data: transitioned, error: transitionError } = await supabaseAdmin
-          .from('orders')
-          .update({ status: 'paid', tt_purchase_sent_at: new Date().toISOString() })
-          .eq('transaction_id', String(transactionId))
-          .neq('status', 'paid')
-          .is('tt_purchase_sent_at', null)
-          .select('id, amount, quantity, ttclid, ttp, utm, customer_email, customer_phone');
-        if (transitionError) console.error('Erro ao confirmar pedido:', transitionError);
-        firstConfirmation = transitioned?.[0] ?? null;
-      }
-
-      const { data, error } = await supabaseAdmin
-        .from('orders')
-        .update({ status: newStatus })
-        .eq('transaction_id', String(transactionId))
-        .select('id');
-
-      if (error) {
-        console.error('Erro ao atualizar pedido:', error);
-        // 500 faz o gateway tentar novamente, o que é desejável aqui.
-        return new Response(JSON.stringify({ error: 'Erro ao atualizar pedido' }), {
-          status: 500,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    // ===== TikTok CompletePayment (somente na primeira confirmação) =====
+    if (first) {
+      try {
+        const cents = Number(first.amount ?? 0);
+        const value = Number.isFinite(cents) && cents > 0 ? cents / 100 : undefined;
+        const res = await fetch(`${Deno.env.get('SUPABASE_URL')}/functions/v1/tiktok-event`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')}`,
+          },
+          body: JSON.stringify({
+            event: 'CompletePayment',
+            event_id: `purchase-${transactionId}`,
+            value,
+            currency: 'BRL',
+            content_id: PRODUCT.id,
+            content_name: PRODUCT.name,
+            quantity: Number(first.quantity) > 0 ? Number(first.quantity) : 1,
+            order_id: String(first.id),
+            external_id: String(transactionId),
+            ttclid: first.ttclid || undefined,
+            ttp: first.ttp || undefined,
+            utm: first.utm || undefined,
+            click_id: (first.utm && (first.utm as any).click_id) || undefined,
+            email: first.customer_email || undefined,
+            phone: first.customer_phone || undefined,
+          }),
         });
-      }
-
-      // Pagamento REALMENTE confirmado: envia CompletePayment pela Events API.
-      // O event_id é determinístico (purchase-<transação>) e igual ao usado no
-      // navegador, permitindo a deduplicação pelo TikTok.
-      if (firstConfirmation) {
-        try {
-          const order: any = firstConfirmation;
-          // 'amount' é gravado em centavos pelo create-pix — o TikTok espera reais.
-          const cents = Number(order.amount ?? 0);
-          const value = Number.isFinite(cents) && cents > 0 ? cents / 100 : undefined;
-
-          // Produto real da loja (evita identificadores desatualizados no evento).
-          // Produto ATIVO mais recente da loja (antes bastava "o primeiro da lista",
-          // o que podia enviar um produto antigo/desativado no evento de compra).
-          const { data: prod } = await supabaseAdmin
-            .from('products')
-            .select('id, title')
-            .eq('is_active', true)
-            .order('updated_at', { ascending: false })
-            .limit(1)
-            .maybeSingle();
-
-          const res = await fetch(`${Deno.env.get('SUPABASE_URL')}/functions/v1/tiktok-event`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              Authorization: `Bearer ${Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')}`,
-            },
-            body: JSON.stringify({
-              event: 'CompletePayment',
-              event_id: `purchase-${transactionId}`,
-              value,
-              currency: 'BRL',
-              content_id: prod?.id ? String(prod.id) : undefined,
-              content_name: prod?.title ? String(prod.title) : undefined,
-              quantity: Number(order.quantity) > 0 ? Number(order.quantity) : 1,
-              order_id: order.id ? String(order.id) : undefined,
-              external_id: String(transactionId),
-              // Identificadores do clique no anúncio, salvos na geração do PIX.
-              ttclid: order.ttclid || undefined,
-              ttp: order.ttp || undefined,
-              utm: order.utm || undefined,
-              // Click ID de outro rastreador, guardado junto dos parâmetros de campanha.
-              click_id: (order.utm && (order.utm as any).click_id) || undefined,
-              email: order.customer_email || undefined,
-              phone: order.customer_phone || undefined,
-            }),
-          });
-
-          if (!res.ok) {
-            const details = await res.text();
-            console.error(`Envio de CompletePayment falhou [${res.status}]: ${details.slice(0, 500)}`);
-            // Libera a marca para uma nova tentativa em um próximo webhook do gateway.
-            await supabaseAdmin
-              .from('orders')
-              .update({ tt_purchase_sent_at: null })
-              .eq('transaction_id', String(transactionId));
-          }
-        } catch (trackErr) {
-          // Falha de rastreamento nunca deve impedir a liberação do pedido.
-          console.warn('Falha ao enviar CompletePayment ao TikTok:', trackErr);
+        if (!res.ok) {
+          const details = await res.text();
+          console.error(`Envio de CompletePayment falhou [${res.status}]: ${details.slice(0, 300)}`);
+          // Libera a marca para nova tentativa num próximo webhook (o pedido continua pago).
+          await supabaseAdmin.from('orders').update({ tt_purchase_sent_at: null }).eq('id', ord.id);
         }
-      } else if (newStatus === 'paid') {
-        console.log(`Transação ${transactionId} já confirmada antes — conversão não duplicada.`);
+      } catch (trackErr) {
+        console.warn('Falha ao enviar CompletePayment ao TikTok:', trackErr);
       }
-
-      // Pedido pago: envia para a RastroCode (idempotente; tenta de novo em reenvios se falhou antes).
-      if (newStatus === 'paid') {
-        try {
-          const { sendToRastroCode } = await import('../_shared/rastrocode.ts');
-          const r = await sendToRastroCode(supabaseAdmin, String(transactionId));
-          console.log('RastroCode:', r.info);
-        } catch (e) {
-          console.warn('Falha RastroCode:', e);
-        }
-      }
-
-
-      console.log(
-        `Transação ${transactionId} (${rawStatus}) -> status "${newStatus}" em ${data?.length ?? 0} pedido(s).`,
-      );
     } else {
-      console.log(`Transação ${transactionId} com status intermediário "${rawStatus}" — nada a fazer.`);
+      console.log(`Transação ${transactionId} já confirmada antes — conversão não duplicada.`);
     }
 
-    return new Response(
-      JSON.stringify({
-        received: true,
-        gateway,
-        transaction_id: transactionId,
-        raw_status: rawStatus || null,
-        order_status: newStatus,
-        released: newStatus === 'paid',
-      }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
-    );
+    // ===== RastroCode (idempotente; falha não afeta o pagamento) =====
+    try {
+      const r = await sendToRastroCode(supabaseAdmin, transactionId);
+      console.log('RastroCode:', r.info.slice(0, 120));
+    } catch (e) {
+      console.warn('Falha RastroCode:', e);
+    }
+
+    return json({ received: true, transaction_id: transactionId, order_status: 'paid', released: true });
   } catch (error) {
-    console.error('Erro no webhook:', error);
-    return new Response(JSON.stringify({ error: 'Erro interno' }), {
-      status: 500,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
+    console.error('Erro no webhook:', error instanceof Error ? error.message : error);
+    return json({ error: 'Erro interno' }, 500);
   }
 });
