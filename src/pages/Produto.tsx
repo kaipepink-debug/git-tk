@@ -5,7 +5,7 @@
 
 import { useState, useEffect } from "react";
 import { prefetchPage } from "@/lib/prefetch";
-import { ORDER_BUMPS } from "@/lib/orderBumps";
+import { prefetchBumpImages } from "@/lib/orderBumps";
 import TopBar from "@/components/TopBar";
 import ImageCarousel from "@/components/ImageCarousel";
 import FlashSaleTimer from "@/components/FlashSaleTimer";
@@ -22,7 +22,6 @@ import { useProduct } from "@/contexts/ProductContext";
 import { PRESELL } from "@/data/storeContent";
 import { trackViewContent } from "@/lib/tracking/tiktok";
 
-let bumpImagesRequested = false;
 
 /**
  * Componente principal da página de produto.
@@ -33,21 +32,13 @@ let bumpImagesRequested = false;
 const Produto = () => {
   useEffect(() => { prefetchPage("carrinho"); prefetchPage("checkout"); }, []);
   useEffect(() => {
-    if (PRESELL.enabled || bumpImagesRequested) return;
+    if (PRESELL.enabled) return;
     const hero = document.querySelector<HTMLImageElement>('img[fetchpriority="high"][alt$=" - imagem 1"]');
     if (!hero) return;
 
     let idleId: number | undefined;
     let timerId: number | undefined;
-    const prefetch = () => {
-      if (bumpImagesRequested) return;
-      bumpImagesRequested = true;
-      ORDER_BUMPS.forEach(({ image }) => {
-        const img = new Image();
-        img.decoding = "async";
-        img.src = image;
-      });
-    };
+    const prefetch = () => prefetchBumpImages();
     const schedule = () => {
       if ("requestIdleCallback" in window) {
         idleId = window.requestIdleCallback(prefetch, { timeout: 5000 });

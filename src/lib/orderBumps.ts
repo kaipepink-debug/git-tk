@@ -44,6 +44,24 @@ export const ORDER_BUMPS: OrderBump[] = [
   },
 ];
 
+const readyBumpImages = new Set<string>();
+let bumpImagesRequested = false;
+
+/** Prepara as três fotos apenas depois da imagem principal e durante uma pausa do navegador. */
+export const prefetchBumpImages = () => {
+  if (bumpImagesRequested) return;
+  bumpImagesRequested = true;
+  ORDER_BUMPS.forEach(({ image }) => {
+    const img = new Image();
+    img.decoding = "async";
+    img.src = image;
+    if (img.decode) void img.decode().then(() => readyBumpImages.add(image)).catch(() => {});
+    else img.onload = () => { readyBumpImages.add(image); };
+  });
+};
+
+export const isBumpImageReady = (image: string) => readyBumpImages.has(image);
+
 const STORAGE_KEY = "order_bumps_selected";
 
 /**

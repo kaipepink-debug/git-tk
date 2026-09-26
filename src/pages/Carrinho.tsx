@@ -10,7 +10,7 @@ import { useState, useEffect } from "react";
 import { prefetchPage } from "@/lib/prefetch";
 import { useProduct } from "@/contexts/ProductContext";
 import { useOptimizedImage } from "@/hooks/useOptimizedImage";
-import { ORDER_BUMPS, saveSelectedBumps, getSelectedBumps, formatBRL } from "@/lib/orderBumps";
+import { ORDER_BUMPS, saveSelectedBumps, getSelectedBumps, formatBRL, isBumpImageReady } from "@/lib/orderBumps";
 import { trackAddToCart } from "@/lib/tracking/tiktok";
 
 /**
@@ -147,7 +147,7 @@ const Carrinho = () => {
                   decoding="async"
                   width={64}
                   height={64}
-                  data-fade=""
+                  {...(isBumpImageReady(bump.image) ? {} : { "data-fade": "" })}
                   className="w-16 h-16 object-contain rounded bg-secondary flex-shrink-0"
                 />
                 <div className="flex-1 min-w-0">
