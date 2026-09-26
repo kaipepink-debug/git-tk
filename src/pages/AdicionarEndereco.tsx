@@ -158,7 +158,7 @@ const AdicionarEndereco = () => {
   );
 
   return (
-    <div className="min-h-screen bg-secondary max-w-lg mx-auto flex flex-col" style={{ fontFamily: "-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Oxygen,Ubuntu,Cantarell,sans-serif" }}>
+    <div className="min-h-screen w-full bg-secondary max-w-lg mx-auto flex flex-col overflow-x-hidden" style={{ fontFamily: "-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Oxygen,Ubuntu,Cantarell,sans-serif" }}>
       {/* Header com botão de voltar */}
       <div className="sticky top-0 z-50 bg-background flex items-center px-4 py-3 border-b border-border">
         <button onClick={() => navigate(-1)} className="mr-3">
@@ -185,14 +185,14 @@ const AdicionarEndereco = () => {
           <div>
             <label className="text-xs text-muted-foreground mt-2 block">Telefone<span className="text-[#FF2B56]"> *</span></label>
             <div className={`flex items-center border-b ${errors.telefone ? "border-[#FF2B56]" : "border-border"}`}>
-              <span className="text-sm text-muted-foreground pr-3 py-2">BR +55</span>
+              <span className="shrink-0 text-sm text-muted-foreground pr-3 py-2">BR +55</span>
               <input
                 type="tel"
                 inputMode="tel"
                 placeholder="Número de telefone"
                 value={telefone}
                 onChange={(e) => { setTelefone(formatarTelefone(e.target.value)); setErrors(p => ({ ...p, telefone: "" })); }}
-                className="flex-1 py-2 text-base text-foreground placeholder:text-muted-foreground outline-none bg-transparent"
+                className="flex-1 min-w-0 w-0 py-2 text-base text-foreground placeholder:text-muted-foreground outline-none bg-transparent"
               />
             </div>
             {errors.telefone && <p className="text-xs py-0.5" style={{ color: "#FF2B56" }}>{errors.telefone}</p>}
@@ -260,14 +260,14 @@ const AdicionarEndereco = () => {
                   value={estado}
                   onChange={(e) => { setEstado(e.target.value.toUpperCase().slice(0, 2)); setErrors(p => ({ ...p, estado: "" })); }}
                   maxLength={2}
-                  className="flex-1 py-2 text-base text-foreground placeholder:text-muted-foreground outline-none bg-transparent border-r border-border pr-3"
+                  className="flex-1 min-w-0 w-0 py-2 text-base text-foreground placeholder:text-muted-foreground outline-none bg-transparent border-r border-border pr-3"
                 />
                 <input
                   type="text"
                   placeholder="Cidade"
                   value={cidade}
                   onChange={(e) => { setCidade(e.target.value); setErrors(p => ({ ...p, cidade: "" })); }}
-                  className="flex-1 py-2 pl-3 text-base text-foreground placeholder:text-muted-foreground outline-none bg-transparent"
+                  className="flex-1 min-w-0 w-0 py-2 pl-3 text-base text-foreground placeholder:text-muted-foreground outline-none bg-transparent"
                 />
               </div>
               {(errors.estado || errors.cidade) && <p className="text-xs py-0.5" style={{ color: "#FF2B56" }}>{errors.estado || errors.cidade}</p>}
