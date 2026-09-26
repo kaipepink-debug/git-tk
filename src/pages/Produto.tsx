@@ -5,6 +5,7 @@
 
 import { useState, useEffect } from "react";
 import { prefetchPage } from "@/lib/prefetch";
+import { prefetchBumpImages } from "@/lib/orderBumps";
 import TopBar from "@/components/TopBar";
 import ImageCarousel from "@/components/ImageCarousel";
 import FlashSaleTimer from "@/components/FlashSaleTimer";
@@ -21,6 +22,7 @@ import { useProduct } from "@/contexts/ProductContext";
 import { PRESELL } from "@/data/storeContent";
 import { trackViewContent } from "@/lib/tracking/tiktok";
 
+
 /**
  * Componente principal da página de produto.
  * 
@@ -29,6 +31,30 @@ import { trackViewContent } from "@/lib/tracking/tiktok";
  */
 const Produto = () => {
   useEffect(() => { prefetchPage("carrinho"); prefetchPage("checkout"); }, []);
+  useEffect(() => {
+    if (PRESELL.enabled) return;
+    const hero = document.querySelector<HTMLImageElement>('img[fetchpriority="high"][alt$=" - imagem 1"]');
+    if (!hero) return;
+
+    let idleId: number | undefined;
+    let timerId: number | undefined;
+    const prefetch = () => prefetchBumpImages();
+    const schedule = () => {
+      if ("requestIdleCallback" in window) {
+        idleId = window.requestIdleCallback(prefetch, { timeout: 5000 });
+      } else {
+        timerId = setTimeout(prefetch, 1500);
+      }
+    };
+    if (hero.complete && hero.naturalWidth > 0) schedule();
+    else hero.addEventListener("load", schedule, { once: true });
+
+    return () => {
+      hero.removeEventListener("load", schedule);
+      if (idleId !== undefined) window.cancelIdleCallback(idleId);
+      if (timerId !== undefined) window.clearTimeout(timerId);
+    };
+  }, []);
   // Estado para controlar se a pré-venda foi desbloqueada pelo usuário através do sessionStorage
   const [unlocked, setUnlocked] = useState(() => {
     return sessionStorage.getItem("presell_unlocked") === "true";
