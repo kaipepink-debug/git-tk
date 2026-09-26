@@ -1,546 +1,137 @@
 /**
  * @file supabase/functions/create-pix/index.ts
- * @description Função para gerar um pagamento via PIX utilizando o gateway configurado.
- * 
- * Fluxo:
- * 1. Recebe os dados do cliente e valor do pedido.
- * 2. Identifica o gateway ativo e o produto associado na tabela 'gateway_settings'.
- * 3. Formata o payload de acordo com a API do gateway (SigmaPay, PayEvo, SealPay ou ZenixPay).
- * 4. Realiza a chamada para gerar o PIX.
- * 5. Salva os dados do pedido na tabela 'orders' com status 'pix_generated'.
- * 6. Retorna o código PIX (copia e cola) e o QR Code em Base64 para o front-end.
+ * @description Gera o PIX pela KirvusPay (único gateway).
+ *
+ * 1. Recebe os itens escolhidos (quantidade, frete, order bumps) e os dados do cliente.
+ * 2. Recalcula o total no servidor (_shared/pricing.ts) — o valor do navegador é ignorado.
+ * 3. Cria o PIX na KirvusPay e grava o registro mínimo em `orders` (status pix_generated).
+ * 4. Devolve o código Copia e Cola e o QR Code.
  */
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { encode as base64Encode } from "https://deno.land/std@0.168.0/encoding/base64.ts";
+import { kirvusHeaders, KIRVUS_BASE } from "../_shared/kirvus.ts";
+import { priceOrder } from "../_shared/pricing.ts";
 
-/**
- * Cabeçalhos CORS para permitir acesso externo.
- */
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 };
 
-/**
- * Servidor HTTP que processa a criação de transações PIX.
- * 
- * @param {Request} req - Requisição HTTP com amount, customer e qty no corpo JSON.
- * @returns {Promise<Response>} Dados do PIX gerado ou erro.
- */
+const json = (o: unknown, status = 200) => new Response(JSON.stringify(o), {
+  status, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+});
+
+const str = (v: unknown, max = 200) => (typeof v === 'string' ? v.trim().slice(0, max) : '');
+
 serve(async (req) => {
-  // Tratamento de preflight CORS
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
-  }
+  if (req.method === 'OPTIONS') return new Response(null, { headers: corsHeaders });
+  if (req.method !== 'POST') return json({ error: 'Método não permitido' }, 405);
 
   try {
-    const supabaseAdmin = createClient(
-      Deno.env.get('SUPABASE_URL')!,
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
-    );
-
-    // Parse seguro do corpo da requisição
     let body: any;
-    try {
-      body = await req.json();
-    } catch {
-      return new Response(JSON.stringify({ error: 'Corpo da requisição inválido' }), {
-        status: 400,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
+    try { body = await req.json(); } catch { return json({ error: 'Corpo da requisição inválido' }, 400); }
+
+    // ===== Valor calculado SOMENTE no servidor =====
+    const priced = priceOrder(body?.items);
+    if (!priced.ok) return json({ error: priced.error }, 400);
+    const { total, qty, items } = priced.order;
+
+    // O navegador informa o total que mostrou; se divergir, não gera o PIX
+    // (evita cobrar um valor diferente do exibido).
+    if (body?.expected_amount !== undefined && Number(body.expected_amount) !== total) {
+      return json({ error: 'O valor do pedido mudou. Recarregue a página e tente novamente.' }, 409);
     }
 
-    const { amount, customer, qty } = body || {};
+    // ===== Dados do cliente =====
+    const customer = body?.customer || {};
+    const name = str(customer.name, 120);
+    const email = str(customer.email, 160);
+    const cleanDoc = String(customer.document ?? '').replace(/\D/g, '');
+    const cleanPhone = String(customer.phone_number ?? '').replace(/\D/g, '').slice(0, 13);
+    const cleanCep = String(customer.zip_code ?? '').replace(/\D/g, '').slice(0, 8);
 
-    // Identificadores de clique do TikTok (atribuição). Guardados como recebidos,
-    // apenas com limite defensivo de tamanho.
-    const ttclid = typeof body?.ttclid === 'string' && body.ttclid.trim()
-      ? body.ttclid.slice(0, 512)
-      : null;
-    const ttp = typeof body?.ttp === 'string' && body.ttp.trim()
-      ? body.ttp.slice(0, 512)
-      : null;
-    // Parâmetros de campanha (UTMs e IDs de anúncio) preservados junto do pedido.
-    const utm = body?.utm && typeof body.utm === 'object' && Object.keys(body.utm).length
-      ? body.utm
-      : null;
+    if (!name || !email || !cleanDoc) return json({ error: 'Dados do cliente incompletos. Preencha nome, e-mail e CPF.' }, 400);
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return json({ error: 'E-mail do cliente inválido' }, 400);
+    if (cleanDoc.length !== 11) return json({ error: 'CPF inválido. Informe um CPF com 11 dígitos.' }, 400);
 
-    // Validação de valor
-    if (typeof amount !== 'number' || !Number.isFinite(amount) || amount < 100) {
-      return new Response(JSON.stringify({ error: 'Valor do pedido inválido' }), {
-        status: 400,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
+    const ttclid = str(body?.ttclid, 512) || null;
+    const ttp = str(body?.ttp, 512) || null;
+    const utm = body?.utm && typeof body.utm === 'object' && !Array.isArray(body.utm) && Object.keys(body.utm).length
+      ? body.utm : null;
+
+    // ===== KirvusPay =====
+    const headers = kirvusHeaders();
+    if (!headers) {
+      console.error('Credenciais Kirvus ausentes');
+      return json({ error: 'Pagamento indisponível no momento. Tente novamente mais tarde.' }, 503);
     }
 
-    // Validação de dados do cliente
-    if (!customer?.name || !customer?.email || !customer?.document) {
-      return new Response(JSON.stringify({ error: 'Dados do cliente incompletos. Preencha nome, e-mail e CPF.' }), {
-        status: 400,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
+    const identifier = `ord-${crypto.randomUUID()}`;
+    const totalReais = Number((total / 100).toFixed(2));
+    const response = await fetch(`${KIRVUS_BASE}/gateway/pix/receive`, {
+      method: 'POST', headers,
+      body: JSON.stringify({
+        identifier,
+        amount: totalReais,
+        client: { name, email, phone: cleanPhone || undefined, document: cleanDoc },
+        products: [{ id: 'pedido', name: 'Pedido da loja', quantity: 1, price: totalReais }],
+        metadata: { provider: 'loja', identifier },
+        callbackUrl: `${Deno.env.get('SUPABASE_URL')}/functions/v1/integracao/webhooks/kirvuspay`,
+      }),
+    });
+    const responseText = await response.text();
+    let data: any = null;
+    try { data = JSON.parse(responseText); } catch { /* texto */ }
+    if (!response.ok || !data?.transactionId || data?.status === 'FAILED') {
+      console.error(`Kirvus erro [${response.status}]`);
+      return json({ error: 'Erro ao gerar PIX', details: data?.message || data?.errorDescription }, 502);
+    }
+    const transactionId = String(data.transactionId);
+    const pixCode = data?.pix?.code || '';
+    const pixQrCodeBase64 = data?.pix?.base64 || '';
+    if (!pixCode) return json({ error: 'A Kirvus não retornou o código PIX' }, 502);
+
+    // ===== Registro mínimo (necessário para validar o webhook) =====
+    const supabaseAdmin = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
+    const { error: dbError } = await supabaseAdmin.from('orders').insert({
+      customer_name: name,
+      customer_email: email,
+      customer_document: cleanDoc,
+      customer_phone: cleanPhone || null,
+      amount: total, // centavos — valor esperado
+      quantity: qty,
+      items,
+      status: 'pix_generated',
+      pix_code: pixCode,
+      pix_qr_code: pixQrCodeBase64,
+      transaction_id: transactionId,
+      tiktok_event_id: `purchase-${transactionId}`,
+      customer_city: str(customer.city, 100) || null,
+      customer_state: str(customer.state, 2) || null,
+      customer_cep: cleanCep || null,
+      customer_street: str(customer.street_name || customer.street, 200) || null,
+      customer_number: customer.number ? String(customer.number).slice(0, 20) : null,
+      customer_neighborhood: str(customer.neighborhood, 120) || null,
+      customer_complement: str(customer.complement, 120) || null,
+      ttclid,
+      ttp,
+      utm,
+      kirvus_webhook_token: data.webhookToken ? String(data.webhookToken) : null,
+    });
+    if (dbError) {
+      // Sem registro, o pagamento não poderia ser validado — não entrega o PIX.
+      console.error('Erro ao salvar pedido:', dbError.message);
+      return json({ error: 'Não foi possível registrar o pedido. Tente novamente.' }, 500);
     }
 
-    // Validação simples de e-mail
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(customer.email))) {
-      return new Response(JSON.stringify({ error: 'E-mail do cliente inválido' }), {
-        status: 400,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
-
-    // Busca o gateway configurado como ativo
-    const { data: gwData, error: gwError } = await supabaseAdmin
-      .from('gateway_settings')
-      .select('gateway_name, api_token, product_id')
-      .eq('is_active', true)
-      .maybeSingle();
-
-    if (gwError) {
-      console.error('Erro ao buscar gateway:', gwError);
-      return new Response(JSON.stringify({ error: 'Não foi possível carregar as configurações de pagamento. Tente novamente em instantes.' }), {
-        status: 500,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
-    if (!gwData) {
-      return new Response(JSON.stringify({ error: 'Pagamento indisponível no momento. Tente novamente mais tarde.' }), {
-        status: 503,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
-
-    const gateway = gwData.gateway_name;
-    // Para ZenixPay, permite fallback para o secret ZENIXPAY_API_KEY
-    const apiToken = gwData.api_token
-      || (gateway === 'ZenixPay' ? (Deno.env.get('ZENIXPAY_API_KEY') || '') : '')
-      || (gateway === 'PixNerva' ? (Deno.env.get('PIXNERVA_API_KEY') || '') : '');
-    const productId = gwData.product_id;
-
-    if (!apiToken && gateway !== 'KirvusPay') {
-      console.error('Gateway ativo sem api_token configurado:', gateway);
-      return new Response(JSON.stringify({ error: 'Pagamento indisponível no momento. Tente novamente mais tarde.' }), {
-        status: 503,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
-
-    console.log(`Active gateway: ${gateway}`);
-
-    // Limpeza de caracteres não numéricos de campos sensíveis
-    const cleanDoc = String(customer.document).replace(/\D/g, '');
-    const cleanPhone = customer.phone_number ? String(customer.phone_number).replace(/\D/g, '') : '';
-    const cleanCep = customer.zip_code ? String(customer.zip_code).replace(/\D/g, '') : '';
-
-    if (cleanDoc.length !== 11) {
-      return new Response(JSON.stringify({ error: 'CPF inválido. Informe um CPF com 11 dígitos.' }), {
-        status: 400,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
-
-    const quantity = Number(qty) > 0 ? Number(qty) : 1;
-
-    let pixCode = '';
-    let pixQrCodeBase64 = '';
-    let transactionId = '';
-    let kirvusWebhookToken: string | null = null;
-
-    // Integração com gateways específicos
-    if (gateway === 'SigmaPay' || gateway === 'Adqui') {
-      // ===== Integração SigmaPay =====
-      const sigmapayPayload = {
-        amount,
-        offer_hash: productId,
-        payment_method: "pix",
-        customer: {
-          name: customer.name,
-          email: customer.email,
-          phone_number: cleanPhone,
-          document: cleanDoc,
-          street_name: customer.street || "Não informado",
-          number: customer.number || "S/N",
-          complement: customer.complement || "",
-          neighborhood: customer.neighborhood || "Não informado",
-          city: customer.city || "Não informado",
-          state: customer.state || "SP",
-          zip_code: cleanCep,
-        },
-        cart: [
-          {
-            product_hash: productId,
-            title: "Escada Telescópica Multifuncional Inox",
-            cover: null,
-            price: amount,
-            quantity,
-            operation_type: 1,
-            tangible: true,
-          },
-        ],
-        expire_in_days: 1,
-        transaction_origin: "api",
-      };
-
-      console.log('Creating SigmaPay transaction...');
-      const response = await fetch(`https://api.sigmapay.com.br/api/public/v1/transactions?api_token=${apiToken}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-        },
-        body: JSON.stringify(sigmapayPayload),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        console.error('SigmaPay error:', JSON.stringify(data));
-        return new Response(JSON.stringify({ error: 'Erro ao gerar PIX', details: data }), {
-          status: response.status,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        });
-      }
-
-      console.log('SigmaPay response:', JSON.stringify(data));
-
-      // Extração de dados da resposta do SigmaPay
-      const txn = data?.data || data;
-      pixCode = txn?.pix_code || txn?.pix?.pix_qr_code || txn?.pix?.emv || '';
-      pixQrCodeBase64 = txn?.qr_code || txn?.pix?.qr_code_base64 || '';
-      transactionId = txn?.hash || txn?.id || '';
-
-    } else if (gateway === 'PayEvo') {
-      // ===== Integração PayEvo =====
-      const PAYEVO_SECRET = apiToken || Deno.env.get('PAYEVO_SECRET_KEY');
-
-      const transactionPayload = {
-        paymentMethod: "PIX",
-        amount,
-        customer: {
-          name: customer.name,
-          email: customer.email,
-          document: cleanDoc,
-          phone: cleanPhone || undefined,
-        },
-        pix: { expiresInDays: 1 },
-        items: [
-          {
-            title: "Escada Telescópica Multifuncional Inox",
-            quantity,
-            unitPrice: amount,
-            tangible: true,
-          },
-        ],
-        ip: "0.0.0.0",
-      };
-
-      const authHeader = 'Basic ' + base64Encode(PAYEVO_SECRET + ':');
-
-      console.log('Creating PayEvo v2 transaction...');
-      const response = await fetch('https://apiv2.payevo.com.br/functions/v1/transactions', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-          'Authorization': authHeader,
-        },
-        body: JSON.stringify(transactionPayload),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        console.error('PayEvo v2 error:', JSON.stringify(data));
-        return new Response(JSON.stringify({ error: 'Erro ao gerar PIX', details: data }), {
-          status: response.status,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        });
-      }
-
-      console.log('PayEvo v2 response:', JSON.stringify(data));
-
-      pixCode = data?.pix?.qrcode || data?.pix?.qrCode || data?.pix?.pix_qr_code || data?.pix?.emv || '';
-      pixQrCodeBase64 = data?.pix?.qrcodeBase64 || data?.pix?.qrCodeBase64 || data?.pix?.qr_code_base64 || '';
-      transactionId = data?.id || data?.transaction_id || '';
-
-    } else if (gateway === 'SealPay') {
-      // ===== Integração SealPay =====
-      const sealPayload = {
-        amount,
-        description: "Pagamento Aprovado.",
-        api_key: apiToken,
-        customer: {
-          name: customer.name,
-          email: customer.email,
-          cellphone: cleanPhone,
-          taxId: cleanDoc,
-        },
-        tracking: {
-          utm: { utm_source: "", utm_medium: "", utm_campaign: "", utm_term: "", utm_content: "" },
-          src: "https://lojatopmercado.lovable.app/finalizar-compra",
-        },
-        fbp: "",
-        fbc: "",
-        user_agent: "Mozilla/5.0",
-      };
-
-      console.log('Creating SealPay transaction...');
-      
-      // SealPay pode apresentar erros intermitentes - tentando até 3 vezes
-      let data: any = null;
-      let lastError: any = null;
-      for (let attempt = 1; attempt <= 3; attempt++) {
-        console.log(`SealPay attempt ${attempt}/3...`);
-        const response = await fetch('https://abacate-5eo1.onrender.com/create-pix', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-          body: JSON.stringify(sealPayload),
-        });
-
-        const responseText = await response.text();
-        console.log('SealPay raw response:', responseText);
-
-        try { data = JSON.parse(responseText); } catch {
-          lastError = { error: 'Resposta inválida do SealPay', raw: responseText };
-          if (attempt < 3) { await new Promise(r => setTimeout(r, 1000)); continue; }
-          return new Response(JSON.stringify(lastError), {
-            status: 502, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          });
-        }
-
-        // Verifica se os dados do PIX estão presentes na resposta
-        pixCode = data?.pix_code || '';
-        const rawQr = data?.pix_qr_code || '';
-        pixQrCodeBase64 = rawQr.startsWith('data:') ? rawQr.split(',')[1] || rawQr : rawQr;
-        transactionId = data?.txid || '';
-
-        if (pixCode) {
-          if (!response.ok) console.warn('SealPay returned error status but PIX was generated successfully');
-          break; // Sucesso ao obter dados do PIX
-        }
-
-        // Falha na tentativa - tenta novamente se possível
-        console.error(`SealPay attempt ${attempt} failed:`, JSON.stringify(data));
-        lastError = data;
-        if (attempt < 3) { await new Promise(r => setTimeout(r, 1500)); continue; }
-        
-        return new Response(JSON.stringify({ error: 'Erro ao gerar PIX', details: data }), {
-          status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        });
-      }
-
-    } else if (gateway === 'ZenixPay') {
-      // ===== Integração ZenixPay (POST /api/v1/direct-payments com API Key) =====
-      // Obs.: o endpoint direto valida os campos de forma estrita e NÃO aceita
-      // `productLink` (esse campo pertence apenas ao fluxo de checkout hospedado).
-      const zenixPayload = {
-        amount,
-        description: "Pagamento Aprovado.",
-        paymentMethod: "pix",
-        customer: {
-          name: customer.name,
-          email: customer.email,
-          document: cleanDoc,
-          phone: cleanPhone ? `+55${cleanPhone}` : undefined,
-          birthDate: undefined,
-        },
-      };
-
-      console.log('Creating ZenixPay direct-payment...', JSON.stringify(zenixPayload));
-      const response = await fetch('https://api.zenixpay.com.br/api/v1/direct-payments', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-          'X-API-Key': apiToken.trim(),
-          'Authorization': `Bearer ${apiToken.trim()}`,
-        },
-        body: JSON.stringify(zenixPayload),
-      });
-
-      const data = await response.json();
-      console.log('ZenixPay response:', JSON.stringify(data));
-
-      if (data?.hasError || !response.ok) {
-        console.error('ZenixPay error:', JSON.stringify(data));
-        return new Response(JSON.stringify({ error: 'Erro ao gerar PIX', details: data }), {
-          status: response.status,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        });
-      }
-
-      const txnData = data?.data;
-      pixCode = txnData?.payment_data?.pix_key || '';
-      pixQrCodeBase64 = '';
-      transactionId = txnData?.transaction_id || '';
-    } else if (gateway === 'PixNerva') {
-      // ===== Integração PixNerva (POST https://pixnerva.com.br/api/sales) =====
-      // Autenticação: header `x-api-key` com a chave da conta.
-      // Valores em REAIS (não em centavos) e apenas customer.document é obrigatório.
-      // `postbackUrl` aponta para o nosso webhook, garantindo a liberação automática
-      // do pedido (e o envio da conversão CompletePayment ao TikTok) quando aprovado.
-      const externalId = `ORD-${Date.now()}`;
-      const postbackUrl = `${Deno.env.get('SUPABASE_URL')}/functions/v1/integracao/webhooks/pixnerva`;
-
-      const pixNervaPayload: Record<string, unknown> = {
-        amount: Number((amount / 100).toFixed(2)),
-        description: 'Pagamento do pedido',
-        customer: {
-          document: cleanDoc,
-          name: customer.name,
-          email: customer.email,
-          phone: cleanPhone || undefined,
-        },
-        items: [{
-          description: 'Pedido da loja',
-          quantity: quantity,
-          unitPrice: Number((amount / 100 / Math.max(quantity, 1)).toFixed(2)),
-          tangible: true,
-        }],
-        expirationInSeconds: 86400,
-        postbackUrl,
-        externalId,
-      };
-
-      console.log('Creating PixNerva sale...', JSON.stringify(pixNervaPayload));
-      const response = await fetch('https://pixnerva.com.br/api/sales', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-          'x-api-key': apiToken.trim(),
-        },
-        body: JSON.stringify(pixNervaPayload),
-      });
-
-      const responseText = await response.text();
-      console.log('PixNerva raw response:', responseText);
-
-      let data: any;
-      try { data = JSON.parse(responseText); } catch {
-        return new Response(JSON.stringify({ error: 'Resposta inválida da PixNerva', raw: responseText }), {
-          status: 502, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        });
-      }
-
-      if (!response.ok || data?.hasError) {
-        console.error('PixNerva error:', responseText);
-        return new Response(JSON.stringify({ error: 'Erro ao gerar PIX', details: data }), {
-          status: response.status || 500,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        });
-      }
-
-      // Leitura defensiva: aceita as variações mais comuns de nomes de campos.
-      const sale = data?.data ?? data?.sale ?? data;
-      pixCode = sale?.pix?.payload || sale?.pix?.qrcode || sale?.pix?.qrCode
-        || sale?.pixCode || sale?.qrcode || sale?.qrCode || sale?.copyPaste
-        || sale?.payment?.pix?.payload || '';
-      pixQrCodeBase64 = sale?.pix?.qrcodeBase64 || sale?.pix?.base64
-        || sale?.qrCodeBase64 || sale?.qrcode_base64 || '';
-      transactionId = sale?.id || sale?.transactionId || sale?.transaction_id
-        || sale?.saleId || externalId;
-
-      if (!pixCode && !pixQrCodeBase64) {
-        console.error('PixNerva sem código PIX na resposta:', responseText);
-        return new Response(JSON.stringify({ error: 'A PixNerva não retornou o código PIX', details: data }), {
-          status: 502, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        });
-      }
-    } else if (gateway === 'KirvusPay') {
-      // ===== Kirvus Pay: POST /gateway/pix/receive (x-public-key / x-secret-key) =====
-      const { kirvusHeaders, KIRVUS_BASE } = await import('../_shared/kirvus.ts');
-      const headers = kirvusHeaders();
-      if (!headers) {
-        console.error('Credenciais Kirvus ausentes');
-        return new Response(JSON.stringify({ error: 'Pagamento indisponível no momento. Tente novamente mais tarde.' }), {
-          status: 503, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        });
-      }
-      const identifier = `ord-${crypto.randomUUID()}`;
-      const total = Number((amount / 100).toFixed(2));
-      const response = await fetch(`${KIRVUS_BASE}/gateway/pix/receive`, {
-        method: 'POST', headers,
-        body: JSON.stringify({
-          identifier,
-          amount: total,
-          client: { name: customer.name, email: customer.email, phone: cleanPhone || undefined, document: cleanDoc },
-          products: [{ id: 'pedido', name: 'Pedido da loja', quantity: 1, price: total }],
-          metadata: { provider: 'loja', identifier },
-          callbackUrl: `${Deno.env.get('SUPABASE_URL')}/functions/v1/integracao/webhooks/kirvuspay`,
-        }),
-      });
-      const responseText = await response.text();
-      let data: any = null;
-      try { data = JSON.parse(responseText); } catch { /* texto */ }
-      if (!response.ok || !data?.transactionId || data?.status === 'FAILED') {
-        console.error(`Kirvus erro [${response.status}]:`, responseText.slice(0, 500));
-        return new Response(JSON.stringify({ error: 'Erro ao gerar PIX', details: data?.message || data?.errorDescription }), {
-          status: 502, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        });
-      }
-      transactionId = String(data.transactionId);
-      kirvusWebhookToken = data.webhookToken ? String(data.webhookToken) : null;
-      pixCode = data?.pix?.code || '';
-      pixQrCodeBase64 = data?.pix?.base64 || '';
-      if (!pixCode) {
-        return new Response(JSON.stringify({ error: 'A Kirvus não retornou o código PIX' }), {
-          status: 502, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        });
-      }
-    } else {
-      return new Response(JSON.stringify({ error: `Gateway "${gateway}" não suportado` }), {
-        status: 400,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
-
-    // Salva o pedido no banco de dados para rastreamento
-    try {
-      await supabaseAdmin.from('orders').insert({
-        customer_name: customer.name,
-        customer_email: customer.email,
-        customer_document: cleanDoc,
-        customer_phone: cleanPhone || null,
-        amount,
-        quantity,
-        status: 'pix_generated',
-        pix_code: pixCode,
-        pix_qr_code: pixQrCodeBase64,
-        transaction_id: String(transactionId),
-        customer_city: customer.city || null,
-        customer_state: customer.state || null,
-        customer_cep: cleanCep || null,
-        customer_street: customer.street_name || customer.street || null,
-        customer_number: customer.number ? String(customer.number) : null,
-        customer_neighborhood: customer.neighborhood || null,
-        customer_complement: customer.complement || null,
-        ttclid,
-        ttp,
-        utm,
-        kirvus_webhook_token: kirvusWebhookToken,
-      });
-    } catch (dbError) {
-      console.error('Error saving order:', dbError);
-    }
-
-    // Retorna a resposta normalizada para o front-end
-    return new Response(JSON.stringify({
-      pix: {
-        pix_qr_code: pixCode,
-        qr_code_base64: pixQrCodeBase64,
-      },
+    return json({
+      pix: { pix_qr_code: pixCode, qr_code_base64: pixQrCodeBase64 },
       id: transactionId,
-    }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      amount: total,
     });
   } catch (error) {
-    console.error('Error:', error);
-    return new Response(JSON.stringify({ error: 'Erro interno' }), {
-      status: 500,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
+    console.error('Erro create-pix:', error instanceof Error ? error.message : error);
+    return json({ error: 'Erro interno' }, 500);
   }
 });

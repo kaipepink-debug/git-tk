@@ -11,7 +11,6 @@ import { useOptimizedImage } from "@/hooks/useOptimizedImage";
 import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { useSessionTracker } from "@/hooks/useSessionTracker";
 import { getAttribution } from "@/lib/tracking/attribution";
 import { trackInitiateCheckout, trackAddPaymentInfo, trackPlaceAnOrder } from "@/lib/tracking/tiktok";
 import pixIcon from "@/assets/pix.svg";
@@ -39,7 +38,6 @@ interface EnderecoData {
  */
 const FinalizarCompra = () => {
   // Rastreia a navegação
-  useSessionTracker("/finalizar-compra");
 
   const navigate = useNavigate();
   const [qty, setQty] = useState(1);
@@ -318,7 +316,15 @@ const FinalizarCompra = () => {
 
               const { data, error } = await supabase.functions.invoke("create-pix", {
                 body: {
-                  amount: amountInCents,
+                  // O servidor recalcula o valor a partir dos itens; expected_amount só
+                  // confirma que o total exibido é o mesmo que será cobrado.
+                  items: {
+                    qty,
+                    frete,
+                    bumps: bumps.map((b) => b.id),
+                    exit_offer: Boolean(exitOfferPrice),
+                  },
+                  expected_amount: amountInCents,
                   qty,
                   // URL real da página do produto, usada pelo gateway de pagamento
                   product_url: `${window.location.origin}/produto`,

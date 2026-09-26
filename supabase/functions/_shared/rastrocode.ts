@@ -9,7 +9,18 @@ export async function sendToRastroCode(admin: any, transactionId: string): Promi
 
   const { data: o } = await admin.from('orders').select('*').eq('transaction_id', transactionId).maybeSingle();
   if (!o) return { ok: false, info: 'pedido não encontrado' };
+  if (o.status !== 'paid') return { ok: false, info: 'pedido não pago' };
   if (o.rastrocode_sent_at) return { ok: true, info: 'já enviado' };
+
+  // Trava atômica: evita dois envios simultâneos (webhooks repetidos ao mesmo tempo).
+  const staleIso = new Date(Date.now() - 2 * 60 * 1000).toISOString();
+  const { data: claimed } = await admin.from('orders')
+    .update({ rastrocode_lock_at: new Date().toISOString() })
+    .eq('id', o.id)
+    .is('rastrocode_sent_at', null)
+    .or(`rastrocode_lock_at.is.null,rastrocode_lock_at.lt.${staleIso}`)
+    .select('id');
+  if (!claimed?.length) return { ok: true, info: 'envio em andamento' };
 
   const digits = (v: unknown) => String(v ?? '').replace(/\D/g, '');
   const total = Number((Number(o.amount || 0) / 100).toFixed(2));
@@ -59,6 +70,6 @@ export async function sendToRastroCode(admin: any, transactionId: string): Promi
   }
   const info = `[${res.status}] ${text.slice(0, 800)}`;
   console.error('RastroCode erro:', info);
-  await admin.from('orders').update({ rastrocode_error: info }).eq('id', o.id);
+  await admin.from('orders').update({ rastrocode_error: info, rastrocode_lock_at: null }).eq('id', o.id);
   return { ok: false, info };
 }

@@ -16,9 +16,7 @@ import BottomBar from "@/components/BottomBar";
 import PreSell from "@/components/PreSell";
 import ExitIntentPopup from "@/components/ExitIntentPopup";
 
-import { useSessionTracker } from "@/hooks/useSessionTracker";
 import { useProduct } from "@/contexts/ProductContext";
-import { useAnalyticsTracker } from "@/hooks/useAnalyticsTracker";
 import { PRESELL } from "@/data/storeContent";
 import { trackViewContent } from "@/lib/tracking/tiktok";
 
@@ -62,8 +60,6 @@ const Produto = () => {
   }, [showPresell, product?.id, product?.title, price]);
 
   // Trackers de análise de tráfego
-  useSessionTracker(showPresell ? "/produto/presell" : "/produto");
-  useAnalyticsTracker(showPresell ? "/produto/presell" : "/produto");
 
   return (
     <>

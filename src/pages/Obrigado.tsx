@@ -6,7 +6,6 @@
 
 import { CheckCircle2, Package, Truck, Mail } from "lucide-react";
 import { useEffect } from "react";
-import { useSessionTracker } from "@/hooks/useSessionTracker";
 
 /**
  * Componente da página de Obrigado.
@@ -14,7 +13,6 @@ import { useSessionTracker } from "@/hooks/useSessionTracker";
  */
 const Obrigado = () => {
   // Rastreia a sessão
-  useSessionTracker("/obrigado");
 
   useEffect(() => {
     // Limpa dados de oferta da sessão após conclusão bem-sucedida
