@@ -11,7 +11,7 @@ const Footer = () => {
   const [info, setInfo] = useState({
     company_name: "MONSTER MOBILIDADE LTDA",
     cnpj: "64.482.958/0001-00",
-    contact_email: "contato@JPvariedadesltda.com.br",
+    contact_email: "monstereletric@gmail.com",
     contact_phone: "(89) 98102-5918",
     company_address: "",
   });
