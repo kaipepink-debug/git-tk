@@ -6,7 +6,7 @@
 export const PRODUCT = {
   id: '35d010e2-4b26-4b96-a718-1ac8859f1329',
   name: 'Bicicleta Bike Eletrica V9 Max 1000w 48km',
-  price: 1000, // R$ 10,00 (teste)
+  price: 8975, // R$ 89,75
   exitOfferPrice: 5284, // R$ 52,84 (oferta de saída exibida no site)
 };
 
