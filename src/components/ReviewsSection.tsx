@@ -247,17 +247,3 @@ const ReviewsSection = () => {
 };
 
 export default ReviewsSection;
-
-/** Miniatura de vídeo: só baixa os metadados quando chega perto da tela. */
-function LazyVideoThumb({ src }: { src: string }) {
-  const ref = useRef<HTMLVideoElement>(null);
-  const [near, setNear] = useState(false);
-  useEffect(() => {
-    const el = ref.current;
-    if (!el || near) return;
-    const io = new IntersectionObserver((e) => { if (e[0].isIntersecting) { setNear(true); io.disconnect(); } }, { rootMargin: "200px" });
-    io.observe(el);
-    return () => io.disconnect();
-  }, [near]);
-  return <video ref={ref} src={near ? src : undefined} className="w-full h-full object-cover" muted playsInline preload={near ? "metadata" : "none"} width={80} height={80} />;
-}
