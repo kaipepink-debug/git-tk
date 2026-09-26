@@ -18,7 +18,7 @@ import { isAdsTrackingAllowed, onConsentChange } from "@/lib/consent";
 import { captureAttribution, getAttribution, getTrackingSessionId } from "@/lib/tracking/attribution";
 
 /** ID público do Pixel do TikTok (valor público, pode ficar no navegador). */
-export const TIKTOK_PIXEL_ID = "DAIOGE3C77UC8FLK3JB0";
+export const TIKTOK_PIXEL_ID = "DAH37V3C77UDHLL3Q7Q0";
 
 /** Chave onde guardamos os event_id já disparados (proteção contra duplicidade). */
 const FIRED_KEY = "tt_fired_events_v1";
