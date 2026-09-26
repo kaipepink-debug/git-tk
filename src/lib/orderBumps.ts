@@ -4,12 +4,9 @@
  * e utilidades para persistir a seleção do cliente entre o carrinho e o checkout.
  */
 
-import gta6 from "@/assets/bumps/gta6.webp.asset.json";
-import dualsenseBlack from "@/assets/bumps/dualsense-black.webp.asset.json";
-import dualsenseRed from "@/assets/bumps/dualsense-red.webp.asset.json";
-import dualsenseCamo from "@/assets/bumps/dualsense-camo.webp.asset.json";
-import dualsenseWhite from "@/assets/bumps/dualsense-white.webp.asset.json";
-import baseCarregador from "@/assets/bumps/base-carregador.webp.asset.json";
+import bombaAr from "@/assets/bumps/bomba-ar.png.asset.json";
+import cadeado from "@/assets/bumps/cadeado.png.asset.json";
+import capacete from "@/assets/bumps/capacete.png.asset.json";
 
 /** Item de oferta adicional oferecido junto ao produto principal. */
 export interface OrderBump {
@@ -28,46 +25,25 @@ export interface OrderBump {
 /** Lista de ofertas adicionais disponíveis no carrinho. */
 export const ORDER_BUMPS: OrderBump[] = [
   {
-    id: "gta6",
-    title: "Capacete Coquinho Scooter Bike Moto Elétrica E-bike Patins Patinete - Viseira Cristal",
-    price: 79.9,
-    oldPrice: 349.9,
-    image: gta6.url,
+    id: "bomba-ar",
+    title: "Mini Bomba de Ar Portátil",
+    price: 19.9,
+    oldPrice: 109.9,
+    image: bombaAr.url,
   },
   {
-    id: "dualsense-black",
-    title: "Controle Sem Fio Sony PlayStation 5 DualSense Midnight Black",
-    price: 88.9,
-    oldPrice: 419.9,
-    image: dualsenseBlack.url,
+    id: "cadeado-antifurto",
+    title: "Cadeado Antifurto com Alarme",
+    price: 12.9,
+    oldPrice: 59.9,
+    image: cadeado.url,
   },
   {
-    id: "dualsense-red",
-    title: "Controle Sony DualSense Sem Fio PS5 Cosmic Red",
-    price: 88.9,
-    oldPrice: 419.9,
-    image: dualsenseRed.url,
-  },
-  {
-    id: "dualsense-camo",
-    title: "Controle Sem Fio DualSense PlayStation 5 Gray Camuflado",
-    price: 89.9,
-    oldPrice: 429.9,
-    image: dualsenseCamo.url,
-  },
-  {
-    id: "dualsense-white",
-    title: "Controle Sony DualSense Sem Fio White PS5",
-    price: 89.9,
-    oldPrice: 409.9,
-    image: dualsenseWhite.url,
-  },
-  {
-    id: "base-carregador",
-    title: "Suporte Base Carregador para 2 Controles PS5",
-    price: 39.9,
-    oldPrice: 189.9,
-    image: baseCarregador.url,
+    id: "capacete-coquinho",
+    title: "Capacete Coquinho Viseira Cristal",
+    price: 29.9,
+    oldPrice: 159.9,
+    image: capacete.url,
   },
 ];
 
