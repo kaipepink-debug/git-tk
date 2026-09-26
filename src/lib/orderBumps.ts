@@ -29,7 +29,7 @@ export interface OrderBump {
 export const ORDER_BUMPS: OrderBump[] = [
   {
     id: "gta6",
-    title: "Jogo Grand Theft Auto VI (GTA 6) - Mídia Física",
+    title: "Capacete Coquinho Scooter Bike Moto Elétrica E-bike Patins Patinete - Viseira Cristal",
     price: 79.9,
     oldPrice: 349.9,
     image: gta6.url,
