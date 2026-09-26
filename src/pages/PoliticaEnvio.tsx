@@ -38,7 +38,7 @@ const PoliticaEnvio = () => {
         <p>Caso haja problemas na entrega (extravio, atraso significativo), entre em contato conosco para resolvermos a situação o mais rápido possível.</p>
 
         <p className="text-xs text-muted-foreground pt-4 border-t border-border">
-          Última atualização: março de 2026. JP VARIEDADES LTDA — CNPJ: 64.482.958/0001-00
+          Última atualização: março de 2026. MONSTER MOBILIDADE LTDA — CNPJ: 64.482.958/0001-00
         </p>
       </div>
     </div>

@@ -34,10 +34,10 @@ const PoliticaReembolso = () => {
         <p>Após a aprovação da solicitação, o reembolso será processado em até 10 dias úteis, via mesma forma de pagamento utilizada na compra ou por transferência bancária.</p>
 
         <h2 className="text-base font-semibold text-foreground">3. Como Solicitar</h2>
-        <p>Envie sua solicitação para contato@JPvariedadesltda.com.br com o número do pedido e seus dados bancários para transferência.</p>
+        <p>Envie sua solicitação para monstereletric@gmail.com com o número do pedido e seus dados bancários para transferência.</p>
 
         <p className="text-xs text-muted-foreground pt-4 border-t border-border">
-          Última atualização: março de 2026. JP VARIEDADES LTDA — CNPJ: 64.482.958/0001-00
+          Última atualização: março de 2026. MONSTER MOBILIDADE LTDA — CNPJ: 64.482.958/0001-00
         </p>
       </div>
     </div>

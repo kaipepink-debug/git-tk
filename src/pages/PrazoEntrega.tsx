@@ -69,7 +69,7 @@ const PrazoEntrega = () => {
         </ul>
 
         <p className="text-xs text-muted-foreground pt-4 border-t border-border">
-          JP VARIEDADES LTDA — CNPJ: 64.482.958/0001-00
+          MONSTER MOBILIDADE LTDA — CNPJ: 64.482.958/0001-00
         </p>
       </div>
     </div>

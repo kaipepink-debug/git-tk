@@ -35,10 +35,10 @@ const SobreNos = () => {
           Trabalhamos com fornecedores rigorosamente selecionados para garantir a procedência e durabilidade de todos os nossos produtos. Cada item passa por um controle de qualidade antes de ser enviado ao cliente.
         </p>
         <p>
-          Estamos comprometidos com a transparência, a honestidade e o respeito ao consumidor. Se você tiver qualquer dúvida ou sugestão, entre em contato conosco pelo e-mail <strong className="text-foreground">contato@JPvariedadesltda.com.br</strong> ou pelo telefone <strong className="text-foreground">(89) 98102-5918</strong>.
+          Estamos comprometidos com a transparência, a honestidade e o respeito ao consumidor. Se você tiver qualquer dúvida ou sugestão, entre em contato conosco pelo e-mail <strong className="text-foreground">monstereletric@gmail.com</strong> ou pelo telefone <strong className="text-foreground">(89) 98102-5918</strong>.
         </p>
         <p className="text-xs text-muted-foreground pt-4 border-t border-border">
-          JP VARIEDADES LTDA — CNPJ: 64.482.958/0001-00
+          MONSTER MOBILIDADE LTDA — CNPJ: 64.482.958/0001-00
         </p>
       </div>
     </div>
