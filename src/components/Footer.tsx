@@ -1,6 +1,5 @@
 import { Link } from "react-router-dom";
-import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { COMPANY_INFO } from "@/data/storeContent";
 
 /**
  * Componente de rodapé global do site.
@@ -8,29 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
  * Busca dados da empresa (CNPJ, Endereço, etc.) dinamicamente das configurações do site.
  */
 const Footer = () => {
-  const [info, setInfo] = useState({
-    company_name: "MONSTER MOBILIDADE LTDA",
-    cnpj: "64.482.958/0001-00",
-    contact_email: "monstereletric@gmail.com",
-    contact_phone: "(89) 98102-5918",
-    company_address: "",
-  });
-
-  // Carrega as informações da empresa do Supabase
-  useEffect(() => {
-    const load = async () => {
-      const { data } = await supabase
-        .from("site_settings")
-        .select("key, value")
-        .in("key", ["company_name", "cnpj", "contact_email", "contact_phone", "company_address"]);
-      if (data) {
-        const map: Record<string, string> = {};
-        data.forEach(r => { map[r.key] = r.value; });
-        setInfo(prev => ({ ...prev, ...map }));
-      }
-    };
-    load();
-  }, []);
+  const info = COMPANY_INFO;
 
   return (
     <footer className="bg-background border-t border-border px-4 py-8">

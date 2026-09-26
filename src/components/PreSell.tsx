@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useProduct } from "@/contexts/ProductContext";
 import { supabase } from "@/integrations/supabase/client";
+import { COMPANY_INFO, PRESELL } from "@/data/storeContent";
 import { ChevronRight } from "lucide-react";
 
 /**
@@ -26,43 +27,8 @@ const PreSell = ({ onUnlock }: { onUnlock: () => void }) => {
   const startXRef = useRef(0);
   const unlocked = useRef(false);
 
-  const [config, setConfig] = useState<PreSellConfig>({
-    buttonText: "Deslize para obter a oferta →",
-    instructionText: "Arraste o botão para a direita para liberar a oferta",
-    buttonColor: "#FE2C55",
-  });
-
-  const [info, setInfo] = useState({
-    company_name: "MONSTER MOBILIDADE LTDA",
-    cnpj: "64.482.958/0001-00",
-    contact_email: "monstereletric@gmail.com",
-    contact_phone: "(89) 98102-5918",
-    company_address: "",
-  });
-
-  // Carrega configurações de pré-venda e dados da loja do Supabase
-  useEffect(() => {
-    const load = async () => {
-      const { data } = await supabase
-        .from("site_settings")
-        .select("key, value")
-        .in("key", [
-          "company_name", "cnpj", "contact_email", "contact_phone", "company_address",
-          "presell_button_text", "presell_instruction_text", "presell_button_color",
-        ]);
-      if (data) {
-        const map: Record<string, string> = {};
-        data.forEach(r => { map[r.key] = r.value; });
-        setInfo(prev => ({ ...prev, ...map }));
-        setConfig(prev => ({
-          buttonText: map.presell_button_text || prev.buttonText,
-          instructionText: map.presell_instruction_text || prev.instructionText,
-          buttonColor: map.presell_button_color || prev.buttonColor,
-        }));
-      }
-    };
-    load();
-  }, []);
+  const config: PreSellConfig = { buttonText: PRESELL.buttonText, instructionText: PRESELL.instructionText, buttonColor: PRESELL.buttonColor };
+  const info = COMPANY_INFO;
 
   /** Retorna a largura útil do trilho para cálculo de porcentagem */
   const getTrackWidth = () => {

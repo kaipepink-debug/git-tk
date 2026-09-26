@@ -1,7 +1,7 @@
 import { Star, X, ChevronLeft, ChevronRight, Play } from "lucide-react";
 import { useState, useEffect, useCallback } from "react";
 import { useProduct } from "@/contexts/ProductContext";
-import { supabase } from "@/integrations/supabase/client";
+import { REVIEWS } from "@/data/storeContent";
 
 /** Lista de abreviações dos meses em português */
 const months = ["jan.", "fev.", "mar.", "abr.", "mai.", "jun.", "jul.", "ago.", "set.", "out.", "nov.", "dez."];
@@ -170,32 +170,11 @@ const MediaCarousel = ({
  */
 const ReviewsSection = () => {
   const { product } = useProduct();
-  const [reviews, setReviews] = useState<Review[]>([]);
+  const reviews: Review[] = REVIEWS;
   const [visibleCount, setVisibleCount] = useState(INITIAL_COUNT);
-  const [loading, setLoading] = useState(true);
   const [carousel, setCarousel] = useState<{ items: string[]; index: number } | null>(null);
 
-  // Carrega as avaliações do Supabase para o produto atual
-  useEffect(() => {
-    if (!product.id) return;
-    const load = async () => {
-      const { data } = await supabase
-        .from("product_reviews")
-        .select("*")
-        .eq("product_id", product.id)
-        .order("display_order", { ascending: true });
-      if (data) {
-        setReviews(data.map(r => ({
-          ...r,
-          photos: (r.photos as any) || [],
-        })));
-      }
-      setLoading(false);
-    };
-    load();
-  }, [product.id]);
-
-  if (loading || reviews.length === 0) return null;
+  if (reviews.length === 0) return null;
 
   const totalReviews = reviews.length;
   const displayTotal = product.rating_count || totalReviews;
