@@ -316,7 +316,15 @@ const FinalizarCompra = () => {
 
               const { data, error } = await supabase.functions.invoke("create-pix", {
                 body: {
-                  amount: amountInCents,
+                  // O servidor recalcula o valor a partir dos itens; expected_amount só
+                  // confirma que o total exibido é o mesmo que será cobrado.
+                  items: {
+                    qty,
+                    frete,
+                    bumps: bumps.map((b) => b.id),
+                    exit_offer: Boolean(exitOfferPrice),
+                  },
+                  expected_amount: amountInCents,
                   qty,
                   // URL real da página do produto, usada pelo gateway de pagamento
                   product_url: `${window.location.origin}/produto`,
