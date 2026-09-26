@@ -1,1 +1,1 @@
-Serve uploaded product images through Lovable Assets pointers and the local Vite asset fallback; this keeps media out of the repository while making the editor preview display the same images as the hosted app.
+Store all site images as real WebP files under public/images/{product,order-bumps,reviews,brand} and reference them as /images/...; the owner is migrating to Namecheap and needs no dependency on Lovable storage.
