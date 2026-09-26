@@ -14,6 +14,11 @@ const StoreInfo = () => {
             src="/images/brand/monster-e-bikes-logo.webp"
             alt="Monster Mobilidade"
             className="w-full h-full object-cover"
+            loading="lazy"
+            decoding="async"
+            width={48}
+            height={48}
+            data-fade=""
           />
         </div>
 

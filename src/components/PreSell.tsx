@@ -107,7 +107,7 @@ const PreSell = ({ onUnlock }: { onUnlock: () => void }) => {
       <div className="flex flex-col items-center w-full max-w-lg mx-auto px-6 pt-16">
         {/* Imagem do produto em destaque */}
         <div className="w-full max-w-[260px] aspect-square rounded-xl overflow-hidden mb-4">
-          <img src={mainImage} alt={product.title} className="w-full h-full object-contain" />
+          <img src={mainImage} alt={product.title} className="w-full h-full object-contain" loading="eager" decoding="async" fetchPriority="high" width={260} height={260} />
         </div>
 
         <h1 className="text-base font-bold text-center leading-snug px-4 mb-8" style={{ color: "#333" }}>

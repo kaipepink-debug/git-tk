@@ -146,7 +146,7 @@ const FinalizarCompra = () => {
 
       {/* Card do Produto revisado */}
       <div className="bg-background px-4 py-3 flex items-start gap-3">
-        <img src={productImage} alt={productName} className="w-20 h-20 object-contain rounded bg-secondary flex-shrink-0" />
+        <img src={productImage} alt={productName} className="w-20 h-20 object-contain rounded bg-secondary flex-shrink-0" decoding="async" width={80} height={80} />
         <div className="flex-1 min-w-0">
           <p className="text-sm text-foreground leading-tight line-clamp-2">{productName}</p>
           <div className="flex items-center gap-1.5 mt-2">
@@ -172,7 +172,7 @@ const FinalizarCompra = () => {
       {/* Itens extras adicionados no carrinho */}
       {bumps.length > 0 && bumps.map((bump) => (
         <div key={bump.id} className="bg-background px-4 py-3 flex items-center gap-3 border-t border-border">
-          <img src={bump.image} alt={bump.title} loading="lazy" className="w-16 h-16 object-contain rounded bg-secondary flex-shrink-0" />
+          <img src={bump.image} alt={bump.title} loading="lazy" decoding="async" width={64} height={64} data-fade="" className="w-16 h-16 object-contain rounded bg-secondary flex-shrink-0" />
           <div className="flex-1 min-w-0">
             <p className="text-xs text-foreground leading-snug line-clamp-2">{bump.title}</p>
             <div className="flex items-center gap-2 mt-1">

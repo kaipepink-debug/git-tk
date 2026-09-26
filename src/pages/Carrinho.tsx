@@ -144,6 +144,10 @@ const Carrinho = () => {
                   src={bump.image}
                   alt={bump.title}
                   loading="lazy"
+                  decoding="async"
+                  width={64}
+                  height={64}
+                  data-fade=""
                   className="w-16 h-16 object-contain rounded bg-secondary flex-shrink-0"
                 />
                 <div className="flex-1 min-w-0">

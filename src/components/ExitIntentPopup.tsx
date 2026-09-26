@@ -117,6 +117,11 @@ const ExitIntentPopup = () => {
               src={productImage}
               alt={product.title || "Produto"}
               className="w-28 h-28 object-contain rounded-xl"
+              loading="lazy"
+              decoding="async"
+              width={112}
+              height={112}
+              data-fade=""
             />
           </div>
         )}
