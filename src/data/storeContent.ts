@@ -28,7 +28,7 @@ export const PRODUCT = {
   "variants": [
     {
       "label": "Preto",
-      "price": 10,
+      "price": 89.75,
       "oldPrice": 899.9,
       "stock": 12
     }
