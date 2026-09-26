@@ -1,21 +1,17 @@
 import { useNavigate } from "react-router-dom";
 import { useProduct } from "@/contexts/ProductContext";
-import { useState } from "react";
-import ProductChat from "./ProductChat";
 import { trackAddToCart } from "@/lib/tracking/tiktok";
 
 /**
  * Componente de barra inferior fixa para navegação rápida e compra.
- * Exibe ícones de navegação, botão de chat e botão de compra com preço atual.
+ * Exibe ícones de navegação, botão de chat (visual, sem função) e botão de compra com preço atual.
  */
 const BottomBar = () => {
   const navigate = useNavigate();
   const { priceDisplay, price, product } = useProduct();
-  const [chatOpen, setChatOpen] = useState(false);
 
   return (
     <>
-      <ProductChat open={chatOpen} onClose={() => setChatOpen(false)} />
       <div
         className="fixed bottom-0 left-1/2 -translate-x-1/2 max-w-lg w-full bg-background z-50 flex items-center"
         style={{
@@ -37,8 +33,8 @@ const BottomBar = () => {
             <span style={{ fontSize: 10, color: "#555", marginTop: 2 }}>Loja</span>
           </a>
 
-          {/* Botão para abrir o chat de suporte */}
-          <button onClick={() => setChatOpen(true)} className="flex flex-col items-center justify-center" style={{ color: "#222", background: "none", border: "none", cursor: "pointer", minWidth: 40 }}>
+          {/* Botão de chat (apenas visual — o atendimento por IA foi desativado) */}
+          <button type="button" aria-label="Chat" className="flex flex-col items-center justify-center" style={{ color: "#222", background: "none", border: "none", cursor: "pointer", minWidth: 40 }}>
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path d="M18.81,16.23,20,21l-4.95-2.48A9.84,9.84,0,0,1,12,19c-5,0-9-3.58-9-8s4-8,9-8,9,3.58,9,8A7.49,7.49,0,0,1,18.81,16.23Z" fill="none" stroke="#333" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8"/>
             </svg>
