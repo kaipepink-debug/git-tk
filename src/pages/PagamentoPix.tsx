@@ -9,7 +9,6 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { ChevronLeft, Copy, Check, Loader2 } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { QRCodeSVG } from "qrcode.react";
-import { useSessionTracker } from "@/hooks/useSessionTracker";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -18,7 +17,6 @@ import { toast } from "sonner";
  * Gerencia o tempo de expiração e redireciona automaticamente após a confirmação do pagamento.
  */
 const PagamentoPix = () => {
-  useSessionTracker("/pagamento-pix");
 
   // Sinaliza que um Pix foi gerado para disparar lógica de retenção se o usuário tentar sair
   useEffect(() => {

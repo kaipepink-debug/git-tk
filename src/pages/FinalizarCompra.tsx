@@ -11,7 +11,6 @@ import { useOptimizedImage } from "@/hooks/useOptimizedImage";
 import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { useSessionTracker } from "@/hooks/useSessionTracker";
 import { getAttribution } from "@/lib/tracking/attribution";
 import { trackInitiateCheckout, trackAddPaymentInfo, trackPlaceAnOrder } from "@/lib/tracking/tiktok";
 import pixIcon from "@/assets/pix.svg";
@@ -39,7 +38,6 @@ interface EnderecoData {
  */
 const FinalizarCompra = () => {
   // Rastreia a navegação
-  useSessionTracker("/finalizar-compra");
 
   const navigate = useNavigate();
   const [qty, setQty] = useState(1);

@@ -1,6 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useProduct } from "@/contexts/ProductContext";
-import { supabase } from "@/integrations/supabase/client";
 import { COMPANY_INFO, PRESELL } from "@/data/storeContent";
 import { ChevronRight } from "lucide-react";
 
@@ -56,14 +55,6 @@ const PreSell = ({ onUnlock }: { onUnlock: () => void }) => {
       unlocked.current = true;
       setProgress(100);
       setIsDragging(false);
-      
-      // Envia evento de analytics
-      const sessionId = sessionStorage.getItem("session_id") || "unknown";
-      supabase.from("analytics_events").insert({
-        session_id: sessionId,
-        event_type: "presell_unlocked",
-        page: "/produto",
-      }).then(() => {});
       
       // Notifica o componente pai após uma pequena pausa
       setTimeout(() => onUnlock(), 300);

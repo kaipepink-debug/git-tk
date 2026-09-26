@@ -7,7 +7,6 @@
 import { useNavigate } from "react-router-dom";
 import { ChevronLeft } from "lucide-react";
 import { useState, useEffect } from "react";
-import { useSessionTracker } from "@/hooks/useSessionTracker";
 
 /**
  * Valida se uma string é um e-mail válido usando expressão regular.
@@ -71,7 +70,6 @@ const formatarTelefone = (value: string) => {
  */
 const AdicionarEndereco = () => {
   // Rastreia a sessão do usuário nesta página
-  useSessionTracker("/adicionar-endereco");
   const navigate = useNavigate();
   
   // Estados para os campos do formulário

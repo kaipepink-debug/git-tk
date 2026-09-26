@@ -225,29 +225,8 @@ export async function loadTikTokPixel(): Promise<boolean> {
  * @param {string} status - Resultado ("sent" ou "duplicado").
  */
 async function logBrowserEvent(event: TikTokEventName, params: TrackParams, status: string) {
-  const attribution = getAttribution();
-  try {
-    await supabase.from("tiktok_events").insert({
-      event_name: event,
-      event_id: params.eventId,
-      source: "browser",
-      value: params.value ?? null,
-      currency: params.currency || "BRL",
-      page: typeof window !== "undefined" ? window.location.pathname : null,
-      status,
-      ttclid: attribution.ttclid,
-      ttp: attribution.ttp,
-      content_id: params.contentId ?? null,
-      external_id: params.externalId ?? null,
-      // O click_id genérico entra junto dos parâmetros de campanha (não é ttclid).
-      utm: Object.keys(attribution.utm).length || attribution.click_id
-        ? { ...attribution.utm, ...(attribution.click_id ? { click_id: attribution.click_id } : {}) }
-        : null,
-      dedup_blocked: status === "duplicado",
-    });
-  } catch (err) {
-    console.warn("Não foi possível registrar o evento no painel:", err);
-  }
+  // Sem log interno: o painel foi removido. Mantido apenas para não alterar os chamadores.
+  void event; void params; void status;
 }
 
 /**
