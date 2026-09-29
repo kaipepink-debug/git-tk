@@ -1,34 +1,5 @@
 {
   "version": "7",
   "dialect": "postgresql",
-  "entries": [
-    {
-      "idx": 0,
-      "version": "7",
-      "when": 1790394568741,
-      "tag": "0000_review3_photo_bike_box",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "7",
-      "when": 1790442094326,
-      "tag": "0001_kirvuspay_gateway",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "7",
-      "when": 1790442494099,
-      "tag": "0002_rastrocode_fields",
-      "breakpoints": true
-    },
-    {
-      "idx": 3,
-      "version": "7",
-      "when": 1790445315485,
-      "tag": "0003_minimal_payment_structure",
-      "breakpoints": true
-    }
-  ]
+  "entries": []
 }
