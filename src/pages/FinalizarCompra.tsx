@@ -13,7 +13,7 @@ import { prefetchPage } from "@/lib/prefetch";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { getAttribution } from "@/lib/tracking/attribution";
-import { trackInitiateCheckout, trackAddPaymentInfo, trackPlaceAnOrder } from "@/lib/tracking/tiktok";
+import { trackPlaceAnOrder } from "@/lib/tracking/tiktok";
 import pixIcon from "@/assets/pix.svg";
 import { getSelectedBumps, formatBRL } from "@/lib/orderBumps";
 
@@ -81,23 +81,6 @@ const FinalizarCompra = () => {
 
   const total = (frete === "gratis" ? price * qty : price * qty + freteExpresso) + bumpsTotal;
 
-  /**
-   * InitiateCheckout: disparado UMA única vez, quando o cliente realmente chega à
-   * tela de finalização e o preço do produto já está carregado. A guarda por
-   * `event_id` na camada central protege contra refresh e múltiplas abas.
-   */
-  const checkoutTracked = useRef(false);
-  useEffect(() => {
-    if (checkoutTracked.current) return;
-    if (!product?.id || !(price > 0)) return;
-    checkoutTracked.current = true;
-    void trackInitiateCheckout({
-      contentId: product.id,
-      contentName: product.title,
-      value: Number((price * qty).toFixed(2)),
-      quantity: qty,
-    });
-  }, [product?.id, product?.title, price, qty]);
 
   return (
     <div className="min-h-screen w-full bg-secondary max-w-lg mx-auto flex flex-col pb-4 overflow-x-hidden" style={{ fontFamily: "-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Oxygen,Ubuntu,Cantarell,sans-serif" }}>
@@ -302,16 +285,6 @@ const FinalizarCompra = () => {
               return;
             }
 
-            // AddPaymentInfo: ação real — o cliente confirmou o pedido no PIX.
-            void trackAddPaymentInfo({
-              contentId: product.id,
-              contentName: product.title,
-              value: Number(total.toFixed(2)),
-              quantity: qty,
-              email: enderecoData.email,
-              phone: enderecoData.telefone,
-            });
-
             setLoading(true);
             try {
               const amountInCents = Math.round(total * 100);
@@ -388,7 +361,15 @@ const FinalizarCompra = () => {
               }
 
               navigate("/pagamento-pix", {
-                state: { pixCode, pixQrCode, total, transactionId },
+                state: {
+                  pixCode, pixQrCode, total, transactionId,
+                  // Vão junto para a tela do Pix disparar o CompletePayment quando pagar.
+                  contentId: product.id,
+                  contentName: product.title,
+                  qty,
+                  email: enderecoData.email,
+                  phone: enderecoData.telefone,
+                },
               });
             } catch (err: any) {
               console.error("Erro ao gerar PIX:", err);

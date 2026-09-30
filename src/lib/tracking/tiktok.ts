@@ -75,13 +75,6 @@ declare global {
 /** Evita carregar o pixel mais de uma vez por página. */
 let pixelLoading = false;
 
-/**
- * O script oficial do TikTok já registra automaticamente a primeira visualização de
- * página ao carregar. Esta marca indica que essa visualização automática já foi
- * "consumida", evitando Pageview duplicado na rota inicial.
- */
-let autoPageviewConsumed = false;
-
 /** Item aguardando o consentimento do cliente para ser enviado. */
 type PendingItem =
   | { kind: "event"; event: TikTokEventName; params: TrackParams }
@@ -377,11 +370,9 @@ export async function trackPageView(path: string) {
   markFired(eventId);
 
   try {
-    // O script do TikTok já dispara automaticamente UMA visualização ao carregar.
-    // Chamar `page()` também nesse primeiro momento geraria Pageview duplicado;
-    // por isso o disparo manual vale apenas para as trocas de rota seguintes (SPA).
-    if (autoPageviewConsumed) window.ttq?.page();
-    else autoPageviewConsumed = true;
+    // Como no snippet oficial: `ttq.load(...)` seguido de `ttq.page()`. O pixel só
+    // carrega no checkout, então a primeira página já precisa do `page()`.
+    window.ttq?.page();
   } catch (err) {
     console.warn("Falha ao registrar a visualização de página:", err);
   }
@@ -515,4 +506,35 @@ export function trackPlaceAnOrder(p: {
  */
 export function purchaseEventId(transactionId: string): string {
   return `purchase-${transactionId}`;
+}
+
+/**
+ * @function trackCompletePayment
+ * @description PIX pago. Usa o mesmo `event_id` do webhook no servidor
+ * (`purchaseEventId`), então o TikTok conta a compra uma vez só mesmo que os dois
+ * lados enviem.
+ *
+ * @param {object} p - Dados da transação paga.
+ */
+export function trackCompletePayment(p: {
+  transactionId: string;
+  contentId: string;
+  contentName?: string;
+  value: number;
+  quantity?: number;
+  email?: string;
+  phone?: string;
+}) {
+  return trackTikTokEvent("CompletePayment", {
+    eventId: purchaseEventId(p.transactionId),
+    contentId: p.contentId,
+    contentName: p.contentName,
+    value: p.value,
+    quantity: p.quantity ?? 1,
+    email: p.email,
+    phone: p.phone,
+    externalId: p.transactionId,
+    // O webhook já envia pelo servidor com o mesmo event_id.
+    mirrorToServer: false,
+  });
 }

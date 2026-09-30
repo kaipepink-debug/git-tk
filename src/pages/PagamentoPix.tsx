@@ -11,6 +11,7 @@ import { useState, useEffect, useRef } from "react";
 import { QRCodeSVG } from "qrcode.react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { trackCompletePayment } from "@/lib/tracking/tiktok";
 
 /**
  * Componente da página de Pagamento Pix.
@@ -25,7 +26,10 @@ const PagamentoPix = () => {
 
   const navigate = useNavigate();
   const location = useLocation();
-  const pixData = location.state as { pixCode?: string; pixQrCode?: string; total?: number; transactionId?: string } | null;
+  const pixData = location.state as {
+    pixCode?: string; pixQrCode?: string; total?: number; transactionId?: string;
+    contentId?: string; contentName?: string; qty?: number; email?: string; phone?: string;
+  } | null;
   const [copied, setCopied] = useState(false);
   const [timeLeft, setTimeLeft] = useState(15 * 60);
   const [paymentStatus, setPaymentStatus] = useState<string>("pending");
@@ -79,6 +83,19 @@ const PagamentoPix = () => {
           stopped = true;
           setPaymentStatus("paid");
           if (pollingRef.current) clearInterval(pollingRef.current);
+
+          // CompletePayment: dispara antes do redirecionamento, que espera 1,5 s.
+          if (pixData.contentId) {
+            void trackCompletePayment({
+              transactionId: pixData.transactionId,
+              contentId: pixData.contentId,
+              contentName: pixData.contentName,
+              value: Number((pixData.total ?? 0).toFixed(2)),
+              quantity: pixData.qty,
+              email: pixData.email,
+              phone: pixData.phone,
+            });
+          }
 
           // Redireciona para a página de obrigado
           setTimeout(() => {
