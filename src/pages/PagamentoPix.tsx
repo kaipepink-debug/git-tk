@@ -6,7 +6,7 @@
  */
 
 import { useNavigate, useLocation } from "react-router-dom";
-import { ChevronLeft, Copy, Check, Loader2 } from "lucide-react";
+import { ChevronLeft, Copy, Check, Loader2, Clock } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { QRCodeSVG } from "qrcode.react";
 import { supabase } from "@/integrations/supabase/client";
@@ -155,55 +155,86 @@ const PagamentoPix = () => {
         <h1 className="text-base font-semibold text-foreground flex-1 text-center pr-9">Pagamento PIX</h1>
       </div>
 
-      <div className="flex-1 flex flex-col items-center px-4 py-6 gap-5">
-        <div className="bg-background rounded-xl w-full p-3 border border-border flex items-center justify-center gap-2">
-          <Loader2 className="w-4 h-4 animate-spin" style={{ color: "#FF2B56" }} />
-          <p className="text-xs text-muted-foreground">Aguardando pagamento...</p>
-        </div>
+      {/* Duas caixas, não seis: a primeira diz em que pé está o pagamento,
+          a segunda é onde se paga. Antes cada informação tinha a sua própria
+          moldura, e uma tela toda de quadros iguais não diz o que olhar
+          primeiro — o valor competia com o cronômetro, e o QR Code competia
+          com o código, quando na verdade são o mesmo passo feito de dois
+          jeitos. */}
+      <div className="flex-1 flex flex-col px-4 py-5 gap-4">
 
-        <div className="bg-background rounded-xl w-full p-4 text-center border border-border">
-          <p className="text-sm text-muted-foreground mb-1">Pague em até</p>
-          <p className="text-2xl font-bold" style={{ color: "#FF2B56" }}>{formatTime(timeLeft)}</p>
-        </div>
-
-        <div className="bg-background rounded-xl w-full p-4 text-center border border-border">
-          <p className="text-sm text-muted-foreground">Valor total</p>
-          <p className="text-2xl font-bold text-foreground">R$ {pixData.total?.toFixed(2).replace(".", ",")}</p>
-        </div>
-
-        {/* Área para copiar o código "Copia e Cola" */}
-        <div className="bg-background rounded-xl w-full p-4 border border-border">
-          <p className="text-sm font-semibold text-foreground mb-2 text-center">Copie o código PIX</p>
-          <div className="bg-secondary rounded-lg p-3 text-xs text-muted-foreground break-all mb-3 max-h-24 overflow-y-auto">
-            {pixData.pixCode}
+        {/* ---------- Em que pé está ---------- */}
+        <div className="bg-background rounded-xl w-full border border-border overflow-hidden">
+          <div className="flex items-center justify-center gap-2 py-2.5 border-b border-border bg-secondary">
+            <Loader2 className="w-3.5 h-3.5 animate-spin" style={{ color: "#FF2B56" }} />
+            <p className="text-xs font-medium text-muted-foreground">Aguardando pagamento</p>
           </div>
-          <button
-            onClick={handleCopy}
-            className="w-full py-3 rounded-lg text-base font-bold text-white flex items-center justify-center gap-2"
-            style={{ background: "#FF2B56" }}
-          >
-            {copied ? <Check className="w-5 h-5" /> : <Copy className="w-5 h-5" />}
-            {copied ? "Copiado!" : "Copiar código PIX"}
-          </button>
-        </div>
 
-        {/* Renderização do QR Code SVG — abaixo do botão de copiar */}
-        {pixData.pixCode && (
-          <div className="bg-background rounded-xl p-6 border border-border flex flex-col items-center">
-            <p className="text-sm font-semibold text-foreground mb-3">Ou escaneie o QR Code</p>
-            <QRCodeSVG value={pixData.pixCode} size={208} />
+          <div className="px-4 py-5 text-center">
+            <p className="text-xs text-muted-foreground mb-1">Valor total</p>
+            <p className="text-3xl font-bold text-foreground tracking-tight">
+              R$ {pixData.total?.toFixed(2).replace(".", ",")}
+            </p>
+            <div className="inline-flex items-center gap-1.5 mt-3 px-3 py-1.5 rounded-full bg-secondary">
+              <Clock className="w-3.5 h-3.5" style={{ color: "#FF2B56" }} />
+              <span className="text-xs text-muted-foreground">Expira em</span>
+              {/* fonte tabular: sem ela o cronômetro empurra o texto a cada segundo */}
+              <span className="text-sm font-bold tabular-nums" style={{ color: "#FF2B56" }}>
+                {formatTime(timeLeft)}
+              </span>
+            </div>
           </div>
-        )}
-
-        <div className="bg-background rounded-xl w-full p-4 border border-border">
-          <p className="text-sm font-semibold text-foreground mb-2">Como pagar</p>
-          <ol className="text-xs text-muted-foreground space-y-2 list-decimal list-inside">
-            <li>Abra o app do seu banco</li>
-            <li>Escolha pagar via PIX</li>
-            <li>Escaneie o QR Code ou cole o código</li>
-            <li>Confirme o pagamento</li>
-          </ol>
         </div>
+
+        {/* ---------- Onde se paga ---------- */}
+        <div className="bg-background rounded-xl w-full border border-border overflow-hidden">
+
+          {/* O QR Code vem primeiro: quem está com o celular na mão resolve aqui
+              e não precisa ler mais nada. */}
+          {pixData.pixCode && (
+            <div className="flex flex-col items-center pt-6 pb-5 px-4">
+              <QRCodeSVG value={pixData.pixCode} size={196} />
+              <p className="text-xs text-muted-foreground mt-3">
+                Escaneie pelo app do seu banco
+              </p>
+            </div>
+          )}
+
+          {/* Mesma tarefa, outro caminho — para quem está pagando pelo próprio
+              celular e não tem como escanear a própria tela. */}
+          <div className="relative px-4">
+            <div className="border-t border-border" />
+            <span className="absolute left-1/2 -translate-x-1/2 -top-2 bg-background px-2
+                             text-[10px] uppercase tracking-wide text-muted-foreground">
+              ou copie o código
+            </span>
+          </div>
+
+          <div className="px-4 pt-5 pb-4">
+            <div className="bg-secondary rounded-lg p-3 text-[11px] leading-relaxed
+                            text-muted-foreground break-all max-h-20 overflow-y-auto mb-3">
+              {pixData.pixCode}
+            </div>
+            <button
+              onClick={handleCopy}
+              className="w-full py-3.5 rounded-lg text-base font-bold text-white
+                         flex items-center justify-center gap-2 transition-opacity active:opacity-80"
+              style={{ background: copied ? "#00b94a" : "#FF2B56" }}
+            >
+              {copied ? <Check className="w-5 h-5" /> : <Copy className="w-5 h-5" />}
+              {copied ? "Código copiado" : "Copiar código PIX"}
+            </button>
+          </div>
+        </div>
+
+        {/* Instruções sem moldura: são apoio, não mais um cartão disputando atenção. */}
+        <ol className="text-xs text-muted-foreground space-y-1.5 list-decimal pl-5 px-1 pb-2">
+          <li>Abra o app do seu banco</li>
+          <li>Escolha pagar via PIX</li>
+          <li>Escaneie o QR Code ou cole o código copiado</li>
+          <li>Confirme o pagamento — esta tela avisa sozinha quando cair</li>
+        </ol>
+
       </div>
     </div>
   );
