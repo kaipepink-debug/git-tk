@@ -22,25 +22,25 @@ export interface OrderBump {
 /** Lista de ofertas adicionais disponíveis no carrinho. */
 export const ORDER_BUMPS: OrderBump[] = [
   {
-    id: "bomba-ar",
-    title: "Mini Bomba de Ar Portátil",
-    price: 19.9,
-    oldPrice: 109.9,
-    image: "/images/order-bumps/bomba-ar.webp",
+    id: "bateria-18v",
+    title: "Bateria Makita 18V LXT 5.0Ah",
+    price: 39.9,
+    oldPrice: 289.9,
+    image: "/images/order-bumps/bateria-18v.webp",
   },
   {
-    id: "cadeado-antifurto",
-    title: "Cadeado Antifurto com Alarme",
-    price: 12.9,
-    oldPrice: 59.9,
-    image: "/images/order-bumps/cadeado.webp",
-  },
-  {
-    id: "capacete-coquinho",
-    title: "Capacete Coquinho Viseira Cristal",
+    id: "carregador-rapido",
+    title: "Carregador Rápido Makita DC18RC",
     price: 29.9,
-    oldPrice: 159.9,
-    image: "/images/order-bumps/capacete.webp",
+    oldPrice: 199.9,
+    image: "/images/order-bumps/carregador.webp",
+  },
+  {
+    id: "cabo-veicular",
+    title: "Cabo Veicular 12V/24V para Cooler",
+    price: 19.9,
+    oldPrice: 89.9,
+    image: "/images/order-bumps/cabo-veicular.webp",
   },
 ];
 

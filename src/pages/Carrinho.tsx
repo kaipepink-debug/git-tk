@@ -58,7 +58,7 @@ const Carrinho = () => {
 
 
   // Otimização de imagem para o carrinho
-  const productImageRaw = product.cart_image || "/images/product/v9-max-hero.webp";
+  const productImageRaw = product.cart_image || "/images/product/cooler-hero.webp";
   const productImage = useOptimizedImage(productImageRaw, 160, 0.6);
   const productName = product.title ? product.title.substring(0, 40) + "..." : "Produto";
 

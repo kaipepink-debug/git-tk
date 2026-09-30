@@ -4,8 +4,8 @@
  * Manter igual a src/data/storeContent.ts e src/lib/orderBumps.ts.
  */
 export const PRODUCT = {
-  id: '35d010e2-4b26-4b96-a718-1ac8859f1329',
-  name: 'Bicicleta Bike Eletrica V9 Max 1000w 48km',
+  id: '7c4b1f3a-9d28-4e61-a0f5-3b8e2c6d9147',
+  name: 'Cooler Térmica Makita DCW180Z 20L',
   price: 8975, // R$ 89,75
   exitOfferPrice: 5284, // R$ 52,84 (oferta de saída exibida no site)
 };
@@ -16,9 +16,9 @@ export const SHIPPING: Record<string, number> = {
 };
 
 export const BUMPS: Record<string, { name: string; price: number }> = {
-  'bomba-ar': { name: 'Mini Bomba de Ar Portátil', price: 1990 },
-  'cadeado-antifurto': { name: 'Cadeado Antifurto com Alarme', price: 1290 },
-  'capacete-coquinho': { name: 'Capacete Coquinho Viseira Cristal', price: 2990 },
+  'bateria-18v':      { name: 'Bateria Makita 18V LXT 5.0Ah',       price: 3990 },
+  'carregador-rapido':{ name: 'Carregador Rápido Makita DC18RC',    price: 2990 },
+  'cabo-veicular':    { name: 'Cabo Veicular 12V/24V para Cooler',  price: 1990 },
 };
 
 export const MAX_QTY = 10;

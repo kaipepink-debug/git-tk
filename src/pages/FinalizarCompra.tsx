@@ -66,7 +66,7 @@ const FinalizarCompra = () => {
   const priceDisplay = exitOfferPrice ? price.toFixed(2).replace(".", ",") : originalPriceDisplay;
 
   // Preparação de imagem e cálculos de valores
-  const productImageRaw = product.cart_image || "/images/product/v9-max-hero.webp";
+  const productImageRaw = product.cart_image || "/images/product/cooler-hero.webp";
   const productImage = useOptimizedImage(productImageRaw, 160, 0.6);
   const productName = product.title ? product.title.substring(0, 40) + "..." : "Produto";
   const descontoValor = oldPrice - price;
