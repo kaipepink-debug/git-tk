@@ -1,0 +1,48 @@
+# Como este site sobe no Render.
+#
+# É um site estático: o build gera HTML, CSS e JS em dist/ e o Render só
+# entrega arquivos. Não há servidor nosso rodando — o que precisa de servidor
+# (pagamento, webhook, conversões) vive nas Edge Functions do Supabase.
+services:
+  - type: web
+    name: monster-mobilidade
+    runtime: static
+    buildCommand: npm ci && npm run build
+    staticPublishPath: ./dist
+
+    # Quem decide a rota aqui é o JavaScript, não o servidor. Se alguém digitar
+    # /produto direto, ou recarregar a página no /carrinho, o Render vai procurar
+    # um arquivo com esse nome, não achar, e devolver 404 — mesmo com o site
+    # inteiro funcionando. A regra abaixo manda toda rota desconhecida para o
+    # index.html, que aí carrega o JS e resolve a rota. É o que faz link
+    # compartilhado e F5 funcionarem.
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+
+    headers:
+      # Os arquivos de dist/assets/ têm o hash do conteúdo no nome, então mudar
+      # o conteúdo muda o nome. Podem ficar em cache para sempre sem risco de
+      # servir versão velha.
+      - path: /assets/*
+        name: Cache-Control
+        value: public, max-age=31536000, immutable
+      # O index.html, ao contrário, tem nome fixo e aponta para os assets do
+      # deploy atual. Se ficar em cache, o visitante volta e pede arquivos que
+      # já não existem — tela branca depois de cada deploy.
+      - path: /*
+        name: Cache-Control
+        value: no-cache
+
+    envVars:
+      # Preenchidos no painel do Render, não aqui: arquivo de ambiente em
+      # repositório é hábito que uma hora pega a chave errada. Estas três são
+      # embutidas no JS de todo visitante por desenho — o que as protege é o
+      # RLS no banco, não o sigilo delas.
+      - key: VITE_SUPABASE_URL
+        sync: false
+      - key: VITE_SUPABASE_PUBLISHABLE_KEY
+        sync: false
+      - key: VITE_SUPABASE_PROJECT_ID
+        sync: false
