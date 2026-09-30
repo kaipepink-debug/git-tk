@@ -331,7 +331,14 @@ export const REVIEWS: StoreReview[] = [
   }
 ];
 
-/** Dados da empresa exibidos no rodapé e na pré-venda. */
+/**
+ * Nome fantasia — como a loja se apresenta ao cliente (card do vendedor,
+ * carrinho, checkout). É diferente da razão social logo abaixo, e pode ser:
+ * quem responde pela venda é a empresa registrada, não o nome da vitrine.
+ */
+export const STORE_NAME = "Monster Tools";
+
+/** Razão social e CNPJ — o que vai nas páginas legais. NÃO é o nome da loja. */
 export const COMPANY_INFO = {
   company_name: "MONSTER MOBILIDADE LTDA",
   cnpj: "64.482.958/0001-00",

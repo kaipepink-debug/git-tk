@@ -75,7 +75,7 @@ const Carrinho = () => {
       {/* Nome da loja e contagem de itens */}
       <div className="bg-background px-4 py-3 flex items-center gap-2 mt-2">
         <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="10" fill="#FF2B56"/><path d="M6 10.5L9 13.5L14.5 7" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
-        <span className="font-semibold text-sm text-foreground">Monster Mobilidade (1)</span>
+        <span className="font-semibold text-sm text-foreground">{STORE_NAME} (1)</span>
       </div>
 
       {/* Banner de frete grátis */}

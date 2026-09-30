@@ -135,7 +135,7 @@ const FinalizarCompra = () => {
       </div>
 
       <div className="bg-background px-4 py-3">
-        <span className="text-sm text-muted-foreground">Monster Mobilidade (1)</span>
+        <span className="text-sm text-muted-foreground">{STORE_NAME} (1)</span>
       </div>
 
       {/* Banner informativo de frete */}
