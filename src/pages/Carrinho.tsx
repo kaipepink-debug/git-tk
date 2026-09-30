@@ -13,6 +13,7 @@ import { useOptimizedImage } from "@/hooks/useOptimizedImage";
 import { ORDER_BUMPS, saveSelectedBumps, getSelectedBumps, formatBRL, isBumpImageReady } from "@/lib/orderBumps";
 import { trackAddToCart } from "@/lib/tracking/tiktok";
 
+import { STORE_NAME } from "@/data/storeContent";
 /**
  * Componente da página de Carrinho.
  * Gerencia a visualização do produto escolhido e cálculos de total.

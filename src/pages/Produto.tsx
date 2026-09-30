@@ -37,7 +37,10 @@ const Produto = () => {
     if (!hero) return;
 
     let idleId: number | undefined;
-    let timerId: number | undefined;
+    // ReturnType, não number: no navegador setTimeout devolve number, mas os tipos
+    // do Node (que entram junto com as dependências) devolvem Timeout. Assim serve
+    // aos dois sem precisar de conversão.
+    let timerId: ReturnType<typeof setTimeout> | undefined;
     const prefetch = () => prefetchBumpImages();
     const schedule = () => {
       if ("requestIdleCallback" in window) {

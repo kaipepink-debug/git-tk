@@ -17,6 +17,7 @@ import { trackInitiateCheckout, trackAddPaymentInfo, trackPlaceAnOrder } from "@
 import pixIcon from "@/assets/pix.svg";
 import { getSelectedBumps, formatBRL } from "@/lib/orderBumps";
 
+import { STORE_NAME } from "@/data/storeContent";
 /**
  * Estrutura dos dados de endereço e contato do usuário.
  */
