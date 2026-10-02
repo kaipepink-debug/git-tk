@@ -25,8 +25,11 @@ const Carrinho = () => {
   // Estado local para quantidade de itens
   const [qty, setQty] = useState(1);
 
+  // Recupera dados do produto do contexto global
+  const { price, oldPrice, discount, priceDisplay, oldPriceDisplay, product, sizeLabel } = useProduct();
+
   // Ofertas adicionais (order bumps) escolhidas pelo cliente
-  const [bumpIds, setBumpIds] = useState<string[]>(() => getSelectedBumps().map((b) => b.id));
+  const [bumpIds, setBumpIds] = useState<string[]>(() => (product.bumps ? getSelectedBumps().map((b) => b.id) : []));
 
   /** Adiciona ou remove uma oferta adicional e persiste a escolha na sessão. */
   const toggleBump = (id: string) => {
@@ -39,10 +42,9 @@ const Carrinho = () => {
   };
 
   // Soma dos itens extras selecionados
-  const bumpsTotal = ORDER_BUMPS.filter((b) => bumpIds.includes(b.id)).reduce((s, b) => s + b.price, 0);
+  // O mesmo vale para os adicionais: só existem no produto que tem.
+  const bumpsTotal = !product.bumps ? 0 : ORDER_BUMPS.filter((b) => bumpIds.includes(b.id)).reduce((s, b) => s + b.price, 0);
   
-  // Recupera dados do produto do contexto global
-  const { price, oldPrice, discount, priceDisplay, oldPriceDisplay, product } = useProduct();
 
   // O evento "InitiateCheckout" do TikTok é disparado uma única vez, na tela de
   // finalização da compra (/finalizar-compra), com o valor real do pedido.
@@ -52,7 +54,9 @@ const Carrinho = () => {
   // Otimização de imagem para o carrinho
   const productImageRaw = product.cart_image || "/images/product/cooler-hero.webp";
   const productImage = useOptimizedImage(productImageRaw, 160, 0.6);
-  const productName = product.title ? product.title.substring(0, 40) + "..." : "Produto";
+  const productName = product.title
+    ? product.title.substring(0, 40) + "..." + (product.variants.length > 1 ? ` · ${sizeLabel}` : "")
+    : "Produto";
 
   return (
     <div className="min-h-screen bg-secondary max-w-lg mx-auto flex flex-col" style={{ fontFamily: "-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Oxygen,Ubuntu,Cantarell,sans-serif" }}>
@@ -73,7 +77,7 @@ const Carrinho = () => {
       {/* Banner de frete grátis */}
       <div className="bg-[hsl(170,60%,95%)] px-4 py-2 flex items-center gap-2 mx-0">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M1 12L5 5H19L23 12V19C23 19.5 22.5 20 22 20H2C1.5 20 1 19.5 1 19V12Z" stroke="#00BFA5" strokeWidth="1.5"/><path d="M1 12H23" stroke="#00BFA5" strokeWidth="1.5"/><circle cx="7" cy="20" r="2" stroke="#00BFA5" strokeWidth="1.5"/><circle cx="17" cy="20" r="2" stroke="#00BFA5" strokeWidth="1.5"/></svg>
-        <span className="text-xs font-medium" style={{ color: "#00BFA5" }}>Você ganhou frete grátis!</span>
+        <span className="text-xs font-medium" style={{ color: "#00BFA5" }}>{product.delivery_text ? "Frete incluso no preço" : "Você ganhou frete grátis!"}</span>
       </div>
 
       {/* Card do Produto com controles de quantidade */}
@@ -91,10 +95,12 @@ const Carrinho = () => {
             {/* Ícone decorativo de cupom/desconto */}
             <svg fill="#FF2B56" width="18" height="18" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style={{ flexShrink: 0 }}><path d="M10,5V7m0,10v2m0-6V11" style={{ fill: "none", stroke: "#FF2B56", strokeLinecap: "round", strokeLinejoin: "round", strokeWidth: 2 }} /><path d="M18,12a3,3,0,0,0,3,3v3a1,1,0,0,1-1,1H4a1,1,0,0,1-1-1V15A3,3,0,0,0,3,9V6A1,1,0,0,1,4,5H20a1,1,0,0,1,1,1V9A3,3,0,0,0,18,12Z" style={{ fill: "none", stroke: "#FF2B56", strokeLinecap: "round", strokeLinejoin: "round", strokeWidth: 2 }} /></svg>
           </div>
-          <div className="flex items-center gap-2 mt-0.5">
-            <span className="text-xs text-muted-foreground line-through">R$ {oldPriceDisplay}</span>
-            <span className="text-xs font-semibold px-1 rounded" style={{ background: "#FFE8ED", color: "#FF2B56" }}>-{discount}%</span>
-          </div>
+          {oldPrice > price && (
+            <div className="flex items-center gap-2 mt-0.5">
+              <span className="text-xs text-muted-foreground line-through">R$ {oldPriceDisplay}</span>
+              <span className="text-xs font-semibold px-1 rounded" style={{ background: "#FFE8ED", color: "#FF2B56" }}>-{discount}%</span>
+            </div>
+          )}
         </div>
         {/* Seletor de quantidade */}
         <div className="flex items-center border border-border rounded self-center">
@@ -110,6 +116,7 @@ const Carrinho = () => {
 
       <div className="h-2 bg-secondary" />
 
+      {product.bumps && (<>
       {/* Ofertas adicionais (order bumps) — itens extras com desconto exclusivo */}
       <div className="bg-background px-4 py-4">
         <div className="flex items-center gap-2 mb-1">
@@ -165,6 +172,7 @@ const Carrinho = () => {
           })}
         </div>
       </div>
+      </>)}
 
       <div className="h-2 bg-secondary" />
 
@@ -175,7 +183,7 @@ const Carrinho = () => {
           <span className="font-semibold text-sm text-foreground">Proteção do cliente</span>
         </div>
         <div className="grid grid-cols-2 gap-y-2 gap-x-4">
-          {["Devolução gratuita", "Reembolso automático por danos", "Pagamento seguro", "Cupom por atraso na coleta"].map((item, i) => (
+          {product.protection.map((item, i) => (
             <div key={i} className="flex items-center gap-1.5">
               <svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M3 8L6.5 11.5L13 4.5" stroke="#00BFA5" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
               <span className="text-xs text-muted-foreground">{item}</span>

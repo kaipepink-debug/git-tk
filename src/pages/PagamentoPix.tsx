@@ -190,7 +190,7 @@ const PagamentoPix = () => {
           <div className="px-4 py-5 text-center">
             <p className="text-xs text-muted-foreground mb-1">Valor total</p>
             <p className="text-3xl font-bold text-foreground tracking-tight">
-              R$ {pixData.total?.toFixed(2).replace(".", ",")}
+              R$ {(pixData.total ?? 0).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </p>
             <div className="inline-flex items-center gap-1.5 mt-3 px-3 py-1.5 rounded-full bg-secondary">
               <Clock className="w-3.5 h-3.5" style={{ color: "#FF2B56" }} />

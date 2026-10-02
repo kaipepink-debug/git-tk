@@ -65,8 +65,8 @@ const Produto = () => {
   // Pré-venda configurada localmente
   const presellEnabled = PRESELL.enabled;
 
-  // Dados do produto usados no evento de visualização de conteúdo
-  const { product, price } = useProduct();
+  const { setActiveSlug, product } = useProduct();
+  useEffect(() => { setActiveSlug("produto"); }, [setActiveSlug]);
 
   /**
    * Função chamada para liberar o acesso ao produto após interação com o componente PreSell.
@@ -80,6 +80,9 @@ const Produto = () => {
   const showPresell = presellEnabled === true && !unlocked;
 
   // Trackers de análise de tráfego
+
+  // Até o contexto voltar para o produto principal, não desenha o buggy aqui.
+  if (product.slug !== "produto") return <div className="min-h-screen bg-secondary" />;
 
   return (
     <>

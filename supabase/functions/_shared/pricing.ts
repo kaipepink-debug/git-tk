@@ -10,6 +10,18 @@ export const PRODUCT = {
   exitOfferPrice: 5284, // R$ 52,84 (oferta de saída exibida no site)
 };
 
+/** Segundo produto (/buggy). Sem oferta de saída, sem adicionais e só frete incluso. */
+export const BUGGY = {
+  id: 'b7e2d4a1-5c3f-4e8a-9b61-2f0d8c4a7e15',
+  name: 'Buggy Elétrico Off-Road',
+  /** Preço por versão, na mesma ordem de `variants` em storeContent.ts. */
+  variants: [
+    { label: '2000W · 50 km/h', price: 2499000 },          // R$ 24.990,00
+    { label: '2500W · 60 km/h', price: 2799000 },          // R$ 27.990,00
+    { label: '2000W fio chato · 80 km/h', price: 2999000 }, // R$ 29.990,00
+  ],
+};
+
 export const SHIPPING: Record<string, number> = {
   gratis: 0,
   expresso: 980, // R$ 9,80
@@ -39,7 +51,9 @@ export function priceOrder(raw: any): { ok: true; order: PricedOrder } | { ok: f
   if (!Number.isInteger(qty) || qty < 1 || qty > MAX_QTY) return { ok: false, error: 'Quantidade inválida' };
   const frete = String(raw?.frete ?? '');
   if (!(frete in SHIPPING)) return { ok: false, error: 'Frete inválido' };
-  const ids: unknown = raw?.bumps ?? [];
+  const isBuggy = raw?.product === 'buggy';
+  if (isBuggy && frete !== 'gratis') return { ok: false, error: 'Frete inválido' };
+  const ids: unknown = isBuggy ? [] : raw?.bumps ?? [];
   if (!Array.isArray(ids) || ids.length > Object.keys(BUMPS).length) return { ok: false, error: 'Itens inválidos' };
   const unique = [...new Set(ids.map(String))];
   const bumps = [];
@@ -48,8 +62,11 @@ export function priceOrder(raw: any): { ok: true; order: PricedOrder } | { ok: f
     if (!b) return { ok: false, error: 'Item adicional inválido' };
     bumps.push({ id, name: b.name, price: b.price });
   }
-  const exitOffer = raw?.exit_offer === true;
-  const unit = exitOffer ? PRODUCT.exitOfferPrice : PRODUCT.price;
+  const exitOffer = !isBuggy && raw?.exit_offer === true;
+  const versao = isBuggy ? BUGGY.variants[Number(raw?.variant ?? 0)] : null;
+  if (isBuggy && !versao) return { ok: false, error: 'Versão inválida' };
+  const item = isBuggy ? { id: BUGGY.id, name: `${BUGGY.name} — ${versao!.label}` } : PRODUCT;
+  const unit = isBuggy ? versao!.price : exitOffer ? PRODUCT.exitOfferPrice : PRODUCT.price;
   const total = unit * qty + SHIPPING[frete] + bumps.reduce((s, b) => s + b.price, 0);
   return {
     ok: true,
@@ -57,7 +74,7 @@ export function priceOrder(raw: any): { ok: true; order: PricedOrder } | { ok: f
       total,
       qty,
       items: {
-        product: { id: PRODUCT.id, name: PRODUCT.name, qty, unit_price: unit, exit_offer: exitOffer },
+        product: { id: item.id, name: item.name, qty, unit_price: unit, exit_offer: exitOffer },
         shipping: { type: frete, price: SHIPPING[frete] },
         bumps,
       },

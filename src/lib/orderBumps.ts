@@ -93,4 +93,5 @@ export const getSelectedBumps = (): OrderBump[] => {
 };
 
 /** Formata um valor numérico no padrão brasileiro (ex.: "89,90"). */
-export const formatBRL = (value: number) => value.toFixed(2).replace(".", ",");
+export const formatBRL = (value: number) =>
+  value.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });

@@ -77,7 +77,7 @@ const BottomBar = () => {
           }}
         >
           <span style={{ fontSize: 16, fontWeight: 700, lineHeight: 1.3, fontFamily: "'Segoe UI',Roboto,sans-serif" }}>R$ {priceDisplay}</span>
-          <span style={{ fontSize: 11, fontWeight: 400, opacity: 0.9, lineHeight: 1.3 }}>Comprar agora | Frete grátis</span>
+          <span style={{ fontSize: 11, fontWeight: 400, opacity: 0.9, lineHeight: 1.3 }}>Comprar agora | {product.delivery_text ? "Frete incluso" : "Frete grátis"}</span>
         </button>
       </div>
     </>

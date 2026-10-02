@@ -90,7 +90,7 @@ serve(async (req) => {
       .eq('id', ord.id)
       .neq('status', 'paid')
       .is('tt_purchase_sent_at', null)
-      .select('id, amount, quantity, ttclid, ttp, utm, customer_email, customer_phone');
+      .select('id, amount, quantity, items, ttclid, ttp, utm, customer_email, customer_phone');
     if (transitionError) {
       console.error('Erro ao confirmar pedido:', transitionError.message);
       return json({ error: 'Erro ao atualizar pedido' }, 500);
@@ -113,8 +113,8 @@ serve(async (req) => {
             event_id: `purchase-${transactionId}`,
             value,
             currency: 'BRL',
-            content_id: PRODUCT.id,
-            content_name: PRODUCT.name,
+            content_id: (first.items as any)?.product?.id || PRODUCT.id,
+            content_name: (first.items as any)?.product?.name || PRODUCT.name,
             quantity: Number(first.quantity) > 0 ? Number(first.quantity) : 1,
             order_id: String(first.id),
             external_id: String(transactionId),

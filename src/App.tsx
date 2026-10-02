@@ -66,6 +66,7 @@ const PoliticaCookies = carregaTela(() => import("./pages/PoliticaCookies"));
 const CentralAtendimento = carregaTela(() => import("./pages/CentralAtendimento"));
 const PrazoEntrega = carregaTela(() => import("./pages/PrazoEntrega"));
 const RastreamentoPedido = carregaTela(() => import("./pages/RastreamentoPedido"));
+const Buggy = carregaTela(() => import("./pages/Buggy"));
 const Obrigado = carregaTela(() => import("./pages/Obrigado"));
 
 const queryClient = new QueryClient();
@@ -85,6 +86,7 @@ const App = () => (
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/produto" element={<Produto />} />
+              <Route path="/buggy" element={<Buggy />} />
               <Route path="/minha-conta" element={<MinhaConta />} />
               <Route path="/carrinho" element={<Carrinho />} />
               <Route path="/finalizar-compra" element={<FinalizarCompra />} />

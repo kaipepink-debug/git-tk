@@ -4,8 +4,8 @@
  * incluindo variantes, preços, descontos e estado de carregamento.
  */
 
-import { createContext, useContext, useState, ReactNode } from "react";
-import { PRODUCT } from "@/data/storeContent";
+import { createContext, useContext, useState, useCallback, ReactNode } from "react";
+import { PRODUCTS } from "@/data/storeContent";
 
 /**
  * @interface Variant
@@ -20,6 +20,8 @@ interface Variant {
   oldPrice: number;
   /** Quantidade em estoque */
   stock: number;
+  /** Prazo próprio da versão (pronta entrega × sob encomenda) */
+  delivery?: string;
 }
 
 /**
@@ -51,26 +53,19 @@ interface ProductData {
   default_variant: number;
   /** Badges ou etiquetas promocionais */
   badges: string[];
+  /** Endereço da página do produto ("produto", "buggy") */
+  slug: string;
+  /** Mostra nota e "vendidos" — só onde existem de verdade */
+  social_proof: boolean;
+  /** Oferece os adicionais do carrinho */
+  bumps: boolean;
+  /** Pode receber a oferta de saída */
+  exit_offer: boolean;
+  /** Texto de entrega; vazio usa a estimativa padrão */
+  delivery_text: string;
+  /** Itens da "Proteção do cliente" */
+  protection: string[];
 }
-
-/**
- * @constant defaultProduct
- * @description Estado inicial padrão para o produto antes do carregamento.
- */
-const defaultProduct: ProductData = {
-  id: "",
-  title: "Carregando...",
-  description: "",
-  images: [],
-  cart_image: "",
-  variants: [{ label: "-", price: 0, oldPrice: 0, stock: 0 }],
-  variant_label: "Tamanho",
-  rating: 4.6,
-  rating_count: 0,
-  sold_count: 0,
-  default_variant: 0,
-  badges: [],
-};
 
 /**
  * @interface ProductContextType
@@ -99,7 +94,12 @@ interface ProductContextType {
   product: ProductData;
   /** Indica se os dados estão sendo buscados */
   loading: boolean;
+  /** Troca o produto ativo — chamado pela página de cada produto */
+  setActiveSlug: (slug: string) => void;
 }
+
+/** 24990 → "24.990,00"; 89.75 → "89,75". */
+const brl = (v: number) => v.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
 const ProductContext = createContext<ProductContextType | null>(null);
 
@@ -109,11 +109,40 @@ const ProductContext = createContext<ProductContextType | null>(null);
  * e gerencia o estado da variante selecionada pelo usuário.
  */
 export const ProductProvider = ({ children }: { children: ReactNode }) => {
-  // Conteúdo local — nenhuma consulta ao banco para exibir o produto.
-  const [product] = useState<ProductData>(() => ({ ...PRODUCT, variants: [...PRODUCT.variants] } as ProductData));
-  const [selectedSize, setSelectedSize] = useState(() =>
-    Math.max(0, Math.min(PRODUCT.default_variant, PRODUCT.variants.length - 1)),
-  );
+  // O produto ativo fica na sessão: o carrinho e o checkout não têm endereço
+  // próprio de produto, então precisam lembrar de qual página o cliente veio.
+  const [activeSlug, setActiveSlugState] = useState(() => {
+    try {
+      const salvo = sessionStorage.getItem("produto_ativo");
+      return salvo && PRODUCTS[salvo] ? salvo : "produto";
+    } catch {
+      return "produto";
+    }
+  });
+  const product = PRODUCTS[activeSlug] as unknown as ProductData;
+  // A versão escolhida também fica na sessão, por produto: recarregar o
+  // carrinho não pode trocar a versão que o cliente escolheu.
+  const versaoSalva = (slug: string) => {
+    const p = PRODUCTS[slug];
+    try {
+      const v = Number(sessionStorage.getItem(`versao_${slug}`));
+      if (Number.isInteger(v) && v >= 0 && v < p.variants.length) return v;
+    } catch { /* sem sessão */ }
+    return Math.max(0, Math.min(p.default_variant, p.variants.length - 1));
+  };
+  const [selectedSize, setSelectedSizeState] = useState(() => versaoSalva(activeSlug));
+  const setSelectedSize = useCallback((i: number) => {
+    setSelectedSizeState(i);
+    try { sessionStorage.setItem(`versao_${activeSlug}`, String(i)); } catch { /* sem sessão */ }
+  }, [activeSlug]);
+  const setActiveSlug = useCallback((slug: string) => {
+    if (!PRODUCTS[slug]) return;
+    try { sessionStorage.setItem("produto_ativo", slug); } catch { /* sem sessão: vale só nesta página */ }
+    setActiveSlugState((atual) => {
+      if (atual !== slug) setSelectedSizeState(versaoSalva(slug));
+      return slug;
+    });
+  }, []);
   const loading = false;
 
   const variants = product.variants;
@@ -132,11 +161,12 @@ export const ProductProvider = ({ children }: { children: ReactNode }) => {
         price: s.price,
         oldPrice: s.oldPrice,
         discount,
-        priceDisplay: s.price.toFixed(2).replace(".", ","),
-        oldPriceDisplay: s.oldPrice.toFixed(2).replace(".", ","),
+        priceDisplay: brl(s.price),
+        oldPriceDisplay: brl(s.oldPrice),
         sizeLabel: s.label,
         product,
         loading,
+        setActiveSlug,
       }}
     >
       {children}
