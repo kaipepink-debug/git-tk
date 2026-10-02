@@ -26,7 +26,7 @@ const Carrinho = () => {
   const [qty, setQty] = useState(1);
 
   // Recupera dados do produto do contexto global
-  const { price, oldPrice, discount, priceDisplay, oldPriceDisplay, product, sizeLabel } = useProduct();
+  const { price, oldPrice, discount, priceDisplay, oldPriceDisplay, product, sizeLabel, loading } = useProduct();
 
   // Ofertas adicionais (order bumps) escolhidas pelo cliente
   const [bumpIds, setBumpIds] = useState<string[]>(() => (product.bumps ? getSelectedBumps().map((b) => b.id) : []));
@@ -57,6 +57,10 @@ const Carrinho = () => {
   const productName = product.title
     ? product.title.substring(0, 40) + "..." + (product.variants.length > 1 ? ` · ${sizeLabel}` : "")
     : "Produto";
+
+  // Até o catálogo do banco chegar, o preço na tela pode não ser o que o Pix
+  // vai cobrar — melhor não mostrar nada por esse instante.
+  if (loading) return <div className="min-h-screen bg-secondary" />;
 
   return (
     <div className="min-h-screen bg-secondary max-w-lg mx-auto flex flex-col" style={{ fontFamily: "-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Oxygen,Ubuntu,Cantarell,sans-serif" }}>

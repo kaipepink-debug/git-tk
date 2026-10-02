@@ -58,7 +58,7 @@ const FinalizarCompra = () => {
     }
   }, []);
 
-  const { price: originalPrice, oldPrice, discount, priceDisplay: originalPriceDisplay, oldPriceDisplay, product, sizes, selectedSize, sizeLabel } = useProduct();
+  const { price: originalPrice, oldPrice, discount, priceDisplay: originalPriceDisplay, oldPriceDisplay, product, sizes, selectedSize, sizeLabel, loading: carregandoCatalogo } = useProduct();
   const prazoVersao = sizes[selectedSize]?.delivery;
 
   // Verifica se existe uma oferta especial de retenção (exit-intent) ativa na sessão
@@ -90,6 +90,10 @@ const FinalizarCompra = () => {
   useEffect(() => { if (freteIncluso) setFrete("gratis"); }, [freteIncluso]);
   const total = (frete === "gratis" ? price * qty : price * qty + freteExpresso) + bumpsTotal;
 
+
+  // Até o catálogo do banco chegar, o preço na tela pode não ser o que o Pix
+  // vai cobrar — melhor não mostrar nada por esse instante.
+  if (carregandoCatalogo) return <div className="min-h-screen bg-secondary" />;
 
   return (
     <div className="min-h-screen w-full bg-secondary max-w-lg mx-auto flex flex-col pb-4 overflow-x-hidden" style={{ fontFamily: "-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Oxygen,Ubuntu,Cantarell,sans-serif" }}>

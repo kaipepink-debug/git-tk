@@ -4,8 +4,10 @@
  * incluindo variantes, preços, descontos e estado de carregamento.
  */
 
-import { createContext, useContext, useState, useCallback, ReactNode } from "react";
-import { PRODUCTS } from "@/data/storeContent";
+import { createContext, useContext, useState, useCallback, useEffect, useRef, ReactNode } from "react";
+import { PRODUCTS, type StoreProduct } from "@/data/storeContent";
+import { carregaCatalogo, SLUG_VALIDO } from "@/lib/catalogo";
+import { definePixelId } from "@/lib/tracking/tiktok";
 
 /**
  * @interface Variant
@@ -92,8 +94,10 @@ interface ProductContextType {
   sizeLabel: string;
   /** Dados completos do produto */
   product: ProductData;
-  /** Indica se os dados estão sendo buscados */
+  /** true enquanto o catálogo do banco ainda não chegou */
   loading: boolean;
+  /** O produto pedido existe (no banco ou no código de reserva) */
+  encontrado: boolean;
   /** Troca o produto ativo — chamado pela página de cada produto */
   setActiveSlug: (slug: string) => void;
 }
@@ -109,21 +113,30 @@ const ProductContext = createContext<ProductContextType | null>(null);
  * e gerencia o estado da variante selecionada pelo usuário.
  */
 export const ProductProvider = ({ children }: { children: ReactNode }) => {
+  // O catálogo nasce do código (reserva) e é trocado pelo do banco assim que
+  // ele chega — é o banco que o painel /admin edita e que o Pix cobra.
+  const [catalogo, setCatalogo] = useState<Record<string, StoreProduct>>(PRODUCTS);
+  const catalogoRef = useRef(catalogo);
+  catalogoRef.current = catalogo;
+  const [loading, setLoading] = useState(true);
+
   // O produto ativo fica na sessão: o carrinho e o checkout não têm endereço
   // próprio de produto, então precisam lembrar de qual página o cliente veio.
   const [activeSlug, setActiveSlugState] = useState(() => {
     try {
       const salvo = sessionStorage.getItem("produto_ativo");
-      return salvo && PRODUCTS[salvo] ? salvo : "produto";
+      return salvo && SLUG_VALIDO.test(salvo) ? salvo : "produto";
     } catch {
       return "produto";
     }
   });
-  const product = PRODUCTS[activeSlug] as unknown as ProductData;
+  const encontrado = Boolean(catalogo[activeSlug]);
+  const product = (catalogo[activeSlug] ?? catalogo.produto ?? PRODUCTS.produto) as unknown as ProductData;
+
   // A versão escolhida também fica na sessão, por produto: recarregar o
   // carrinho não pode trocar a versão que o cliente escolheu.
   const versaoSalva = (slug: string) => {
-    const p = PRODUCTS[slug];
+    const p = catalogoRef.current[slug] ?? PRODUCTS.produto;
     try {
       const v = Number(sessionStorage.getItem(`versao_${slug}`));
       if (Number.isInteger(v) && v >= 0 && v < p.variants.length) return v;
@@ -136,14 +149,37 @@ export const ProductProvider = ({ children }: { children: ReactNode }) => {
     try { sessionStorage.setItem(`versao_${activeSlug}`, String(i)); } catch { /* sem sessão */ }
   }, [activeSlug]);
   const setActiveSlug = useCallback((slug: string) => {
-    if (!PRODUCTS[slug]) return;
+    if (!SLUG_VALIDO.test(slug)) return;
     try { sessionStorage.setItem("produto_ativo", slug); } catch { /* sem sessão: vale só nesta página */ }
     setActiveSlugState((atual) => {
       if (atual !== slug) setSelectedSizeState(versaoSalva(slug));
       return slug;
     });
+  // versaoSalva lê o catálogo pela ref, então não precisa entrar aqui
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-  const loading = false;
+
+  useEffect(() => {
+    let vivo = true;
+    carregaCatalogo().then((r) => {
+      if (!vivo) return;
+      if (r) {
+        // Produto do código que o painel desativou some da vitrine também.
+        setCatalogo(r.produtos);
+        definePixelId(r.pixel);
+      } else {
+        definePixelId(null);
+      }
+      setLoading(false);
+    });
+    return () => { vivo = false; };
+  }, []);
+
+  // A versão salva pode não existir mais se o painel tirou versões.
+  useEffect(() => {
+    const p = catalogo[activeSlug];
+    if (p && selectedSize >= p.variants.length) setSelectedSizeState(0);
+  }, [catalogo, activeSlug, selectedSize]);
 
   const variants = product.variants;
   // Obtém a variante selecionada ou cai para a primeira disponível
@@ -166,6 +202,7 @@ export const ProductProvider = ({ children }: { children: ReactNode }) => {
         sizeLabel: s.label,
         product,
         loading,
+        encontrado,
         setActiveSlug,
       }}
     >

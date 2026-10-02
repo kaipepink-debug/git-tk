@@ -33,7 +33,16 @@ serve(async (req) => {
     try { body = await req.json(); } catch { return json({ error: 'Corpo da requisição inválido' }, 400); }
 
     // ===== Valor calculado SOMENTE no servidor =====
-    const priced = priceOrder(body?.items);
+    // O preço sai da tabela `products` — a mesma que o painel edita e a vitrine lê.
+    const slug = typeof body?.items?.product === 'string' && body.items.product ? body.items.product : 'produto';
+    const banco = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
+    const { data: catalogo, error: erroCatalogo } = await banco
+      .from('products').select('slug, title, variants').eq('slug', slug).eq('active', true).maybeSingle();
+    if (erroCatalogo) {
+      console.error('Erro ao ler o produto:', erroCatalogo.message);
+      return json({ error: 'Não foi possível carregar o produto. Tente novamente.' }, 503);
+    }
+    const priced = priceOrder(body?.items, catalogo);
     if (!priced.ok) return json({ error: priced.error }, 400);
     const { total, qty, items } = priced.order;
 

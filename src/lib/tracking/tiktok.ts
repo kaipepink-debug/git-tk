@@ -16,8 +16,29 @@
 import { isAdsTrackingAllowed, onConsentChange } from "@/lib/consent";
 import { captureAttribution, getAttribution, getTrackingSessionId } from "@/lib/tracking/attribution";
 
-/** ID público do Pixel do TikTok (valor público, pode ficar no navegador). */
+/**
+ * ID público do Pixel do TikTok. Este é a RESERVA: o valor que vale é o salvo no
+ * painel /admin (tabela `settings`), entregue por `definePixelId` assim que o
+ * catálogo carrega. Vazio no painel = pixel desligado.
+ */
 export const TIKTOK_PIXEL_ID = "DAH37V3C77UDHLL3Q7Q0";
+let pixelId = TIKTOK_PIXEL_ID;
+
+/** O pixel só carrega depois de saber qual ID usar (ou de desistir de esperar). */
+let liberaPixel: () => void = () => {};
+const pixelDefinido = new Promise<void>((resolve) => {
+  liberaPixel = resolve;
+  setTimeout(resolve, 3000); // banco fora do ar: segue com a reserva
+});
+
+/**
+ * Recebe o ID salvo no painel. `null` = não deu para ler o banco, mantém a
+ * reserva; texto vazio = desligado.
+ */
+export function definePixelId(id: string | null) {
+  if (id !== null) pixelId = id.trim();
+  liberaPixel();
+}
 
 /** Chave onde guardamos os event_id já disparados (proteção contra duplicidade). */
 const FIRED_KEY = "tt_fired_events_v1";
@@ -160,6 +181,10 @@ export function wasFired(eventId: string): boolean {
  */
 export async function loadTikTokPixel(): Promise<boolean> {
   if (typeof window === "undefined") return false;
+  // Espera ANTES de qualquer outra conferência: duas chamadas ao mesmo tempo
+  // acordam juntas, e a segunda já encontra o window.ttq criado pela primeira.
+  await pixelDefinido;
+  if (!pixelId) return false;
   if (window.ttq) return true;
   if (pixelLoading) return false;
 
@@ -203,7 +228,7 @@ export async function loadTikTokPixel(): Promise<boolean> {
       script.src = `${cdn}?sdkid=${id}&lib=${t}`;
       d.getElementsByTagName("head")[0].appendChild(script);
     };
-    ttq.load(TIKTOK_PIXEL_ID);
+    ttq.load(pixelId);
   })(window, document, "ttq");
 
   return true;

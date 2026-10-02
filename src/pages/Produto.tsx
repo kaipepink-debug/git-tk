@@ -65,7 +65,7 @@ const Produto = () => {
   // Pré-venda configurada localmente
   const presellEnabled = PRESELL.enabled;
 
-  const { setActiveSlug, product } = useProduct();
+  const { setActiveSlug, product, loading } = useProduct();
   useEffect(() => { setActiveSlug("produto"); }, [setActiveSlug]);
 
   /**
@@ -82,7 +82,7 @@ const Produto = () => {
   // Trackers de análise de tráfego
 
   // Até o contexto voltar para o produto principal, não desenha o buggy aqui.
-  if (product.slug !== "produto") return <div className="min-h-screen bg-secondary" />;
+  if (loading || product.slug !== "produto") return <div className="min-h-screen bg-secondary" />;
 
   return (
     <>
