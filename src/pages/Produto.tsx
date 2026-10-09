@@ -12,6 +12,7 @@ import FlashSaleTimer from "@/components/FlashSaleTimer";
 import ProductInfo from "@/components/ProductInfo";
 import ProductDescription from "@/components/ProductDescription";
 import StoreInfo from "@/components/StoreInfo";
+import ReviewsSection from "@/components/ReviewsSection";
 import Footer from "@/components/Footer";
 import BottomBar from "@/components/BottomBar";
 import PreSell from "@/components/PreSell";
@@ -94,6 +95,7 @@ const Produto = () => {
         <ProductInfo />
         <ProductDescription />
         <StoreInfo />
+        <ReviewsSection />
         <Footer />
         <BottomBar />
       </div>

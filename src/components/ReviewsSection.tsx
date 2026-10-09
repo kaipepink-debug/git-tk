@@ -1,34 +1,34 @@
 import { Star, X, ChevronLeft, ChevronRight } from "lucide-react";
 import { useState, useEffect, useCallback } from "react";
 import { useProduct } from "@/contexts/ProductContext";
-import { REVIEWS } from "@/data/storeContent";
+import { supabase } from "@/integrations/supabase/client";
 
 /** Lista de abreviações dos meses em português */
 const months = ["jan.", "fev.", "mar.", "abr.", "mai.", "jun.", "jul.", "ago.", "set.", "out.", "nov.", "dez."];
 
-/**
- * Formata uma data baseada em quantos dias atrás a avaliação foi feita.
- * @param daysAgo Quantidade de dias passados
- * @returns String formatada (ex: 12 jan. 2024)
- */
-const formatDate = (daysAgo: number) => {
-  const d = new Date();
-  d.setDate(d.getDate() - daysAgo);
+const formatDate = (iso: string) => {
+  const d = new Date(iso);
   return `${String(d.getDate()).padStart(2, "0")} ${months[d.getMonth()]} ${d.getFullYear()}`;
 };
 
-
-/** Interface para o objeto de avaliação do produto */
+/**
+ * Uma avaliação como o banco guarda. Toda linha de `reviews` aponta para um
+ * pedido PAGO deste produto (a regra mora no banco), então a nota e a contagem
+ * desta seção são de compradores — e não números escritos à mão.
+ */
 interface Review {
   id: string;
-  reviewer_name: string;
-  reviewer_initial: string;
-  avatar_url: string | null;
+  created_at: string;
   rating: number;
-  review_text: string;
+  author_name: string;
+  author_city: string;
+  body: string;
   photos: string[];
-  days_ago: number;
 }
+
+// `reviews` ainda não está nos tipos gerados do cliente.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const db = supabase as any;
 
 const INITIAL_COUNT = 5;
 const LOAD_MORE_COUNT = 10;
@@ -142,31 +142,43 @@ const MediaCarousel = ({
 };
 
 /**
- * Componente de Seção de Avaliações.
- * Exibe a nota média, contador de avaliações e a lista de feedbacks dos clientes
- * com suporte a fotos, vídeos e paginação (carregar mais).
+ * Avaliações do produto, lidas da tabela `reviews`. A nota média e a contagem
+ * são calculadas aqui, a partir das avaliações visíveis — não existe campo para
+ * digitá-las.
  */
 const ReviewsSection = () => {
   const { product } = useProduct();
-  const reviews: Review[] = REVIEWS;
+  const [reviews, setReviews] = useState<Review[]>([]);
   const [visibleCount, setVisibleCount] = useState(INITIAL_COUNT);
   const [carousel, setCarousel] = useState<{ items: string[]; index: number } | null>(null);
 
+  useEffect(() => {
+    let vivo = true;
+    db.from("reviews")
+      .select("id, created_at, rating, author_name, author_city, body, photos")
+      .eq("product_slug", product.slug)
+      .eq("visible", true)
+      .order("created_at", { ascending: false })
+      .then(({ data }: { data: Review[] | null }) => { if (vivo) setReviews(data ?? []); });
+    return () => { vivo = false; };
+  }, [product.slug]);
+
+  // Sem avaliação, a seção não aparece: nada de "0 avaliações" nem de nota zero.
   if (reviews.length === 0) return null;
 
   const totalReviews = reviews.length;
-  const displayTotal = product.rating_count || totalReviews;
+  const media = reviews.reduce((a, r) => a + r.rating, 0) / totalReviews;
   const visibleReviews = reviews.slice(0, visibleCount);
-  const remaining = displayTotal - visibleCount;
+  const remaining = totalReviews - visibleCount;
 
   return (
     <>
       <div className="bg-background px-4 py-4 mt-2">
         {/* Cabeçalho da seção com nota média */}
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-base font-bold text-foreground">Avaliações dos clientes ({displayTotal})</h3>
+          <h3 className="text-base font-bold text-foreground">Avaliações de quem comprou ({totalReviews})</h3>
           <div className="flex items-center gap-1">
-            <span className="text-lg font-bold text-foreground">{product.rating}</span>
+            <span className="text-lg font-bold text-foreground">{media.toLocaleString("pt-BR", { minimumFractionDigits: 1, maximumFractionDigits: 1 })}</span>
             <span className="text-muted-foreground text-sm">/5</span>
           </div>
         </div>
@@ -177,16 +189,14 @@ const ReviewsSection = () => {
             <div key={review.id} className="border-b border-border pb-4 last:border-0">
               {/* Autor da avaliação */}
               <div className="flex items-center gap-2 mb-2">
-                {review.avatar_url ? (
-                  <img src={review.avatar_url} alt="" className="w-8 h-8 rounded-full object-cover" loading="lazy" decoding="async" width={32} height={32} data-fade="" />
-                ) : (
-                  <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground text-sm font-bold">
-                    {review.reviewer_initial}
-                  </div>
-                )}
+                <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground text-sm font-bold">
+                  {review.author_name.trim().charAt(0).toUpperCase()}
+                </div>
                 <div>
-                  <div className="text-sm font-medium text-foreground">{review.reviewer_name}</div>
-                  <div className="text-xs text-muted-foreground">{formatDate(review.days_ago)}</div>
+                  <div className="text-sm font-medium text-foreground">
+                    {review.author_name}{review.author_city ? <span className="text-muted-foreground font-normal"> · {review.author_city}</span> : null}
+                  </div>
+                  <div className="text-xs text-muted-foreground">{formatDate(review.created_at)} · compra confirmada</div>
                 </div>
               </div>
               {/* Estrelas da avaliação */}
@@ -203,8 +213,8 @@ const ReviewsSection = () => {
                 ))}
               </div>
               {/* Texto da avaliação */}
-              {review.review_text && (
-                <p className="text-sm text-foreground/80 mb-2">{review.review_text}</p>
+              {review.body && (
+                <p className="text-sm text-foreground/80 mb-2 whitespace-pre-line">{review.body}</p>
               )}
               {/* Fotos e vídeos anexados pelo cliente */}
               {review.photos.length > 0 && (
@@ -230,7 +240,7 @@ const ReviewsSection = () => {
             onClick={() => setVisibleCount((prev) => Math.min(prev + LOAD_MORE_COUNT, totalReviews))}
             className="w-full text-center text-sm text-primary font-semibold mt-3 py-2"
           >
-            Ver mais avaliações ({displayTotal - visibleCount} restantes)
+            Ver mais avaliações ({totalReviews - visibleCount} restantes)
           </button>
         )}
       </div>

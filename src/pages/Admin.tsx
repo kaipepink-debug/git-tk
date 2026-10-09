@@ -8,12 +8,14 @@
  * (is_admin), que confere o e-mail do login. Esta tela só esconde o formulário
  * de quem não é administrador — esconder não é proteger.
  *
- * Nota, "vendidos" e avaliações ficam de fora de propósito: só podem vir de
- * vendas e avaliações de verdade.
+ * Nota e "vendidos" ficam de fora de propósito: só podem vir de vendas. As
+ * avaliações têm seção própria (AvaliacoesAdmin), e cada uma é presa a um
+ * pedido pago — a nota que a página mostra é a média delas.
  */
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import AvaliacoesAdmin from "@/components/AvaliacoesAdmin";
 import { daLinha, enderecoDoProduto, SLUG_VALIDO, type ProdutoBanco, type VersaoBanco } from "@/lib/catalogo";
 
 // `products` e `settings` não estão nos tipos gerados do cliente.
@@ -444,6 +446,8 @@ const Admin = () => {
             ))}
           </ul>
         </div>
+
+        <AvaliacoesAdmin />
 
         <div className="mt-4 rounded-2xl bg-white p-5 shadow">
           <h2 className="font-semibold">Pixel do TikTok</h2>
