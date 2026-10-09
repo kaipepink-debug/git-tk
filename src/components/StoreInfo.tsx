@@ -1,9 +1,10 @@
-import { Star } from "lucide-react";
 import { STORE_NAME } from "@/data/storeContent";
 
 /**
  * Componente que exibe informações básicas sobre a loja/vendedor.
- * Mostra o avatar da loja, nome, status online e estatísticas (nota, vendas, avaliações positivas).
+ * Mostra o avatar da loja, nome e status online. Sem nota nem contagem de vendas:
+ * os números que ficavam aqui (4.98, +16 mil vendas, 98% positivas) não vinham de
+ * venda nenhuma, e saíram em 09/10/2026. Se um dia voltarem, têm de sair do banco.
  */
 const StoreInfo = () => {
   return (
@@ -32,17 +33,6 @@ const StoreInfo = () => {
             </div>
           </div>
 
-          {/* Estatísticas da Loja (Nota, Vendas e Positividade) */}
-          <div className="flex items-center gap-2 mt-1">
-            <div className="flex items-center gap-0.5">
-              <Star className="w-3 h-3 fill-star text-star" />
-              <span className="text-xs font-semibold text-foreground">4.98</span>
-            </div>
-            <span className="text-muted-foreground text-[10px]">|</span>
-            <span className="text-xs text-muted-foreground whitespace-nowrap">+16 mil vendas</span>
-            <span className="text-muted-foreground text-[10px]">|</span>
-            <span className="text-xs text-muted-foreground whitespace-nowrap">98% positivas</span>
-          </div>
         </div>
       </div>
     </div>
